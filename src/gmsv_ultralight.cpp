@@ -33,7 +33,7 @@ public:
 		Config config;
 		Msg("c++: MyApp: Config created\n");
 
-		config.device_scale_hint = 2.0;
+		config.device_scale_hint = 1.0;
 		config.font_family_standard = "Arial";
 		Platform::instance().set_config(config);
 		Msg("c++: MyApp: Platform setted config\n");
@@ -41,7 +41,7 @@ public:
 		renderer_ = Renderer::Create();
 		Msg("c++: MyApp: Renderer created\n");
 
-		view_ = renderer_->CreateView(64, 64, false);
+		view_ = renderer_->CreateView(256, 256, false);
 		Msg("c++: MyApp: Renderer created view\n");
 
 		view_->set_load_listener(this);
@@ -92,7 +92,12 @@ LUA_FUNCTION(RenderImage) {
 	uint8_t* adress = (uint8_t*)app.view_->bitmap()->LockPixels();
 	//adress = view_->bitmap()->raw_pixels();
 	//size_t sizeofadress = sizeof((uint8_t)adress);
-	Msg("c++: GetField(surface)");
+	std::to_string(app.view_->width());
+	Msg("c++: Rendering on surface (width: "); //#include <string> 
+	Msg(std::to_string(app.view_->width()).c_str());
+	Msg(", height: ");
+	Msg(std::to_string(app.view_->width()).c_str());
+	Msg(" )\n");
 	LUA->GetField(-1, "surface");
 	uint32_t i = 0;
 	for (uint16_t y = 0; y < app.view_->height(); y++)
@@ -114,31 +119,11 @@ LUA_FUNCTION(RenderImage) {
 			LUA->Call(4, 0);
 		}
 	}
+	Msg("c++: Render end");
 	LUA->Pop();
 
 	return 0;
 }
-/*
-int MyExampleFunction(lua_State* state)
-{
-	ILuaBase * LUA = state->luabase;
-	if (LUA->IsType(1, Type::Number))
-	{
-		MyApp app;
-		app.Run();
-		char strOut[512];
-		float fNumber = LUA->GetNumber(1);
-		sprintf(strOut, "Thanks for the number - I love %f!!", fNumber);
-		LUA->PushSpecial(GarrysMod::Lua::SPECIAL_GLOB);
-		LUA->GetField(-1, "print");
-		LUA->PushString(strOut);
-		LUA->Call(1, 0);
-		LUA->Pop(1);
-		return 0;
-	}
-	LUA->PushString("This string is returned");
-	return 1;
-}*/
 
 GMOD_MODULE_OPEN()
 {
