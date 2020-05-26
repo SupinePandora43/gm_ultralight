@@ -15,12 +15,12 @@
 using namespace GarrysMod::Lua;
 using namespace ultralight;
 
-#ifdef _WIN64
 typedef void* (__cdecl* MsgFn)(const char*, ...);
 MsgFn Msg;
+/*#ifdef _WIN64
 #else
 void Msg(const char*, ...) {}
-#endif
+#endif*/
 
 class MyApp : public LoadListener {
 	RefPtr<Renderer> renderer_;
