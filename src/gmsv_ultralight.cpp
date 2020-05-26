@@ -15,7 +15,7 @@
 using namespace GarrysMod::Lua;
 using namespace ultralight;
 
-#ifdef _DEBUG
+#ifdef _WIN64
 typedef void* (__cdecl* MsgFn)(const char*, ...);
 MsgFn Msg;
 #else
@@ -92,11 +92,6 @@ LUA_FUNCTION(RenderImage) {
 	uint8_t* adress = (uint8_t*)app.view_->bitmap()->LockPixels();
 	//adress = view_->bitmap()->raw_pixels();
 	//size_t sizeofadress = sizeof((uint8_t)adress);
-	int data[4 * 4 * 4] = {};
-	for (size_t i = 0; i < 4 * 4 * 4; i++)
-	{
-		data[i] = (int)adress[i];
-	}
 	Msg("c++: GetField(surface)");
 	LUA->GetField(-1, "surface");
 	uint32_t i = 0;
@@ -104,22 +99,18 @@ LUA_FUNCTION(RenderImage) {
 	{
 		for (uint16_t x = 0; x < app.view_->width(); x++)
 		{
-			Msg("c++: GetField(SetDrawColor)");
 			LUA->GetField(-1, "SetDrawColor");
-			LUA->PushNumber(data[i+2]);//R
-			LUA->PushNumber(data[i+1]);//G
-			LUA->PushNumber(data[i]);//B
-			LUA->PushNumber(data[i+3]);//A
-			i += 4;
-			Msg("c++: Call(4,2)");
+			LUA->PushNumber(adress[i + 2]);//R
+			LUA->PushNumber(adress[i + 1]);//G
+			LUA->PushNumber(adress[i]);//B
+			LUA->PushNumber(adress[i + 3]);//A
+			i = i + 4;
 			LUA->Call(4, 0);
-			Msg("c++: GetField(DrawRect)");
 			LUA->GetField(-1, "DrawRect");
 			LUA->PushNumber(x);
 			LUA->PushNumber(y);
 			LUA->PushNumber(1);
 			LUA->PushNumber(1);
-			Msg("c++: Call(4,2)");
 			LUA->Call(4, 0);
 		}
 	}
