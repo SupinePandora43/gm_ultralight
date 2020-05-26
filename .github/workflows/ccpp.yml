@@ -13,7 +13,12 @@ jobs:
 
     steps:
     - uses: actions/checkout@v2
-    - run: cmake --build .
+    - name: configure
+      run: mkdir build && cd build && cmake -DCMAKE_CXX_FLAGS="-Werror" ..
+    - name: build
+      run: cmake --build build
+    - name: test
+      run: cd build && ctest
     #- name: make
     #  run: make
     #- name: make check
