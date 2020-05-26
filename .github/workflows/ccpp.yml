@@ -7,7 +7,7 @@ on:
     branches: [ master ]
 
 jobs:
- build-linux:
+  build-linux:
 
     runs-on: windows-latest
 
