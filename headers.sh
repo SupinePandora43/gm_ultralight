@@ -1,4 +1,4 @@
-#!bash
+#!/bin/bash
 rd include /S /Q
 mkdir include
 

@@ -13,7 +13,9 @@ jobs:
 
     steps:
     - uses: actions/checkout@v2
-    - run: sudo ./headers
+    - run: chmod +x ./headers.sh
+    - run: source ./headers.sh
+    #- run: sudo ./headers
     - name: configure
       run: mkdir build && cd build && cmake -DCMAKE_CXX_FLAGS="-Werror" ..
     - name: build
