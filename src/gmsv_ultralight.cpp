@@ -21,13 +21,13 @@ MsgFn Msg;
 #else
 void Msg(const char*, ...) {}
 #endif
-MyApp app;
-class MyApp : LoadListener {
+
+class MyApp : public LoadListener {
 	RefPtr<Renderer> renderer_;
 	bool done_ = false;
 public:
 	RefPtr<View> view_;
-	MyApp(String usless) {
+	MyApp() {
 		Msg("c++: MyApp: Creating...\n");
 
 		Config config;
@@ -41,7 +41,7 @@ public:
 		renderer_ = Renderer::Create();
 		Msg("c++: MyApp: Renderer created\n");
 
-		view_ = renderer_->CreateView(256, 256, false);
+		view_ = renderer_->CreateView(64, 64, false);
 		Msg("c++: MyApp: Renderer created view\n");
 
 		view_->set_load_listener(this);
@@ -82,7 +82,7 @@ LUA_FUNCTION(RenderImage) {
 	//LUA->GetField(-2, "print");
 	//LUA->PushString("c++: RenderImage() called");
 	//LUA->Call(1, 0);
-	
+	MyApp app;
 	Msg("c++: app created\n");
 	app.SetURL();
 	Msg("c++: app.SetURL() is done\n");
@@ -99,10 +99,10 @@ LUA_FUNCTION(RenderImage) {
 	}
 	Msg("c++: GetField(surface)");
 	LUA->GetField(-1, "surface");
-	uint16_t i = 0;
-	for (uint16_t y = 0; y < 256; y++)//app.view_->height()
+	uint32_t i = 0;
+	for (uint16_t y = 0; y < app.view_->height(); y++)
 	{
-		for (uint16_t x = 0; x < 256; x++)//app.view_->width()
+		for (uint16_t x = 0; x < app.view_->width(); x++)
 		{
 			Msg("c++: GetField(SetDrawColor)");
 			LUA->GetField(-1, "SetDrawColor");
@@ -110,7 +110,7 @@ LUA_FUNCTION(RenderImage) {
 			LUA->PushNumber(data[i+1]);//G
 			LUA->PushNumber(data[i]);//B
 			LUA->PushNumber(data[i+3]);//A
-			i += 3;
+			i += 4;
 			Msg("c++: Call(4,2)");
 			LUA->Call(4, 0);
 			Msg("c++: GetField(DrawRect)");
@@ -151,7 +151,7 @@ int MyExampleFunction(lua_State* state)
 
 GMOD_MODULE_OPEN()
 {
-#ifdef _WIN64
+#ifdef _WIN32
 	Msg = reinterpret_cast<MsgFn>(GetProcAddress(GetModuleHandleA("tier0.dll"), "Msg"));
 #elif __linux__
 	Msg = reinterpret_cast<MsgFn>(dlsym(dlopen("tier0.so", RTLD_LAZY), "Msg"));
@@ -160,7 +160,6 @@ GMOD_MODULE_OPEN()
 	LUA->PushSpecial(GarrysMod::Lua::SPECIAL_GLOB);
 
 	Msg("c++: Module opening...\n");
-	app = new MyApp("");
 	LUA->PushString("ultralight_render");
 	LUA->PushCFunction(RenderImage);
 	//LUA->SetField(-3, "ultralight_render");
