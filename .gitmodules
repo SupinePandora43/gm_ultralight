@@ -1,4 +1,0 @@
-[submodule "include"]
-	path = include
-	url = https://github.com/ultralight-ux/Ultralight-API.git
-	branch = master

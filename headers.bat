@@ -1,3 +1,7 @@
+mkdir include
+cd include
+git clone https://github.com/ultralight-ux/Ultralight-API .
+cd ..
 mkdir include\GarrysMod
 mkdir include\GarrysMod\Lua
 
