@@ -24,9 +24,11 @@ void Msg(const char*, ...) {}
 
 class MyApp : public LoadListener {
 	RefPtr<Renderer> renderer_;
+  RefPtr<View> view_;
+  lua_State *lua_ = nullptr;
 	bool done_ = false;
+  uint8_t* adr_ = nullptr;
 public:
-	RefPtr<View> view_;
 	MyApp() {
 		Msg("c++: MyApp: Creating...\n");
 
@@ -49,25 +51,95 @@ public:
 
 		//Msg("c++: MyApp: view loaded url\n");
 	}
-	void SetURL() {
+  
+  void SetState(lua_State *L)
+  {
+    lua_ = (lua_State *)L;
+  }
+  
+  void SetBitmap()
+  {
+    if(view_ != nullptr)
+    {
+      adr_ = (uint8_t*)view_->bitmap()->LockPixels();
+    }
+  }
+  
+	void SetURL()
+  {
 		this->SetURL("https://google.com");
 	}
+  
 	void SetURL(String url) {
 		view_->LoadURL(url);
 	}
-	virtual ~MyApp() {
+  
+  void GetField(const char *name)
+  {
+    if(lua_ != nullptr && name != nullptr)
+    {
+      lua_->GetField(-1, name);
+    }
+  }
+  
+  void SetDrawColor(uint32_t i)
+  {
+    if(lua_ != nullptr && adr_ != nullptr)
+    {
+      GetField("SetDrawColor")
+      lua_->PushNumber(adr_[i + 2]);//R
+      lua_->PushNumber(adr_[i + 1]);//G
+      lua_->PushNumber(adr_[i + 0]);//B
+      lua_->PushNumber(adr_[i + 3]);//A
+      lua_->Call(4, 0);
+    }
+  }
+  
+  void DrawPixel(uint16_t x, uint16_t y)
+  {
+    if(lua_ != nullptr)
+    {
+      GetField("DrawRect")
+      lua_->PushNumber(x);
+      lua_->PushNumber(y);
+      lua_->PushNumber(1);
+      lua_->PushNumber(1);
+      lua_->Call(4, 0);
+    }
+  }
+  
+	virtual ~MyApp()
+  {
 		view_ = nullptr;
 		renderer_ = nullptr;
+    adr_ = nullptr;
 	}
 
-	void Run() {
+	void Run()
+  {
 		std::cout << "Starting Run(), waiting for page to load..." << std::endl;
 		while (!done_)
 			renderer_->Update();
 		std::cout << "Finished." << std::endl;
 	}
-
-	virtual void OnFinishLoading(ultralight::View* caller) {
+  
+  void Draw()
+  {
+    GetField("surface")
+    uint16_t w = view_->width();
+    uint16_t h = view_->height();
+    for (uint16_t y = 0; y < h; y++)
+    {
+      for (uint16_t x = 0; x < w; x++)
+      {
+        SetDrawColor((uint32_t)x * 4 + (uint32_t)y * w);
+        DrawPixel(x, y);
+      }
+    }
+  }
+  
+	virtual void OnFinishLoading(ultralight::View* caller)
+  {
 		Msg("c++: Page loaded");
 		renderer_->Render();
 		view_->bitmap()->WritePNG("result.png");
@@ -88,34 +160,14 @@ LUA_FUNCTION(RenderImage) {
 	Msg("c++: app.SetURL() is done\n");
 	app.Run();
 	Msg("c++: app.Run() is done\n");
-
-	uint8_t* adress = (uint8_t*)app.view_->bitmap()->LockPixels();
+  app.SetBitmap()
+  Msg("c++: app.SetBitmap() is done\n");
+  app.SetState(LUA);
+  Msg("c++: app.SetState() is done\n");
 	//adress = view_->bitmap()->raw_pixels();
 	//size_t sizeofadress = sizeof((uint8_t)adress);
-	Msg("c++: GetField(surface)");
-	LUA->GetField(-1, "surface");
-	uint32_t i = 0;
-	for (uint16_t y = 0; y < app.view_->height(); y++)
-	{
-		for (uint16_t x = 0; x < app.view_->width(); x++)
-		{
-			LUA->GetField(-1, "SetDrawColor");
-			LUA->PushNumber(adress[i + 2]);//R
-			LUA->PushNumber(adress[i + 1]);//G
-			LUA->PushNumber(adress[i]);//B
-			LUA->PushNumber(adress[i + 3]);//A
-			i = i + 4;
-			LUA->Call(4, 0);
-			LUA->GetField(-1, "DrawRect");
-			LUA->PushNumber(x);
-			LUA->PushNumber(y);
-			LUA->PushNumber(1);
-			LUA->PushNumber(1);
-			LUA->Call(4, 0);
-		}
-	}
+  app.Draw();
 	LUA->Pop();
-
 	return 0;
 }
 /*
