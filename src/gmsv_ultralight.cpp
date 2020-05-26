@@ -113,6 +113,7 @@ public:
 		view_ = nullptr;
 		renderer_ = nullptr;
 		adr_ = nullptr;
+		lua_ = nullptr;
 	}
 
 	void Run()
