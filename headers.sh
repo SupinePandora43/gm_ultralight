@@ -4,8 +4,8 @@ mkdir include
 
 git clone https://github.com/ultralight-ux/Ultralight-API ./include/
 
-mkdir include\\GarrysMod
-mkdir include\\GarrysMod\\Lua
+mkdir include/GarrysMod
+mkdir include/GarrysMod/Lua
 
 cd include
 
