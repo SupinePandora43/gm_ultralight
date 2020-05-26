@@ -92,7 +92,6 @@ LUA_FUNCTION(RenderImage) {
 	uint8_t* adress = (uint8_t*)app.view_->bitmap()->LockPixels();
 	//adress = view_->bitmap()->raw_pixels();
 	//size_t sizeofadress = sizeof((uint8_t)adress);
-	std::to_string(app.view_->width());
 	Msg("c++: Rendering on surface (width: "); //#include <string> 
 	Msg(std::to_string(app.view_->width()).c_str());
 	Msg(", height: ");

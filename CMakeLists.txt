@@ -1,5 +1,10 @@
 ﻿cmake_minimum_required (VERSION 3.9)
 project (gmsv_ultralight CXX)
+if(CMAKE_COMPILER_IS_GNUCXX)
+    message(STATUS "GCC detected, adding compile flags")
+    set(CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} -std=c++98 -pedantic -Wall -Wextra")
+endif(CMAKE_COMPILER_IS_GNUCXX)
+
 add_compile_definitions("GMMODULE")
 #set ( CMAKE_WINDOWS_EXPORT_ALL_SYMBOLS ON )
 #set(TPN_WIN32 "/EHsc")
@@ -12,7 +17,9 @@ link_libraries(UltralightCore Ultralight WebCore)
    #     "include"
    # )
 #set( SOURCE_LIB src )
+
 add_library(gmsv_ultralight SHARED "src/gmsv_ultralight.cpp") #"include/dlfcn.h"
+set(ultralight "gmsv_ultralight_")
 if(WIN32)
 	set_target_properties(gmsv_ultralight PROPERTIES OUTPUT_NAME "${ultralight}win64")
 	add_compile_definitions("_AMD64_")
