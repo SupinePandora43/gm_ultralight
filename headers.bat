@@ -1,3 +1,6 @@
+mkdir include\GarrysMod
+mkdir include\GarrysMod\Lua
+
 curl https://raw.githubusercontent.com/Facepunch/gmod-module-base/development/include/GarrysMod/Lua/Interface.h -o include/GarrysMod/Lua/Interface.h
 curl https://raw.githubusercontent.com/Facepunch/gmod-module-base/development/include/GarrysMod/Lua/LuaBase.h -o include/GarrysMod/Lua/LuaBase.h
 curl https://raw.githubusercontent.com/Facepunch/gmod-module-base/development/include/GarrysMod/Lua/SourceCompat.h -o include/GarrysMod/Lua/SourceCompat.h
