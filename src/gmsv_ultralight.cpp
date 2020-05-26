@@ -17,49 +17,25 @@ using namespace ultralight;
 
 typedef void* (__cdecl* MsgFn)(const char*, ...);
 MsgFn Msg;
-/*#ifdef _WIN64
-#else
-void Msg(const char*, ...) {}
-#endif*/
+
+//MyApp* appv;
 
 class MyApp : public LoadListener {
-	RefPtr<Renderer> renderer_;
-	bool done_ = false;
 public:
-	RefPtr<View> view_;
-	MyApp() {
-		Msg("c++: MyApp: Creating...\n");
-
-		Config config;
-		Msg("c++: MyApp: Config created\n");
-
-		config.device_scale_hint = 1.0;
-		config.font_family_standard = "Arial";
-		Platform::instance().set_config(config);
-		Msg("c++: MyApp: Platform setted config\n");
-
-		renderer_ = Renderer::Create();
-		Msg("c++: MyApp: Renderer created\n");
-
-		view_ = renderer_->CreateView(256, 256, false);
-		Msg("c++: MyApp: Renderer created view\n");
-
-		view_->set_load_listener(this);
-		Msg("c++: MyApp: view setted listener\n");
-
-		//Msg("c++: MyApp: view loaded url\n");
+	static MyApp& getInstance()
+	{
+		static MyApp    instance; // Guaranteed to be destroyed.
+							  // Instantiated on first use.
+		return instance;
 	}
+	MyApp(MyApp const&) = delete;
+	void operator=(MyApp const&) = delete;
 	void SetURL() {
 		this->SetURL("https://google.com");
 	}
 	void SetURL(String url) {
 		view_->LoadURL(url);
 	}
-	virtual ~MyApp() {
-		view_ = nullptr;
-		renderer_ = nullptr;
-	}
-
 	void Run() {
 		std::cout << "Starting Run(), waiting for page to load..." << std::endl;
 		while (!done_)
@@ -74,34 +50,61 @@ public:
 		std::cout << "Saved a render of our page to result.png." << std::endl;
 		done_ = true;
 	}
-};
+	RefPtr<View> view_;
+private:
+	RefPtr<Renderer> renderer_;
+	bool done_ = false;
 
+	MyApp() {
+		Msg("c++: MyApp: Creating...\n");
+
+		Config config;
+		Msg("c++: MyApp: Config created\n");
+
+		config.device_scale_hint = 1.0;
+		config.font_family_standard = "Arial";
+		Platform::instance().set_config(config);
+		Msg("c++: MyApp: Platform setted config\n");
+
+		renderer_ = Renderer::Create();
+		Msg("c++: MyApp: Renderer created\n");
+
+		view_ = renderer_->CreateView(64, 64, false);
+		Msg("c++: MyApp: Renderer created view\n");
+
+		view_->set_load_listener(this);
+		Msg("c++: MyApp: view setted listener\n");
+
+		//Msg("c++: MyApp: view loaded url\n");
+	}
+	virtual ~MyApp() {
+		view_ = nullptr;
+		renderer_ = nullptr;
+	}
+};
 LUA_FUNCTION(RenderImage) {
 	LUA->PushSpecial(GarrysMod::Lua::SPECIAL_GLOB);
 	Msg("c++: RenderImage() called\n");
-	//LUA->GetField(-2, "print");
-	//LUA->PushString("c++: RenderImage() called");
-	//LUA->Call(1, 0);
-	MyApp app;
 	Msg("c++: app created\n");
-	app.SetURL();
+	//MyApp::getInstance().SetURL();
 	Msg("c++: app.SetURL() is done\n");
-	app.Run();
+	//MyApp::getInstance().Run();
 	Msg("c++: app.Run() is done\n");
 
-	uint8_t* adress = (uint8_t*)app.view_->bitmap()->LockPixels();
+	uint8_t* adress = (uint8_t*)MyApp::getInstance().view_->bitmap()->LockPixels();
 	//adress = view_->bitmap()->raw_pixels();
-	//size_t sizeofadress = sizeof((uint8_t)adress);
-	Msg("c++: Rendering on surface (width: "); //#include <string> 
-	Msg(std::to_string(app.view_->width()).c_str());
+	size_t sizeofadress = sizeof((uint8_t)adress);
+	Msg(std::to_string(sizeofadress).c_str());
+	Msg("c++: Rendering on surface (width: ");
+	Msg(std::to_string(MyApp::getInstance().view_->width()).c_str());
 	Msg(", height: ");
-	Msg(std::to_string(app.view_->width()).c_str());
+	Msg(std::to_string(MyApp::getInstance().view_->width()).c_str());
 	Msg(" )\n");
 	LUA->GetField(-1, "surface");
 	uint32_t i = 0;
-	for (uint16_t y = 0; y < app.view_->height(); y++)
+	for (uint16_t y = 0; y < MyApp::getInstance().view_->height(); y++)
 	{
-		for (uint16_t x = 0; x < app.view_->width(); x++)
+		for (uint16_t x = 0; x < MyApp::getInstance().view_->width(); x++)
 		{
 			LUA->GetField(-1, "SetDrawColor");
 			LUA->PushNumber(adress[i + 2]);//R
@@ -118,9 +121,9 @@ LUA_FUNCTION(RenderImage) {
 			LUA->Call(4, 0);
 		}
 	}
+	//delete app;
 	Msg("c++: Render end");
 	LUA->Pop();
-
 	return 0;
 }
 
@@ -133,7 +136,7 @@ GMOD_MODULE_OPEN()
 #endif
 
 	LUA->PushSpecial(GarrysMod::Lua::SPECIAL_GLOB);
-
+	//appv = &MyApp::getInstance();
 	Msg("c++: Module opening...\n");
 	LUA->PushString("ultralight_render");
 	LUA->PushCFunction(RenderImage);
@@ -160,5 +163,6 @@ GMOD_MODULE_OPEN()
 
 GMOD_MODULE_CLOSE()
 {
+	Msg("c++: Shutting down");
 	return 0;
 }
