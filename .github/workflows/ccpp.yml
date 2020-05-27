@@ -33,7 +33,7 @@ jobs:
     #- run: sudo ./headers
     - run: set CGO_ENABLED=0
     - name: configure
-      run: mkdir build && cd build && cmake -DCMAKE_CXX_FLAGS="-Werror" ..
+      run: mkdir build && cd build && cmake -DCMAKE_CXX_FLAGS="-Werror -std=c++11" ..
     - name: build
       run: cmake --build build
     - name: test
