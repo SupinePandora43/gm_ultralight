@@ -17,10 +17,6 @@ using namespace ultralight;
 
 typedef void* (__cdecl* MsgFn)(const char*, ...);
 MsgFn Msg;
-/*#ifdef _WIN64
-#else
-void Msg(const char*, ...) {}
-#endif*/
 class MyApp : public LoadListener {
 	RefPtr<Renderer> renderer_;
 	bool done_ = false;
@@ -33,7 +29,7 @@ public:
 			Config config;
 			Msg("c++: MyApp: Config created\n");
 
-			config.device_scale_hint = 1.0;
+			config.device_scale_hint = 2.0; // https://github.com/ultralight-ux/Ultralight/issues/257
 			config.font_family_standard = "Arial";
 			Platform::instance().set_config(config);
 			Msg("c++: MyApp: Platform setted config\n");
@@ -50,7 +46,6 @@ public:
 		catch (const std::exception& e) {
 			Msg(e.what());
 		}
-		//Msg("c++: MyApp: view loaded url\n");
 	}
 	void SetURL(String url) {
 		view_->LoadURL(url);
@@ -97,20 +92,30 @@ LUA_FUNCTION(RenderImage) {
 		//LUA->PushString("c++: RenderImage() called");
 		//LUA->Call(1, 0);
 		//MyApp app;
-		Msg("c++: app created\n");
-		(*app.*pSetUrl)("https://google.com");
+
+		const char* url = LUA->GetString();
+		if (url == NULL) {
+			url = "https://google.com";
+		}
+		(*app.*pSetUrl)(url);
 		Msg("c++: app.SetURL() is done\n");
 		(*app.*pRun)();
 		Msg("c++: app.Run() is done\n");
 
 		uint8_t* adress = (uint8_t*)app->view_->bitmap()->LockPixels();
-		//adress = view_->bitmap()->raw_pixels();
-		//size_t sizeofadress = sizeof((uint8_t)adress);
-		Msg("c++: Rendering on surface (width: "); //#include <string> 
+		Msg("c++: Rendering on surface (width: ");
 		Msg(std::to_string(app->view_->width()).c_str());
 		Msg(", height: ");
 		Msg(std::to_string(app->view_->width()).c_str());
 		Msg(" )\n");
+		// TODO:
+		// gm_ultralight -> vguimatsurface
+		// get `surface` from `vguimatsurface.dll`
+		// Sys_GetFactory to get the factory and then get the interface from it
+		// use https://github.com/ValveSoftware/source-sdk-2013/blob/master/sp/src/public/vgui/ISurface.h
+		// CornerPin#6579 Garry's Mod #cpp 25.05.2020
+
+		// gm_ultralight -> LUA -> vguimatsurface
 		LUA->GetField(-1, "surface");
 		uint32_t i = 0;
 		for (uint16_t y = 0; y < app->view_->height(); y++)
@@ -132,7 +137,7 @@ LUA_FUNCTION(RenderImage) {
 				LUA->Call(4, 0);
 			}
 		}
-		app->view_->bitmap()->UnlockPixels();
+		app->view_->bitmap()->UnlockPixels(); // maybe locking permanently disallow reusing it, Maybe all shit writed before not worked because it doesn't unlock bitmap
 		Msg("c++: Render end");
 		LUA->Pop();
 	}
@@ -155,12 +160,13 @@ GMOD_MODULE_OPEN()
 		Msg("c++: Module opening...\n");
 
 		app = new MyApp();
+		Msg("c++: app created\n");
+
 		pRun = &MyApp::Run;
 		pSetUrl = &MyApp::SetURL;
 
 		LUA->PushString("ultralight_render");
 		LUA->PushCFunction(RenderImage);
-		//LUA->SetField(-3, "ultralight_render");
 		LUA->SetTable(-3);
 
 		LUA->PushSpecial(GarrysMod::Lua::SPECIAL_GLOB);
@@ -176,8 +182,6 @@ GMOD_MODULE_OPEN()
 			Msg("c++: CLIENT\n");
 		}
 		LUA->Pop();
-
-		Msg("c++: CLIENT\n");
 	}
 	catch (const std::exception& e) {
 		Msg(e.what());
@@ -188,8 +192,7 @@ GMOD_MODULE_OPEN()
 GMOD_MODULE_CLOSE()
 {
 	try {
-		app->~MyApp();
-		delete app;
+		delete app; //app->~MyApp();
 	}
 	catch (const std::exception& e) {
 		Msg(e.what());
