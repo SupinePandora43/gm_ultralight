@@ -31,6 +31,7 @@ jobs:
     - run: sudo apt install tree
     - run: tree -a .
     #- run: sudo ./headers
+    - run: set CGO_ENABLED=0
     - name: configure
       run: mkdir build && cd build && cmake -DCMAKE_CXX_FLAGS="-Werror" ..
     - name: build
