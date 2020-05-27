@@ -21,36 +21,36 @@ MsgFn Msg;
 #else
 void Msg(const char*, ...) {}
 #endif*/
-
 class MyApp : public LoadListener {
 	RefPtr<Renderer> renderer_;
 	bool done_ = false;
 public:
 	RefPtr<View> view_;
 	MyApp() {
-		Msg("c++: MyApp: Creating...\n");
+		try {
+			Msg("c++: MyApp: Creating...\n");
 
-		Config config;
-		Msg("c++: MyApp: Config created\n");
+			Config config;
+			Msg("c++: MyApp: Config created\n");
 
-		config.device_scale_hint = 1.0;
-		config.font_family_standard = "Arial";
-		Platform::instance().set_config(config);
-		Msg("c++: MyApp: Platform setted config\n");
+			config.device_scale_hint = 1.0;
+			config.font_family_standard = "Arial";
+			Platform::instance().set_config(config);
+			Msg("c++: MyApp: Platform setted config\n");
 
-		renderer_ = Renderer::Create();
-		Msg("c++: MyApp: Renderer created\n");
+			renderer_ = Renderer::Create();
+			Msg("c++: MyApp: Renderer created\n");
 
-		view_ = renderer_->CreateView(256, 256, false);
-		Msg("c++: MyApp: Renderer created view\n");
+			view_ = renderer_->CreateView(256, 256, false);
+			Msg("c++: MyApp: Renderer created view\n");
 
-		view_->set_load_listener(this);
-		Msg("c++: MyApp: view setted listener\n");
-
+			view_->set_load_listener(this);
+			Msg("c++: MyApp: view setted listener\n");
+		}
+		catch (const std::exception& e) {
+			Msg(e.what());
+		}
 		//Msg("c++: MyApp: view loaded url\n");
-	}
-	void SetURL() {
-		this->SetURL("https://google.com");
 	}
 	void SetURL(String url) {
 		view_->LoadURL(url);
@@ -60,67 +60,85 @@ public:
 		renderer_ = nullptr;
 	}
 
-	void Run() {
-		std::cout << "Starting Run(), waiting for page to load..." << std::endl;
-		while (!done_)
-			renderer_->Update();
-		std::cout << "Finished." << std::endl;
+	virtual void Run() {
+		try {
+			std::cout << "Starting Run(), waiting for page to load..." << std::endl;
+			while (!done_)
+				renderer_->Update();
+			std::cout << "Finished." << std::endl;
+		}
+		catch (const std::exception& e) {
+			Msg(e.what());
+		}
 	}
 
 	virtual void OnFinishLoading(ultralight::View* caller) {
-		Msg("c++: Page loaded");
-		renderer_->Render();
-		view_->bitmap()->WritePNG("result.png");
-		std::cout << "Saved a render of our page to result.png." << std::endl;
+		try {
+			Msg("c++: Page loaded");
+			renderer_->Render();
+			view_->bitmap()->WritePNG("result.png");
+			std::cout << "Saved a render of our page to result.png." << std::endl;
+		}
+		catch (const std::exception& e) {
+			Msg(e.what());
+		}
 		done_ = true;
 	}
 };
+void (MyApp::* pRun)() = NULL; //https://stackoverflow.com/a/1486279/9765252
+void (MyApp::* pSetUrl)(String url) = NULL; //https://stackoverflow.com/a/1486279/9765252
+MyApp* app;
 
 LUA_FUNCTION(RenderImage) {
-	LUA->PushSpecial(GarrysMod::Lua::SPECIAL_GLOB);
-	Msg("c++: RenderImage() called\n");
-	//LUA->GetField(-2, "print");
-	//LUA->PushString("c++: RenderImage() called");
-	//LUA->Call(1, 0);
-	MyApp app;
-	Msg("c++: app created\n");
-	app.SetURL();
-	Msg("c++: app.SetURL() is done\n");
-	app.Run();
-	Msg("c++: app.Run() is done\n");
+	try {
+		LUA->PushSpecial(GarrysMod::Lua::SPECIAL_GLOB);
+		Msg("c++: RenderImage() called\n");
+		//LUA->GetField(-2, "print");
+		//LUA->PushString("c++: RenderImage() called");
+		//LUA->Call(1, 0);
+		//MyApp app;
+		Msg("c++: app created\n");
+		(*app.*pSetUrl)("https://google.com");
+		Msg("c++: app.SetURL() is done\n");
+		(*app.*pRun)();
+		Msg("c++: app.Run() is done\n");
 
-	uint8_t* adress = (uint8_t*)app.view_->bitmap()->LockPixels();
-	//adress = view_->bitmap()->raw_pixels();
-	//size_t sizeofadress = sizeof((uint8_t)adress);
-	Msg("c++: Rendering on surface (width: "); //#include <string> 
-	Msg(std::to_string(app.view_->width()).c_str());
-	Msg(", height: ");
-	Msg(std::to_string(app.view_->width()).c_str());
-	Msg(" )\n");
-	LUA->GetField(-1, "surface");
-	uint32_t i = 0;
-	for (uint16_t y = 0; y < app.view_->height(); y++)
-	{
-		for (uint16_t x = 0; x < app.view_->width(); x++)
+		uint8_t* adress = (uint8_t*)app->view_->bitmap()->LockPixels();
+		//adress = view_->bitmap()->raw_pixels();
+		//size_t sizeofadress = sizeof((uint8_t)adress);
+		Msg("c++: Rendering on surface (width: "); //#include <string> 
+		Msg(std::to_string(app->view_->width()).c_str());
+		Msg(", height: ");
+		Msg(std::to_string(app->view_->width()).c_str());
+		Msg(" )\n");
+		LUA->GetField(-1, "surface");
+		uint32_t i = 0;
+		for (uint16_t y = 0; y < app->view_->height(); y++)
 		{
-			LUA->GetField(-1, "SetDrawColor");
-			LUA->PushNumber(adress[i + 2]);//R
-			LUA->PushNumber(adress[i + 1]);//G
-			LUA->PushNumber(adress[i]);//B
-			LUA->PushNumber(adress[i + 3]);//A
-			i = i + 4;
-			LUA->Call(4, 0);
-			LUA->GetField(-1, "DrawRect");
-			LUA->PushNumber(x);
-			LUA->PushNumber(y);
-			LUA->PushNumber(1);
-			LUA->PushNumber(1);
-			LUA->Call(4, 0);
+			for (uint16_t x = 0; x < app->view_->width(); x++)
+			{
+				LUA->GetField(-1, "SetDrawColor");
+				LUA->PushNumber(adress[i + 2]);//R
+				LUA->PushNumber(adress[i + 1]);//G
+				LUA->PushNumber(adress[i]);//B
+				LUA->PushNumber(adress[i + 3]);//A
+				i = i + 4;
+				LUA->Call(4, 0);
+				LUA->GetField(-1, "DrawRect");
+				LUA->PushNumber(x);
+				LUA->PushNumber(y);
+				LUA->PushNumber(1);
+				LUA->PushNumber(1);
+				LUA->Call(4, 0);
+			}
 		}
+		app->view_->bitmap()->UnlockPixels();
+		Msg("c++: Render end");
+		LUA->Pop();
 	}
-	Msg("c++: Render end");
-	LUA->Pop();
-
+	catch (const std::exception& e) {
+		Msg(e.what());
+	}
 	return 0;
 }
 
@@ -131,34 +149,50 @@ GMOD_MODULE_OPEN()
 #elif __linux__
 	Msg = reinterpret_cast<MsgFn>(dlsym(dlopen("tier0.so", RTLD_LAZY), "Msg"));
 #endif
+	try {
+		LUA->PushSpecial(GarrysMod::Lua::SPECIAL_GLOB);
 
-	LUA->PushSpecial(GarrysMod::Lua::SPECIAL_GLOB);
+		Msg("c++: Module opening...\n");
 
-	Msg("c++: Module opening...\n");
-	LUA->PushString("ultralight_render");
-	LUA->PushCFunction(RenderImage);
-	//LUA->SetField(-3, "ultralight_render");
-	LUA->SetTable(-3);
+		app = new MyApp();
+		pRun = &MyApp::Run;
+		pSetUrl = &MyApp::SetURL;
 
-	LUA->PushSpecial(GarrysMod::Lua::SPECIAL_GLOB);
+		LUA->PushString("ultralight_render");
+		LUA->PushCFunction(RenderImage);
+		//LUA->SetField(-3, "ultralight_render");
+		LUA->SetTable(-3);
 
-	LUA->GetField(-1, "SERVER");
-	if (LUA->GetBool(-1)) {
-		Msg("c++: SERVER\n");
-	}
-	LUA->Pop();
+		LUA->PushSpecial(GarrysMod::Lua::SPECIAL_GLOB);
 
-	LUA->GetField(-1, "CLIENT");
-	if (LUA->GetBool(-1)) {
+		LUA->GetField(-1, "SERVER");
+		if (LUA->GetBool(-1)) {
+			Msg("c++: SERVER\n");
+		}
+		LUA->Pop();
+
+		LUA->GetField(-1, "CLIENT");
+		if (LUA->GetBool(-1)) {
+			Msg("c++: CLIENT\n");
+		}
+		LUA->Pop();
+
 		Msg("c++: CLIENT\n");
 	}
-	LUA->Pop();
-
-	Msg("c++: CLIENT\n");
+	catch (const std::exception& e) {
+		Msg(e.what());
+	}
 	return 0;
 }
 
 GMOD_MODULE_CLOSE()
 {
+	try {
+		app->~MyApp();
+		delete app;
+	}
+	catch (const std::exception& e) {
+		Msg(e.what());
+	}
 	return 0;
 }
