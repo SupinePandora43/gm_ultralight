@@ -1,4 +1,4 @@
-# gm_ultralight
+# gm_ultralight ![C/C++ CI](https://github.com/SupinePandora43/gm_ultralight/workflows/C/C++%20CI/badge.svg)
 
 # Contributors
 [SupinePandora43](https://github.com/SupinePandora43) - owner
