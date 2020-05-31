@@ -16,13 +16,13 @@ jobs:
     - run: cmd.exe headers.bat
     - name: configure
     - run: |
-        call "C:\\Program Files (x86)\\Microsoft Visual Studio\\2019\\Community\\VC\\Auxiliary\\Build\\vcvarsall.bat" amd64 
-        set CC=cl.exe
-        set CXX=cl.exe
-        rem Build Release
-        if not exist build mkdir build
-        cd build
-        cmake ../packager -G "Ninja"
+        call "C:\\Program Files (x86)\\Microsoft Visual Studio\\2019\\Community\\VC\\Auxiliary\\Build\\vcvarsall.bat" amd64 \
+        set CC=cl.exe \
+        set CXX=cl.exe \
+        rem Build Release \
+        if not exist build mkdir build \
+        cd build \
+        cmake ../packager -G "Ninja" \
         ninja
       run: mkdir build && cd build && cmake ..
     - name: build
