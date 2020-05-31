@@ -2,7 +2,7 @@
 project (gmsv_ultralight CXX)
 if(CMAKE_COMPILER_IS_GNUCXX)
     message(STATUS "GCC detected, adding compile flags")
-    set(CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} -std=c++17 -pedantic  -Wall -Wextra -L/home/taylor -ldl") # 
+    set(CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} -std=c++17  -Wall -Wextra -L/home/taylor -ldl") # 
 endif(CMAKE_COMPILER_IS_GNUCXX)
 set (CMAKE_CXX_STANDARD 17)
 add_compile_definitions("GMMODULE")
