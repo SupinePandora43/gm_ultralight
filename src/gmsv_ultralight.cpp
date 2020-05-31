@@ -15,7 +15,7 @@
 using namespace GarrysMod::Lua;
 using namespace ultralight;
 
-typedef void* (__stdcall* MsgFn)(const char*, ...);
+typedef void (*MsgFn)(const char*, ...);
 
 MsgFn Msg;
 class MyApp : public LoadListener {
