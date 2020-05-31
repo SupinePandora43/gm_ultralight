@@ -16,6 +16,7 @@ using namespace GarrysMod::Lua;
 using namespace ultralight;
 
 typedef void* (__cdecl* MsgFn)(const char*, ...);
+
 MsgFn Msg;
 class MyApp : public LoadListener {
 	RefPtr<Renderer> renderer_;
@@ -29,7 +30,7 @@ public:
 			Config config;
 			Msg("c++: MyApp: Config created\n");
 
-			config.device_scale_hint = 2.0; // https://github.com/ultralight-ux/Ultralight/issues/257
+			config.device_scale_hint = 1.0;
 			config.font_family_standard = "Arial";
 			Platform::instance().set_config(config);
 			Msg("c++: MyApp: Platform setted config\n");
@@ -37,7 +38,7 @@ public:
 			renderer_ = Renderer::Create();
 			Msg("c++: MyApp: Renderer created\n");
 
-			view_ = renderer_->CreateView(256, 256, false);
+			view_ = renderer_->CreateView(512, 512, false); // https://github.com/ultralight-ux/Ultralight/issues/257
 			Msg("c++: MyApp: Renderer created view\n");
 
 			view_->set_load_listener(this);
@@ -51,10 +52,10 @@ public:
 		view_->LoadURL(url);
 	}
 	virtual ~MyApp() {
-		view_ = nullptr;
-		renderer_ = nullptr;
+		Msg("c++: MyApp: Shutting Down");
+		view_ = nullptr; // IT DONT WORK.
+		renderer_ = nullptr; // IT FUCKING DOESNT!!!
 	}
-
 	virtual void Run() {
 		try {
 			std::cout << "Starting Run(), waiting for page to load..." << std::endl;
@@ -66,12 +67,11 @@ public:
 			Msg(e.what());
 		}
 	}
-
 	virtual void OnFinishLoading(ultralight::View* caller) {
 		try {
 			Msg("c++: Page loaded");
 			renderer_->Render();
-			view_->bitmap()->WritePNG("result.png");
+			//view_->bitmap()->WritePNG("result.png");
 			std::cout << "Saved a render of our page to result.png." << std::endl;
 		}
 		catch (const std::exception& e) {
@@ -86,13 +86,11 @@ MyApp* app;
 
 LUA_FUNCTION(RenderImage) {
 	try {
-		LUA->PushSpecial(GarrysMod::Lua::SPECIAL_GLOB);
 		Msg("c++: RenderImage() called\n");
+		LUA->PushSpecial(GarrysMod::Lua::SPECIAL_GLOB);
 		//LUA->GetField(-2, "print");
 		//LUA->PushString("c++: RenderImage() called");
 		//LUA->Call(1, 0);
-		//MyApp app;
-
 		const char* url = LUA->GetString();
 		if (url == NULL) {
 			url = "https://google.com";
@@ -108,11 +106,12 @@ LUA_FUNCTION(RenderImage) {
 		Msg(", height: ");
 		Msg(std::to_string(app->view_->width()).c_str());
 		Msg(" )\n");
+
 		// TODO:
 		// gm_ultralight -> vguimatsurface
 		// get `surface` from `vguimatsurface.dll`
 		// Sys_GetFactory to get the factory and then get the interface from it
-		// use https://github.com/ValveSoftware/source-sdk-2013/blob/master/sp/src/public/vgui/ISurface.h
+		// use https://github.com/ValveSoftware/source-sdk-2013/blob/master/mp/src/public/vgui/ISurface.h
 		// CornerPin#6579 Garry's Mod #cpp 25.05.2020
 
 		// gm_ultralight -> LUA -> vguimatsurface
@@ -122,19 +121,21 @@ LUA_FUNCTION(RenderImage) {
 		{
 			for (uint16_t x = 0; x < app->view_->width(); x++)
 			{
-				LUA->GetField(-1, "SetDrawColor");
-				LUA->PushNumber(adress[i + 2]);//R
-				LUA->PushNumber(adress[i + 1]);//G
-				LUA->PushNumber(adress[i]);//B
-				LUA->PushNumber(adress[i + 3]);//A
-				i = i + 4;
-				LUA->Call(4, 0);
-				LUA->GetField(-1, "DrawRect");
-				LUA->PushNumber(x);
-				LUA->PushNumber(y);
-				LUA->PushNumber(1);
-				LUA->PushNumber(1);
-				LUA->Call(4, 0);
+				if (adress[i + 3] != 0) {
+					LUA->GetField(-1, "SetDrawColor");
+					LUA->PushNumber(adress[i + 2]);//R
+					LUA->PushNumber(adress[i + 1]);//G
+					LUA->PushNumber(adress[i]);//B
+					LUA->PushNumber(adress[i + 3]);//A
+					LUA->Call(4, 0);
+					i = i + 4;
+					LUA->GetField(-1, "DrawRect");
+					LUA->PushNumber(x);
+					LUA->PushNumber(y);
+					LUA->PushNumber(1);
+					LUA->PushNumber(1);
+					LUA->Call(4, 0);; // https://github.com/ultralight-ux/Ultralight/issues/257
+				}
 			}
 		}
 		app->view_->bitmap()->UnlockPixels(); // maybe locking permanently disallow reusing it, Maybe all shit writed before not worked because it doesn't unlock bitmap
@@ -146,7 +147,10 @@ LUA_FUNCTION(RenderImage) {
 	}
 	return 0;
 }
-
+LUA_FUNCTION(ultralight_async_render) {
+	// TODO: implement this
+	return 0;
+}
 GMOD_MODULE_OPEN()
 {
 #ifdef _WIN32
@@ -154,48 +158,45 @@ GMOD_MODULE_OPEN()
 #elif __linux__
 	Msg = reinterpret_cast<MsgFn>(dlsym(dlopen("tier0.so", RTLD_LAZY), "Msg"));
 #endif
-	try {
-		LUA->PushSpecial(GarrysMod::Lua::SPECIAL_GLOB);
+	LUA->PushSpecial(GarrysMod::Lua::SPECIAL_GLOB);
 
-		Msg("c++: Module opening...\n");
+	Msg("c++: Module opening...\n");
 
-		app = new MyApp();
-		Msg("c++: app created\n");
+	app = new MyApp();
+	Msg("c++: app created\n");
 
-		pRun = &MyApp::Run;
-		pSetUrl = &MyApp::SetURL;
+	pRun = &MyApp::Run;
+	pSetUrl = &MyApp::SetURL;
 
-		LUA->PushString("ultralight_render");
-		LUA->PushCFunction(RenderImage);
-		LUA->SetTable(-3);
+	LUA->PushString("ultralight_render");
+	LUA->PushCFunction(RenderImage);
+	LUA->SetTable(-3);
 
-		LUA->PushSpecial(GarrysMod::Lua::SPECIAL_GLOB);
+	LUA->PushSpecial(GarrysMod::Lua::SPECIAL_GLOB);
 
-		LUA->GetField(-1, "SERVER");
-		if (LUA->GetBool(-1)) {
-			Msg("c++: SERVER\n");
-		}
-		LUA->Pop();
+	LUA->PushString("ultralight_async_render");
+	LUA->PushCFunction(ultralight_async_render);
+	LUA->SetTable(-3);
 
-		LUA->GetField(-1, "CLIENT");
-		if (LUA->GetBool(-1)) {
-			Msg("c++: CLIENT\n");
-		}
-		LUA->Pop();
+	LUA->PushSpecial(GarrysMod::Lua::SPECIAL_GLOB);
+
+	LUA->GetField(-1, "SERVER");
+	if (LUA->GetBool(-1)) {
+		Msg("c++: SERVER\n");
 	}
-	catch (const std::exception& e) {
-		Msg(e.what());
+	LUA->Pop();
+
+	LUA->GetField(-1, "CLIENT");
+	if (LUA->GetBool(-1)) {
+		Msg("c++: CLIENT\n");
 	}
+	LUA->Pop();
 	return 0;
 }
 
 GMOD_MODULE_CLOSE()
 {
-	try {
-		delete app; //app->~MyApp();
-	}
-	catch (const std::exception& e) {
-		Msg(e.what());
-	}
+	// process with running MyApp is still active, after disabling this :'C
+	delete app; //app->~MyApp();
 	return 0;
 }
