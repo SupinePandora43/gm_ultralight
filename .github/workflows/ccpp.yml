@@ -13,13 +13,22 @@ jobs:
 
     steps:
     - uses: actions/checkout@v2
-    - run: "headers.bat"
+    - run: chmod +x ./headers.bat
+    - run: start ./headers.bat
+    - run: set CGO_ENABLED=0
+    - name: 'Run CMake with Ninja'
+      uses: lukka/run-cmake@v2
+      with:
+        cmakeListsOrSettingsJson: CMakeListsTxtAdvanced
+        cmakeListsTxtPath: '${{ github.workspace }}/CMakeLists.txt'
+        useVcpkgToolchainFile: true
+        buildDirectory: '${{ runner.workspace }}/b//unixmakefiles'
+        cmakeAppendedArgs: '-GNinja '
+    #- run: sudo ./headers
     - name: configure
-      run: mkdir build && cd build && cmake ..
+      run: mkdir build && cd build && cmake -DCMAKE_CXX_FLAGS="-Werror -std=c++11" ..
     - name: build
       run: cmake --build build
-    - name: test
-      run: cd build && ctest
   build-linux:
 
     runs-on: ubuntu-latest
@@ -44,8 +53,8 @@ jobs:
       run: mkdir build && cd build && cmake -DCMAKE_CXX_FLAGS="-Werror -std=c++11" ..
     - name: build
       run: cmake --build build
-    - name: test
-      run: cd build && ctest
+    - name: tree
+      run: tree -a .
     #- name: make
     #  run: make
     #- name: make check
