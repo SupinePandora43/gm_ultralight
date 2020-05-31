@@ -4,13 +4,11 @@
 #include <iostream>
 #include <string>
 //#include <memory>
-#ifdef _DEBUG
 #ifdef _WIN64
-#include <libloaderapi.h> // hook "tier0.dll"'s Msg function
+#include <libloaderapi.h>
 #elif __linux__
 //#include <stdlib.h>
 #include <dlfcn.h>
-#endif
 #endif
 using namespace GarrysMod::Lua;
 using namespace ultralight;
