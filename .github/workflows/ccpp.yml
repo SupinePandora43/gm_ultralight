@@ -16,6 +16,7 @@ jobs:
     - run: chmod +x ./headers.bat
     - run: start ./headers.bat
     - run: set CGO_ENABLED=0
+    - uses: ilammy/msvc-dev-cmd@v1
     - name: 'Run CMake with Ninja'
       uses: lukka/run-cmake@v2
       with:
