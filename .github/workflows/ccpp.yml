@@ -14,13 +14,6 @@ jobs:
     steps:
     - uses: actions/checkout@v2
     - run: "headers.bat"
-    - run: "C:\\Program Files (x86)\\Microsoft Visual Studio\\2019\\Community\\VC\\Auxiliary\\Build\\vcvarsall.bat" amd64 
-    - run: set CC=cl.exe 
-    - run: set CXX=cl.exe 
-    - run: mkdir build 
-    - run: cd build 
-    - run: cmake ../packager -G "Ninja" 
-    - run: ninja
     - name: configure
       run: mkdir build && cd build && cmake ..
     - name: build
@@ -37,8 +30,16 @@ jobs:
     - run: source ./headers.sh
     - run: sudo apt install tree
     - run: tree -a .
-    #- run: sudo ./headers
     - run: set CGO_ENABLED=0
+    - name: 'Run CMake with Ninja'
+      uses: lukka/run-cmake@v2
+      with:
+        cmakeListsOrSettingsJson: CMakeListsTxtAdvanced
+        cmakeListsTxtPath: '${{ github.workspace }}/cmakesettings.json/CMakeLists.txt'
+        useVcpkgToolchainFile: true
+        buildDirectory: '${{ runner.workspace }}/b//unixmakefiles'
+        cmakeAppendedArgs: '-GNinja '
+    #- run: sudo ./headers
     - name: configure
       run: mkdir build && cd build && cmake -DCMAKE_CXX_FLAGS="-Werror -std=c++11" ..
     - name: build
