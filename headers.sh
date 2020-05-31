@@ -13,6 +13,8 @@ echo rd .git /Q /S
 
 curl https://raw.githubusercontent.com/Facepunch/gmod-module-base/development/include/GarrysMod/Lua/Interface.h -o GarrysMod/Lua/Interface.h https://raw.githubusercontent.com/Facepunch/gmod-module-base/development/include/GarrysMod/Lua/LuaBase.h -o GarrysMod/Lua/LuaBase.h https://raw.githubusercontent.com/Facepunch/gmod-module-base/development/include/GarrysMod/Lua/SourceCompat.h -o GarrysMod/Lua/SourceCompat.h https://raw.githubusercontent.com/Facepunch/gmod-module-base/development/include/GarrysMod/Lua/Types.h -o GarrysMod/Lua/Types.h https://raw.githubusercontent.com/Facepunch/gmod-module-base/development/include/GarrysMod/Lua/UserData.h -o GarrysMod/Lua/UserData.h
 cd ..
+
+mkdir bin
 curl https://github.com/SupinePandora43/gm_ultralight/releases/download/bin/libAppCore.so -o bin/libAppCore.so
 curl https://github.com/SupinePandora43/gm_ultralight/releases/download/bin/libUltralight.so -o bin/libUltralight.so
 curl https://github.com/SupinePandora43/gm_ultralight/releases/download/bin/libUltralightCore.so -o bin/libUltralightCore.so
