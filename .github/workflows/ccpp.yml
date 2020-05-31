@@ -14,7 +14,6 @@ jobs:
     steps:
     - uses: actions/checkout@v2
     - run: cmd.exe headers.bat
-    #- name: configure
     - run: call "C:\\Program Files (x86)\\Microsoft Visual Studio\\2019\\Community\\VC\\Auxiliary\\Build\\vcvarsall.bat" amd64 
     - run: set CC=cl.exe 
     - run: set CXX=cl.exe 
@@ -23,6 +22,7 @@ jobs:
     - run: cd build 
     - run: cmake ../packager -G "Ninja" 
     - run: ninja
+    - name: configure
       run: mkdir build && cd build && cmake ..
     - name: build
       run: cmake --build build
