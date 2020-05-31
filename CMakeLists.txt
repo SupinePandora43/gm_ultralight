@@ -2,8 +2,9 @@
 project (gmsv_ultralight CXX)
 if(CMAKE_COMPILER_IS_GNUCXX)
     message(STATUS "GCC detected, adding compile flags")
-    set(CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} -std=c++14 -pedantic  -Wall -Wextra") # 
+    set(CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} -std=c++17 -pedantic  -Wall -Wextra") # 
 endif(CMAKE_COMPILER_IS_GNUCXX)
+set (CMAKE_CXX_STANDARD 17)
 
 add_compile_definitions("GMMODULE")
 #set ( CMAKE_WINDOWS_EXPORT_ALL_SYMBOLS ON )
@@ -17,7 +18,6 @@ link_libraries(UltralightCore Ultralight WebCore)
    #     "include"
    # )
 #set( SOURCE_LIB src )
-
 add_library(gmsv_ultralight SHARED "src/gmsv_ultralight.cpp") #"include/dlfcn.h"
 set(ultralight "gmsv_ultralight_")
 if(WIN32)
