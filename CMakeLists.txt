@@ -5,16 +5,14 @@ if(CMAKE_COMPILER_IS_GNUCXX)
     set(CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} -std=c++17 -pedantic  -Wall -Wextra -L/home/taylor -ldl") # 
 endif(CMAKE_COMPILER_IS_GNUCXX)
 set (CMAKE_CXX_STANDARD 17)
-
 add_compile_definitions("GMMODULE")
-#set ( CMAKE_WINDOWS_EXPORT_ALL_SYMBOLS ON )
-#set(TPN_WIN32 "/EHsc")
 include_directories("./include")
-if(CMAKE_COMPILER_IS_GNUCXX)
-link_directories("bin")
-else()
-link_directories("lib")
-endif()
+if (CMAKE_SYSTEM_NAME MATCHES "Windows")
+    set(ULTRALIGHT_LIBRARY_DIR "lib")
+else ()
+    set(ULTRALIGHT_LIBRARY_DIR "bin")
+endif ()
+link_directories("${ULTRALIGHT_LIBRARY_DIR}")
 link_libraries(UltralightCore Ultralight WebCore)
 #target_include_directories(
    # gmsv_ultralight
