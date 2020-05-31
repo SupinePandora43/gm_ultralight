@@ -15,7 +15,7 @@ curl https://raw.githubusercontent.com/Facepunch/gmod-module-base/development/in
 cd ..
 
 mkdir bin
-curl https://github.com/SupinePandora43/gm_ultralight/releases/download/bin/libAppCore.so -o lib/libAppCore.so
-curl https://github.com/SupinePandora43/gm_ultralight/releases/download/bin/libUltralight.so -o lib/libUltralight.so
-curl https://github.com/SupinePandora43/gm_ultralight/releases/download/bin/libUltralightCore.so -o lib/libUltralightCore.so
-curl https://github.com/SupinePandora43/gm_ultralight/releases/download/bin/libWebCore.so -o lib/libWebCore.so
+curl https://github.com/SupinePandora43/gm_ultralight/releases/download/bin/libAppCore.so -o bin/libAppCore.so
+curl https://github.com/SupinePandora43/gm_ultralight/releases/download/bin/libUltralight.so -o bin/libUltralight.so
+curl https://github.com/SupinePandora43/gm_ultralight/releases/download/bin/libUltralightCore.so -o bin/libUltralightCore.so
+curl https://github.com/SupinePandora43/gm_ultralight/releases/download/bin/libWebCore.so -o bin/libWebCore.so
