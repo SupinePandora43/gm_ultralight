@@ -19,3 +19,5 @@ curl https://github.com/SupinePandora43/gm_ultralight/releases/download/bin/libA
 curl https://github.com/SupinePandora43/gm_ultralight/releases/download/bin/libUltralight.so -o bin/libUltralight.so
 curl https://github.com/SupinePandora43/gm_ultralight/releases/download/bin/libUltralightCore.so -o bin/libUltralightCore.so
 curl https://github.com/SupinePandora43/gm_ultralight/releases/download/bin/libWebCore.so -o bin/libWebCore.so
+
+file bin/libUltralight.so
