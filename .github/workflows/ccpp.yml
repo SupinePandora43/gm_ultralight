@@ -17,6 +17,7 @@ jobs:
     - run: start ./headers.bat
     - run: set CGO_ENABLED=0
     - uses: ilammy/msvc-dev-cmd@v1
+    - run: choco install visualstudio2019buildtools
     - name: 'Run CMake with Ninja'
       uses: lukka/run-cmake@v2
       with:
