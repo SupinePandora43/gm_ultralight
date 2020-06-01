@@ -22,6 +22,7 @@ jobs:
     - run: set VS160COMNTOOLS="/c/Program Files (x86)/Microsoft Visual Studio/2019/Community/Common7/Tools"
     - run: set CC=cl.exe
     - run: set CXX=cl.exe
+    - run: set TOOLCHAIN=msvc16
     #- uses: lukka/run-vcpkg@v3
       #with:
         # Response file stored in source control, it provides the list of ports and triplet(s).
