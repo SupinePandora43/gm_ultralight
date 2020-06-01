@@ -39,12 +39,12 @@ jobs:
         cmakeListsTxtPath: '${{ github.workspace }}/CMakeLists.txt'
         useVcpkgToolchainFile: true
         buildDirectory: '${{ runner.workspace }}/b//unixmakefiles'
-        cmakeAppendedArgs: '-GNinja '
+        cmakeAppendedArgs: '-GNinja -DCMAKE_CXX_COMPILER:FILEPATH=cl.exe'
         cmakeListsOrSettingsJson: CMakeSettingsJson
         cmakeSettingsJsonPath: '${{ github.workspace }}/CMakeSettings.json'
         configurationRegexFilter: '${{ matrix.configuration }}'
     - name: configure
-      run: mkdir build && cd build && cmake -DCMAKE_CXX_FLAGS="-Werror -std=c++11" ..
+      run: mkdir build && cd build && cmake -DCMAKE_CXX_FLAGS="-Werror -std=c++17 -DCMAKE_CXX_COMPILER:FILEPATH=cl.exe ..
     - name: build
       run: cmake --build build
   build-linux:
