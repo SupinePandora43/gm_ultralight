@@ -34,7 +34,6 @@ jobs:
         #cmakeListsOrSettingsJson: CMakeListsTxtAdvanced
         cmakeListsTxtPath: '${{ github.workspace }}/CMakeLists.txt'
         useVcpkgToolchainFile: true
-        buildDirectory: '${{ runner.workspace }}/b//unixmakefiles'
         cmakeAppendedArgs: '-GNinja -DCMAKE_CXX_COMPILER:FILEPATH=cl.exe'
         cmakeListsOrSettingsJson: CMakeSettingsJson
         cmakeSettingsJsonPath: '${{ github.workspace }}/CMakeSettings.json'
