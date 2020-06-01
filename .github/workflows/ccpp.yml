@@ -18,6 +18,8 @@ jobs:
     - run: set CGO_ENABLED=0
     - uses: ilammy/msvc-dev-cmd@v1
     - run: choco install visualstudio2019buildtools
+    - run: choco install visualstudio2019-workload-nativedesktop
+    - run: export VS160COMNTOOLS="/c/Program Files (x86)/Microsoft Visual Studio/2019/Community/Common7/Tools"
     - name: 'Run CMake with Ninja'
       uses: lukka/run-cmake@v2
       with:
