@@ -17,17 +17,12 @@ jobs:
     - run: start ./headers.bat
     - run: set CGO_ENABLED=0
     - uses: ilammy/msvc-dev-cmd@v1
-    - name: Run vcpkg
-      uses: lukka/run-vcpkg@v2
-      with:
-        vcpkgArguments: '@${{ env.vcpkgResponseFile }}'
-        vcpkgDirectory: '${{ github.workspace }}/vcpkg'
     - name: 'Run CMake with Ninja'
       uses: lukka/run-cmake@v2
       with:
         cmakeListsOrSettingsJson: CMakeListsTxtAdvanced
         cmakeListsTxtPath: '${{ github.workspace }}/CMakeLists.txt'
-        useVcpkgToolchainFile: true
+        useVcpkgToolchainFile: false
         buildDirectory: '${{ runner.workspace }}/b//unixmakefiles'
         cmakeAppendedArgs: '-GNinja '
     #- run: sudo ./headers
