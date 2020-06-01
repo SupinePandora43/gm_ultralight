@@ -19,10 +19,6 @@ jobs:
     - uses: ilammy/msvc-dev-cmd@v1
     - run: choco install visualstudio2019buildtools
     - run: choco install visualstudio2019-workload-nativedesktop
-    - run: set VS160COMNTOOLS="/c/Program Files (x86)/Microsoft Visual Studio/2019/Community/Common7/Tools"
-    - run: set CC=cl.exe
-    - run: set CXX=cl.exe
-    - run: set TOOLCHAIN=msvc16
     #- uses: lukka/run-vcpkg@v3
       #with:
         # Response file stored in source control, it provides the list of ports and triplet(s).
@@ -43,10 +39,13 @@ jobs:
         cmakeListsOrSettingsJson: CMakeSettingsJson
         cmakeSettingsJsonPath: '${{ github.workspace }}/CMakeSettings.json'
         configurationRegexFilter: '${{ matrix.configuration }}'
-    - name: configure
-      run: mkdir build && cd build && cmake -DCMAKE_CXX_FLAGS="-Werror -std=c++17 -DCMAKE_CXX_COMPILER:FILEPATH=cl.exe ..
-    - name: build
-      run: cmake --build build
+
+    - name: tree
+      run: tree /f /a 
+    #- name: configure
+    #  run: mkdir build && cd build && cmake -DCMAKE_CXX_FLAGS=\"-Werror -std=c++17 -DCMAKE_CXX_COMPILER:FILEPATH=cl.exe \" ..
+    #- name: build
+    #  run: cmake --build build
   build-linux:
 
     runs-on: ubuntu-latest
