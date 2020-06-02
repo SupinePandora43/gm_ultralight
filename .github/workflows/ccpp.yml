@@ -19,32 +19,19 @@ jobs:
     - uses: ilammy/msvc-dev-cmd@v1
     - run: choco install visualstudio2019buildtools
     - run: choco install visualstudio2019-workload-nativedesktop
-    #- uses: lukka/run-vcpkg@v3
-      #with:
-        # Response file stored in source control, it provides the list of ports and triplet(s).
-        #vcpkgArguments: '@${{ env.vcpkgResponseFile }}'
-        # Location of the vcpkg as submodule of the repository.
-        #vcpkgDirectory: '${{ github.workspace }}/vcpkg'
-        # Since the cache must be invalidated when content of the response file changes, let's
-        # compute its hash and append this to the computed cache's key.
-        #appendedCacheKey: ${{ hashFiles(env.vcpkgResponseFile) }}
     - name: 'Run CMake with Ninja'
       uses: lukka/run-cmake@v2
       with:
         #cmakeListsOrSettingsJson: CMakeListsTxtAdvanced
         cmakeListsTxtPath: '${{ github.workspace }}/CMakeLists.txt'
         useVcpkgToolchainFile: true
-        cmakeAppendedArgs: '-GNinja -DCMAKE_CXX_COMPILER:FILEPATH=cl.exe'
+        cmakeAppendedArgs: '-GNinja -DCMAKE_CXX_COMPILER:FILEPATH=cl.exe' #  -DCMAKE_CXX_FLAGS=\"-std=c++11\"
         cmakeListsOrSettingsJson: CMakeSettingsJson
         cmakeSettingsJsonPath: '${{ github.workspace }}/CMakeSettings.json'
         configurationRegexFilter: '${{ matrix.configuration }}'
         buildDirectory: '${{ github.workspace }}/out//build'
     - name: tree
       run: tree /f /a 
-    #- name: configure
-    #  run: mkdir build && cd build && cmake -DCMAKE_CXX_FLAGS=\"-Werror -std=c++17 -DCMAKE_CXX_COMPILER:FILEPATH=cl.exe \" ..
-    #- name: build
-    #  run: cmake --build build
   build-linux:
 
     runs-on: ubuntu-latest
@@ -55,25 +42,14 @@ jobs:
     - run: source ./headers.sh
     - run: sudo apt install tree
     - run: tree -a .
-    - run: set CGO_ENABLED=0
+    #- run: set CGO_ENABLED=0
     - name: 'Run CMake with Ninja'
       uses: lukka/run-cmake@v2
       with:
         cmakeListsOrSettingsJson: CMakeListsTxtAdvanced
         cmakeListsTxtPath: '${{ github.workspace }}/CMakeLists.txt'
         useVcpkgToolchainFile: true
-        buildDirectory: '${{ runner.workspace }}/b//unixmakefiles'
-        cmakeAppendedArgs: '-GNinja '
-    #- run: sudo ./headers
-    - name: configure
-      run: mkdir build && cd build && cmake -DCMAKE_CXX_FLAGS="-Werror -std=c++11" ..
-    - name: build
-      run: cmake --build build
+        buildDirectory: '${{ github.workspace }}/out//build'
+        cmakeAppendedArgs: '-GNinja ' # -DCMAKE_CXX_FLAGS=\"-std=c++11\"
     - name: tree
       run: tree -a .
-    #- name: make
-    #  run: make
-    #- name: make check
-    #  run: make check
-    #- name: make distcheck
-    #  run: make distcheck
