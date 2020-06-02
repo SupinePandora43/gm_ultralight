@@ -38,7 +38,7 @@ jobs:
         cmakeListsOrSettingsJson: CMakeSettingsJson
         cmakeSettingsJsonPath: '${{ github.workspace }}/CMakeSettings.json'
         configurationRegexFilter: '${{ matrix.configuration }}'
-        buildDirectory: '${{ runner.workspace }}/out//build'
+        buildDirectory: '${{ github.workspace }}/out//build'
     - name: tree
       run: tree /f /a 
     #- name: configure
