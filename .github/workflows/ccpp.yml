@@ -8,9 +8,7 @@ on:
 
 jobs:
   build-windows:
-
     runs-on: windows-latest
-
     steps:
     - uses: actions/checkout@v2
     - run: chmod +x ./headers.bat
@@ -29,14 +27,14 @@ jobs:
         cmakeListsOrSettingsJson: CMakeSettingsJson
         cmakeSettingsJsonPath: '${{ github.workspace }}/CMakeSettings.json'
         configurationRegexFilter: '${{ matrix.configuration }}'
-        buildDirectory: '${{ github.workspace }}/out//build'
+        buildDirectory: '${{ github.workspace }}/out/build'
     - name: tree
       run: tree /f /a 
     - name: upload
       uses: actions/upload-artifact@v2
       with:
         name: Windows64
-        path: out/build/gmsv_ultralight_win64.dll
+        path: out/build/x64-Debug/gmsv_ultralight_win64.dll
   build-linux:
 
     runs-on: ubuntu-latest
