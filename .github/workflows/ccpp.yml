@@ -32,6 +32,11 @@ jobs:
         buildDirectory: '${{ github.workspace }}/out//build'
     - name: tree
       run: tree /f /a 
+    - name: upload
+      uses: actions/upload-artifact@v2
+      with:
+        name: Windows64
+        path: out/build/gmsv_ultralight_win64.dll
   build-linux:
 
     runs-on: ubuntu-latest
@@ -53,3 +58,8 @@ jobs:
         cmakeAppendedArgs: '-GNinja ' # -DCMAKE_CXX_FLAGS=\"-std=c++11\"
     - name: tree
       run: tree -a .
+    - name: upload
+      uses: actions/upload-artifact@v2
+      with:
+        name: Linux64
+        path: out/build/libgmsv_ultralight_linux64.so
