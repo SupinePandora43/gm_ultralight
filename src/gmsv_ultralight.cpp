@@ -20,7 +20,7 @@ class MyApp : public LoadListener {
 	RefPtr<Renderer> renderer_;
 	bool done_ = false;
 public:
-	RefPtr<View> view_;
+	RefPtr<View> view;
 	MyApp() {
 		try {
 			Msg("c++: MyApp: Creating...\n");
@@ -36,10 +36,13 @@ public:
 			renderer_ = Renderer::Create();
 			Msg("c++: MyApp: Renderer created\n");
 
-			view_ = renderer_->CreateView(512, 512, false); // https://github.com/ultralight-ux/Ultralight/issues/257
+			view = renderer_->CreateView(2048, 2048, false); // https://github.com/ultralight-ux/Ultralight/issues/257#issuecomment-636330995
 			Msg("c++: MyApp: Renderer created view\n");
 
-			view_->set_load_listener(this);
+			view->Resize(512, 512);
+			Msg("c++ MyApp: view->Resize(512, 512)\n");
+
+			view->set_load_listener(this);
 			Msg("c++: MyApp: view setted listener\n");
 		}
 		catch (const std::exception& e) {
@@ -47,14 +50,14 @@ public:
 		}
 	}
 	void SetURL(String url) {
-		view_->LoadURL(url);
+		view->LoadURL(url);
 	}
-	virtual ~MyApp() {
-		Msg("c++: MyApp: Shutting Down");
-		view_ = nullptr; // IT DONT WORK.
+	~MyApp() {
+		Msg("c++: MyApp: Shutting Down\n");
+		view = nullptr; // IT DONT WORK.
 		renderer_ = nullptr; // IT FUCKING DOESNT!!!
 	}
-	virtual void Run() {
+	void Run() {
 		try {
 			std::cout << "Starting Run(), waiting for page to load..." << std::endl;
 			while (!done_)
@@ -65,11 +68,11 @@ public:
 			Msg(e.what());
 		}
 	}
-	virtual void OnFinishLoading(ultralight::View* caller) {
+	void OnFinishLoading(ultralight::View* caller) {
 		try {
-			Msg("c++: Page loaded");
+			Msg("c++: Page loaded\n");
 			renderer_->Render();
-			//view_->bitmap()->WritePNG("result.png");
+			//view->bitmap()->WritePNG("result.png");
 			std::cout << "Saved a render of our page to result.png." << std::endl;
 		}
 		catch (const std::exception& e) {
@@ -81,7 +84,6 @@ public:
 void (MyApp::* pRun)() = NULL; //https://stackoverflow.com/a/1486279/9765252
 void (MyApp::* pSetUrl)(String url) = NULL; //https://stackoverflow.com/a/1486279/9765252
 MyApp* app;
-
 LUA_FUNCTION(RenderImage) {
 	try {
 		Msg("c++: RenderImage() called\n");
@@ -98,11 +100,11 @@ LUA_FUNCTION(RenderImage) {
 		(*app.*pRun)();
 		Msg("c++: app.Run() is done\n");
 
-		uint8_t* adress = (uint8_t*)app->view_->bitmap()->LockPixels();
+		uint8_t* adress = (uint8_t*)app->view->bitmap()->LockPixels();
 		Msg("c++: Rendering on surface (width: ");
-		Msg(std::to_string(app->view_->width()).c_str());
+		Msg(std::to_string(app->view->width()).c_str());
 		Msg(", height: ");
-		Msg(std::to_string(app->view_->width()).c_str());
+		Msg(std::to_string(app->view->width()).c_str());
 		Msg(" )\n");
 
 		// TODO:
@@ -115,38 +117,33 @@ LUA_FUNCTION(RenderImage) {
 		// gm_ultralight -> LUA -> vguimatsurface
 		LUA->GetField(-1, "surface");
 		uint32_t i = 0;
-		for (uint16_t y = 0; y < app->view_->height(); y++)
+		for (uint16_t y = 0; y < app->view->height(); y++)
 		{
-			for (uint16_t x = 0; x < app->view_->width(); x++)
+			for (uint16_t x = 0; x < app->view->width(); x++)
 			{
-				if (adress[i + 3] != 0) {
-					LUA->GetField(-1, "SetDrawColor");
-					LUA->PushNumber(adress[i + 2]);//R
-					LUA->PushNumber(adress[i + 1]);//G
-					LUA->PushNumber(adress[i]);//B
-					LUA->PushNumber(adress[i + 3]);//A
-					LUA->Call(4, 0);
-					i = i + 4;
-					LUA->GetField(-1, "DrawRect");
-					LUA->PushNumber(x);
-					LUA->PushNumber(y);
-					LUA->PushNumber(1);
-					LUA->PushNumber(1);
-					LUA->Call(4, 0);; // https://github.com/ultralight-ux/Ultralight/issues/257
-				}
+				LUA->GetField(-1, "SetDrawColor");
+				LUA->PushNumber(adress[i + 2]);//R
+				LUA->PushNumber(adress[i + 1]);//G
+				LUA->PushNumber(adress[i]);//B
+				LUA->PushNumber(adress[i + 3]);//A
+				LUA->Call(4, 0);
+				i = i + 4;
+				LUA->GetField(-1, "DrawRect");
+				LUA->PushNumber(x);
+				LUA->PushNumber(y);
+				LUA->PushNumber(1);
+				LUA->PushNumber(1);
+				LUA->Call(4, 0);
 			}
 		}
-		app->view_->bitmap()->UnlockPixels(); // maybe locking permanently disallow reusing it, Maybe all shit writed before not worked because it doesn't unlock bitmap
-		Msg("c++: Render end");
+		app->view->bitmap()->UnlockPixels(); // maybe locking permanently disallow reusing it, Maybe all shit writed before not worked because it doesn't unlock bitmap
+		Msg("c++: Render end\n");
 		LUA->Pop();
 	}
 	catch (const std::exception& e) {
 		Msg(e.what());
+		Msg("\n");
 	}
-	return 0;
-}
-LUA_FUNCTION(ultralight_async_render) {
-	// TODO: implement this
 	return 0;
 }
 GMOD_MODULE_OPEN()
@@ -166,17 +163,8 @@ GMOD_MODULE_OPEN()
 	pRun = &MyApp::Run;
 	pSetUrl = &MyApp::SetURL;
 
-	LUA->PushString("ultralight_render");
 	LUA->PushCFunction(RenderImage);
-	LUA->SetTable(-3);
-
-	LUA->PushSpecial(GarrysMod::Lua::SPECIAL_GLOB);
-
-	LUA->PushString("ultralight_async_render");
-	LUA->PushCFunction(ultralight_async_render);
-	LUA->SetTable(-3);
-
-	LUA->PushSpecial(GarrysMod::Lua::SPECIAL_GLOB);
+	LUA->SetField(-2,"ultralight_render");
 
 	LUA->GetField(-1, "SERVER");
 	if (LUA->GetBool(-1)) {
@@ -194,7 +182,7 @@ GMOD_MODULE_OPEN()
 
 GMOD_MODULE_CLOSE()
 {
-	// process with running MyApp is still active, after disabling this :'C
+	// process with running MyApp is still active, after this :'C
 	delete app; //app->~MyApp();
 	return 0;
 }
