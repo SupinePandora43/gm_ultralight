@@ -1,5 +1,7 @@
 # gm_ultralight ![C/C++ CI](https://github.com/SupinePandora43/gm_ultralight/workflows/C/C++%20CI/badge.svg)
 
+[Ultralight](https://github.com/ultralight-ux/Ultralight) gmod integration
+
 # Contributors
 [SupinePandora43](https://github.com/SupinePandora43) - owner
 
