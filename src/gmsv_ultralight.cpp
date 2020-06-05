@@ -1,7 +1,5 @@
 ﻿#include "GarrysMod/Lua/Interface.h"
-#include <stdio.h>
 #include <Ultralight/Ultralight.h>
-#include <iostream>
 #include <string>
 //#include <memory>
 #ifdef _WIN64
@@ -50,35 +48,41 @@ public:
 		}
 	}
 	void SetURL(String url) {
+		done_ = false;
 		view->LoadURL(url);
 	}
 	~MyApp() {
-		Msg("c++: MyApp: Shutting Down\n");
+		Msg("c++: ~MyApp\n");
 		view = nullptr; // IT DONT WORK.
 		renderer_ = nullptr; // IT FUCKING DOESNT!!!
 	}
 	void Run() {
 		try {
-			std::cout << "Starting Run(), waiting for page to load..." << std::endl;
-			while (!done_)
+			Msg("c++: MyApp: Run(): STARTED, Loading page\n");
+			int timeout = 0;
+			while (!done_) {
+				timeout++;
 				renderer_->Update();
-			std::cout << "Finished." << std::endl;
+			}
+			Msg("c++: MyApp: Run(): END, only ");
+			Msg(std::to_string(timeout).c_str());
+			Msg(" calls\n");
 		}
 		catch (const std::exception& e) {
 			Msg(e.what());
 		}
 	}
 	void OnFinishLoading(ultralight::View* caller) {
+		done_ = true;
 		try {
-			Msg("c++: Page loaded\n");
+			Msg("c++: MyApp: OnFinishLoading: START renderer_->Render()\n");
 			renderer_->Render();
 			//view->bitmap()->WritePNG("result.png");
-			std::cout << "Saved a render of our page to result.png." << std::endl;
+			Msg("c++: MyApp: OnFinishLoading(): END\n");
 		}
 		catch (const std::exception& e) {
 			Msg(e.what());
 		}
-		done_ = true;
 	}
 };
 void (MyApp::* pRun)() = NULL; //https://stackoverflow.com/a/1486279/9765252
@@ -164,7 +168,7 @@ GMOD_MODULE_OPEN()
 	pSetUrl = &MyApp::SetURL;
 
 	LUA->PushCFunction(RenderImage);
-	LUA->SetField(-2,"ultralight_render");
+	LUA->SetField(-2, "ultralight_render");
 
 	LUA->GetField(-1, "SERVER");
 	if (LUA->GetBool(-1)) {
