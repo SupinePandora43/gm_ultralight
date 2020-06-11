@@ -6,8 +6,9 @@
 #include <libloaderapi.h>
 #elif __linux__
 //#include <stdlib.h>
-#include <dlfcn.h>
+#include <dlfcn>
 #endif
+
 using namespace GarrysMod::Lua;
 using namespace ultralight;
 
@@ -51,6 +52,9 @@ public:
 		done_ = false;
 		view->LoadURL(url);
 	}
+	RefPtr<View> getView() {
+		return view;
+	}
 	~MyApp() {
 		Msg("c++: ~MyApp\n");
 		view = nullptr; // IT DONT WORK.
@@ -88,13 +92,14 @@ public:
 void (MyApp::* pRun)() = NULL; //https://stackoverflow.com/a/1486279/9765252
 void (MyApp::* pSetUrl)(String url) = NULL; //https://stackoverflow.com/a/1486279/9765252
 MyApp* app;
-LUA_FUNCTION(RenderImage) {
+LUA_FUNCTION_STATIC(RenderImage) {
 	try {
 		Msg("c++: RenderImage() called\n");
 		LUA->PushSpecial(GarrysMod::Lua::SPECIAL_GLOB);
 		//LUA->GetField(-2, "print");
 		//LUA->PushString("c++: RenderImage() called");
 		//LUA->Call(1, 0);
+		LUA->CheckString();
 		const char* url = LUA->GetString();
 		if (url == NULL) {
 			url = "https://google.com";
@@ -105,12 +110,12 @@ LUA_FUNCTION(RenderImage) {
 		Msg("c++: app.Run() is done\n");
 
 		uint8_t* adress = (uint8_t*)app->view->bitmap()->LockPixels();
+		
 		Msg("c++: Rendering on surface (width: ");
 		Msg(std::to_string(app->view->width()).c_str());
 		Msg(", height: ");
 		Msg(std::to_string(app->view->width()).c_str());
 		Msg(" )\n");
-
 		// TODO:
 		// gm_ultralight -> vguimatsurface
 		// get `surface` from `vguimatsurface.dll`
@@ -156,6 +161,8 @@ GMOD_MODULE_OPEN()
 	Msg = reinterpret_cast<MsgFn>(GetProcAddress(GetModuleHandleA("tier0.dll"), "Msg"));
 #elif __linux__
 	Msg = reinterpret_cast<MsgFn>(dlsym(dlopen("tier0.so", RTLD_LAZY), "Msg"));
+#else
+#error "sorry"
 #endif
 	LUA->PushSpecial(GarrysMod::Lua::SPECIAL_GLOB);
 
@@ -188,5 +195,6 @@ GMOD_MODULE_CLOSE()
 {
 	// process with running MyApp is still active, after this :'C
 	delete app; //app->~MyApp();
+	Msg = nullptr;
 	return 0;
 }

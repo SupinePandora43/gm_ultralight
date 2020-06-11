@@ -13,7 +13,7 @@ jobs:
     - uses: actions/checkout@v2
     - run: chmod +x ./headers.bat
     - run: start ./headers.bat
-    - run: set CGO_ENABLED=0
+   # - run: set CGO_ENABLED=0
     - uses: ilammy/msvc-dev-cmd@v1
     - run: choco install visualstudio2019buildtools
     - run: choco install visualstudio2019-workload-nativedesktop
@@ -23,18 +23,18 @@ jobs:
         #cmakeListsOrSettingsJson: CMakeListsTxtAdvanced
         cmakeListsTxtPath: '${{ github.workspace }}/CMakeLists.txt'
         useVcpkgToolchainFile: true
-        cmakeAppendedArgs: '-GNinja -DCMAKE_CXX_COMPILER:FILEPATH=cl.exe' #  -DCMAKE_CXX_FLAGS=\"-std=c++11\"
+        cmakeAppendedArgs: '-G"Visual Studio 16 2019 Win64" -DCMAKE_CXX_COMPILER:FILEPATH=cl.exe' #  -DCMAKE_CXX_FLAGS=\"-std=c++11\"
         cmakeListsOrSettingsJson: CMakeSettingsJson
         cmakeSettingsJsonPath: '${{ github.workspace }}/CMakeSettings.json'
         configurationRegexFilter: '${{ matrix.configuration }}'
-        buildDirectory: '${{ github.workspace }}/out/build'
+        buildDirectory: '${{ github.workspace }}/out'
     - name: tree
       run: tree /f /a 
     - name: upload
       uses: actions/upload-artifact@v2
       with:
         name: Windows64
-        path: out/build/x64-Debug/gmsv_ultralight_win64.dll
+        path: out/build/x64-Release/gmsv_ultralight_win64.dll
   build-linux:
 
     runs-on: ubuntu-latest
@@ -44,7 +44,6 @@ jobs:
     - run: chmod +x ./headers.sh
     - run: source ./headers.sh
     - run: sudo apt install tree
-    - run: tree -a .
     #- run: set CGO_ENABLED=0
     - name: 'Run CMake with Ninja'
       uses: lukka/run-cmake@v2
@@ -52,7 +51,7 @@ jobs:
         cmakeListsOrSettingsJson: CMakeListsTxtAdvanced
         cmakeListsTxtPath: '${{ github.workspace }}/CMakeLists.txt'
         useVcpkgToolchainFile: true
-        buildDirectory: '${{ github.workspace }}/out//build'
+        buildDirectory: '${{ github.workspace }}/out'
         cmakeAppendedArgs: '-GNinja ' # -DCMAKE_CXX_FLAGS=\"-std=c++11\"
     - name: tree
       run: tree -a .
