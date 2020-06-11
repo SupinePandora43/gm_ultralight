@@ -6,7 +6,7 @@
 #include <libloaderapi.h>
 #elif __linux__
 //#include <stdlib.h>
-#include <dlfcn>
+#include <dlfcn.h>
 #endif
 
 using namespace GarrysMod::Lua;
