@@ -1,3 +1,5 @@
+git submodule update --init --recursive
+
 mkdir bin
 curl -L https://github.com/SupinePandora43/gm_ultralight/releases/download/bin/AppCore.dll -o bin/AppCore.dll
 curl -L https://github.com/SupinePandora43/gm_ultralight/releases/download/bin/Ultralight.dll -o bin/Ultralight.dll
