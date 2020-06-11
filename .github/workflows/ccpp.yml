@@ -51,7 +51,7 @@ jobs:
         cmakeListsOrSettingsJson: CMakeListsTxtAdvanced
         cmakeListsTxtPath: '${{ github.workspace }}/CMakeLists.txt'
         useVcpkgToolchainFile: true
-        buildDirectory: '${{ github.workspace }}/out'
+        buildDirectory: '${{ github.workspace }}/out/x64-Release'
         cmakeAppendedArgs: '-GNinja ' # -DCMAKE_CXX_FLAGS=\"-std=c++11\"
     - name: tree
       run: tree -a .
@@ -59,4 +59,4 @@ jobs:
       uses: actions/upload-artifact@v2
       with:
         name: Linux64
-        path: out/build/libgmsv_ultralight_linux64.so
+        path: out/x64-Release/libgmsv_ultralight_linux64.so
