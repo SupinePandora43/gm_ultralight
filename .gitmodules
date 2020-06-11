@@ -1,7 +1,7 @@
 [submodule "thirdparty/garrysmod_common"]
 	path = thirdparty/garrysmod_common
 	url = https://github.com/danielga/garrysmod_common
-	branch = development
+	branch = x86-64-support-sourcesdk
 [submodule "thirdparty/Ultralight-API"]
 	path = thirdparty/Ultralight-API
 	url = https://github.com/ultralight-ux/Ultralight-API
