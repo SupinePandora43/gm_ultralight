@@ -34,7 +34,7 @@ jobs:
       uses: actions/upload-artifact@v2
       with:
         name: Windows64
-        path: out/build/x64-Release/gmsv_ultralight_win64.dll
+        path: out/x64-Release/gmsv_ultralight_win64.dll
   build-linux:
 
     runs-on: ubuntu-latest
