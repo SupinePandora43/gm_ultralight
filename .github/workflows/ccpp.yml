@@ -17,7 +17,7 @@ jobs:
     - uses: ilammy/msvc-dev-cmd@v1
     - run: choco install visualstudio2019buildtools
     - run: choco install visualstudio2019-workload-nativedesktop
-    - name: 'Run CMake with Ninja'
+    - name: 'Run CMake with Visual Studio'
       uses: lukka/run-cmake@v2
       with:
         #cmakeListsOrSettingsJson: CMakeListsTxtAdvanced
@@ -30,7 +30,7 @@ jobs:
         buildDirectory: '${{ github.workspace }}/out'
     - name: tree
       run: tree /f /a 
-    - name: upload
+    - name: Upload artifacts
       uses: actions/upload-artifact@v2
       with:
         name: Windows64
@@ -55,7 +55,7 @@ jobs:
         cmakeAppendedArgs: '-GNinja ' # -DCMAKE_CXX_FLAGS=\"-std=c++11\"
     - name: tree
       run: tree -a .
-    - name: upload
+    - name: Upload artifact
       uses: actions/upload-artifact@v2
       with:
         name: Linux64
