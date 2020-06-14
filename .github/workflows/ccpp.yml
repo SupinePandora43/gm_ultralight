@@ -48,5 +48,5 @@ jobs:
     - name: Upload artifacts
       uses: actions/upload-artifact@v2
       with:
-        name: ${{ matrix.name }}-${{ matrix.buildtype }}
+        name: ${{ matrix.os }}-${{ matrix.buildtype }}
         path: ${{ matrix.artifact }}
