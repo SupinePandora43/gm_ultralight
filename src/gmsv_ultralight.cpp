@@ -1,10 +1,9 @@
 ﻿#include "GarrysMod/Lua/Interface.h"
 #include <Ultralight/Ultralight.h>
 #include <string>
-//#include <memory>
 #ifdef _WIN64
 #include <libloaderapi.h>
-#elif __linux__
+#elif __linux__ or __APPLE__
 //#include <stdlib.h>
 #include <dlfcn.h>
 #endif
@@ -12,11 +11,11 @@
 using namespace GarrysMod::Lua;
 using namespace ultralight;
 
-typedef void (*MsgFn)(const char*, ...);
+typedef void (*MsgP)(const char*, ...);
 
-MsgFn Msg;
+MsgP Msg;
 class MyApp : public LoadListener {
-	RefPtr<Renderer> renderer_;
+	RefPtr<Renderer> renderer;
 	bool done_ = false;
 public:
 	RefPtr<View> view;
@@ -32,10 +31,10 @@ public:
 			Platform::instance().set_config(config);
 			Msg("c++: MyApp: Platform setted config\n");
 
-			renderer_ = Renderer::Create();
+			renderer = Renderer::Create();
 			Msg("c++: MyApp: Renderer created\n");
 
-			view = renderer_->CreateView(2048, 2048, false); // https://github.com/ultralight-ux/Ultralight/issues/257#issuecomment-636330995
+			view = renderer->CreateView(2048, 2048, false); // https://github.com/ultralight-ux/Ultralight/issues/257#issuecomment-636330995
 			Msg("c++: MyApp: Renderer created view\n");
 
 			view->Resize(512, 512);
@@ -58,35 +57,26 @@ public:
 	~MyApp() {
 		Msg("c++: ~MyApp\n");
 		view = nullptr; // IT DONT WORK.
-		renderer_ = nullptr; // IT FUCKING DOESNT!!!
+		renderer = nullptr; // IT FUCKING DOESNT!!!
 	}
 	void Run() {
-		try {
-			Msg("c++: MyApp: Run(): STARTED, Loading page\n");
-			int timeout = 0;
-			while (!done_) {
-				timeout++;
-				renderer_->Update();
-			}
-			Msg("c++: MyApp: Run(): END, only ");
-			Msg(std::to_string(timeout).c_str());
-			Msg(" calls\n");
+		Msg("c++: MyApp: Run(): STARTED, Loading page\n");
+		int timeout = 0;
+		while (!done_) {
+			timeout++;
+			renderer->Update();
 		}
-		catch (const std::exception& e) {
-			Msg(e.what());
-		}
+		Msg("c++: MyApp: Run(): END, only ");
+		Msg(std::to_string(timeout).c_str());
+		Msg(" calls\n");
 	}
+
 	void OnFinishLoading(ultralight::View* caller) {
 		done_ = true;
-		try {
-			Msg("c++: MyApp: OnFinishLoading: START renderer_->Render()\n");
-			renderer_->Render();
-			//view->bitmap()->WritePNG("result.png");
-			Msg("c++: MyApp: OnFinishLoading(): END\n");
-		}
-		catch (const std::exception& e) {
-			Msg(e.what());
-		}
+		Msg("c++: MyApp: OnFinishLoading: START renderer->Render()\n");
+		renderer->Render();
+		//view->bitmap()->WritePNG("result.png");
+		Msg("c++: MyApp: OnFinishLoading(): END\n");
 	}
 };
 void (MyApp::* pRun)() = NULL; //https://stackoverflow.com/a/1486279/9765252
@@ -110,7 +100,7 @@ LUA_FUNCTION_STATIC(RenderImage) {
 		Msg("c++: app.Run() is done\n");
 
 		uint8_t* adress = (uint8_t*)app->view->bitmap()->LockPixels();
-		
+
 		Msg("c++: Rendering on surface (width: ");
 		Msg(std::to_string(app->view->width()).c_str());
 		Msg(", height: ");
@@ -145,9 +135,10 @@ LUA_FUNCTION_STATIC(RenderImage) {
 				LUA->Call(4, 0);
 			}
 		}
+		LUA->Pop();
 		app->view->bitmap()->UnlockPixels(); // maybe locking permanently disallow reusing it, Maybe all shit writed before not worked because it doesn't unlock bitmap
 		Msg("c++: Render end\n");
-		LUA->Pop();
+		delete adress;
 	}
 	catch (const std::exception& e) {
 		Msg(e.what());
@@ -155,20 +146,28 @@ LUA_FUNCTION_STATIC(RenderImage) {
 	}
 	return 0;
 }
+
 GMOD_MODULE_OPEN()
 {
 #ifdef _WIN32
-	Msg = reinterpret_cast<MsgFn>(GetProcAddress(GetModuleHandleA("tier0.dll"), "Msg"));
+	Msg = reinterpret_cast<MsgP>(GetProcAddress(GetModuleHandle("tier0.dll"), "Msg"));
 #elif __linux__
-	Msg = reinterpret_cast<MsgFn>(dlsym(dlopen("tier0.so", RTLD_LAZY), "Msg"));
+	Msg = reinterpret_cast<MsgP>(dlsym(dlopen("libtier0.so", RTLD_LAZY), "Msg"));
+#elif __APPLE__
+	Msg = reinterpret_cast<MsgP>(dlsym(dlopen("libtier0.dylib", RTLD_LAZY), "Msg"));
 #else
-#error "sorry"
+#error unknown platform
 #endif
+
 	LUA->PushSpecial(GarrysMod::Lua::SPECIAL_GLOB);
 
 	Msg("c++: Module opening...\n");
-
-	app = new MyApp();
+	try {
+		app = new MyApp();
+	}
+	catch (std::exception& e) {
+		Msg(e.what());
+	}
 	Msg("c++: app created\n");
 
 	pRun = &MyApp::Run;
@@ -188,6 +187,7 @@ GMOD_MODULE_OPEN()
 		Msg("c++: CLIENT\n");
 	}
 	LUA->Pop();
+
 	return 0;
 }
 
