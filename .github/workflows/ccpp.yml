@@ -20,11 +20,10 @@ jobs:
     - name: 'Run CMake with Visual Studio'
       uses: lukka/run-cmake@v2
       with:
-        cmakeListsOrSettingsJson: CMakeListsTxtAdvanced
+        cmakeListsOrSettingsJson: CMakeSettingsJson
         #cmakeListsTxtPath: '${{ github.workspace }}/CMakeLists.txt'
         useVcpkgToolchainFile: true
         #cmakeAppendedArgs: '-G"Visual Studio 16 2019" -DCMAKE_CXX_COMPILER:FILEPATH=cl.exe' #  -DCMAKE_CXX_FLAGS=\"-std=c++11\"
-        #cmakeListsOrSettingsJson: CMakeSettingsJson
         #cmakeSettingsJsonPath: '${{ github.workspace }}/CMakeSettings.json'
         #configurationRegexFilter: '${{ matrix.configuration }}'
         cmakeBuildType: Release
