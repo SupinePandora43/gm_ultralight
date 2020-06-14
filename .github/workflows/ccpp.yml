@@ -9,6 +9,7 @@ jobs:
     strategy:
       fail-fast: false
       matrix:
+        os: [windows, linux, macos]
         buildtype: [Release, Debug]
         requirements: [source ./headers.sh]
         cmakeLists: [CMakeListsTxtBasic]
