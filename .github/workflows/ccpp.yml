@@ -13,6 +13,7 @@ jobs:
         buildtype: [Release, Debug]
         artifact: [out/Release/libgmsv_ultralight_linux64.so]
         requirements: [source ./headers.sh]
+        cmakeLists: [CMakeListsTxtBasic]
         include:
           - windows-msvc:
             os: windows
@@ -20,6 +21,7 @@ jobs:
             artifact: out/Build/Release/gmsv_ultralight_win64.dll
             tree: tree /f /a 
             requirements: start ./headers.bat
+            cmakeLists: CMakeSettingsJson
           - ubuntu-g++:
             os: ubuntu
             cxx: g++
@@ -52,7 +54,7 @@ jobs:
     - name: 'CMake'
       uses: lukka/run-cmake@v2
       with:
-        cmakeListsOrSettingsJson: CMakeSettingsJson
+        cmakeListsOrSettingsJson: ${{ matrix.cmakeLists }}
         useVcpkgToolchainFile: true
         cmakeBuildType: ${{ matrix.buildtype }}
         buildDirectory: '${{ github.workspace }}/out'
