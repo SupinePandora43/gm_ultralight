@@ -53,12 +53,12 @@ jobs:
       run: ${{ matrix.tree }}
     - name: set path
       uses: lukka/set-shell-env@v1
-      if: contains(matrix.os, "windows")
+      if: contains(matrix.os, 'windows')
       with:
         APATH: out/${{ matrix.buildtype }}/gmsv_ultralight_win64.dll
     - name: set path
       uses: lukka/set-shell-env@v1
-      if: !contains(matrix.os, "windows")
+      if: !contains(matrix.os, 'windows')
       with:
         APATH: ${{ matrix.artifact }}
     - name: Upload artifacts
