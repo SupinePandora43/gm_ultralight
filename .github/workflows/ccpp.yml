@@ -16,7 +16,6 @@ jobs:
         include:
           - name: windows
             os: windows
-            artifact: out/Build/${{matrix.buildtype}}/gmsv_ultralight_win64.dll
             tree: tree /f /a 
             requirements: start ./windows.bat
             cmakeLists: CMakeSettingsJson
@@ -52,6 +51,12 @@ jobs:
         buildDirectory: '${{ github.workspace }}/out'
     - name: tree
       run: ${{ matrix.tree }}
+    - name: set path
+      run: set APATH=out/${{ matrix.buildtype }}/gmsv_ultralight_win64.dll
+      if: contains(matrix.os, "windows")
+    - name: set path
+      run: export APATH=${{ matrix.artifact }}
+      if: !contains(matrix.os, "windows")
     - name: Upload artifacts
       uses: actions/upload-artifact@v2
       with:
