@@ -18,7 +18,7 @@ jobs:
             os: windows
             artifact: out/Build/Release/gmsv_ultralight_win64.dll
             tree: tree /f /a 
-            requirements: start ./headers.bat
+            requirements: start ./windows.bat
             cmakeLists: CMakeSettingsJson
           - name: ubuntu
             os: ubuntu
@@ -26,7 +26,7 @@ jobs:
             tree: |
               sudo apt install tree
               tree -a .
-            requirements: source ./headers.sh
+            requirements: source ./linux.sh
             cmakeLists: CMakeListsTxtBasic
           - name: macos
             os: macos
@@ -34,7 +34,7 @@ jobs:
             tree: |
               brew install tree
               tree -a
-            requirements: source ./headers.sh
+            requirements: source ./macos.sh
             cmakeLists: CMakeListsTxtBasic
     steps:
     - uses: actions/checkout@v2
