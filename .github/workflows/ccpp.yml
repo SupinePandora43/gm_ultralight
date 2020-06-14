@@ -53,12 +53,12 @@ jobs:
       run: ${{ matrix.tree }}
     - name: set path
       if: "contains(matrix.os, 'windows')"
-      run: set out/${{ matrix.buildtype }}/gmsv_ultralight_win64.dll
+      run: set APATH=out/${{ matrix.buildtype }}/gmsv_ultralight_win64.dll
     - name: set path
       if: "!contains(matrix.os, 'windows')"
-      run: export ${{ matrix.artifact }}
+      run: export APATH=${{ matrix.artifact }}
     - name: Upload artifacts
       uses: actions/upload-artifact@v2
       with:
         name: ${{ matrix.os }}-${{ matrix.buildtype }}
-        path: ${{ matrix.artifact }}
+        path: %APATH
