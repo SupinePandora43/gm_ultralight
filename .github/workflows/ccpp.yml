@@ -57,6 +57,7 @@ jobs:
     - name: set path
       if: "!contains(matrix.os, 'windows')"
       run: export APATH=${{ matrix.artifact }}
+    - run: echo %APATH%
     - name: Upload artifacts
       uses: actions/upload-artifact@v2
       with:
