@@ -6,6 +6,7 @@ on:
     branches: [ master ]
 jobs:
   build:
+    runs-on: ${{ matrix.os }}-latest
     strategy:
       fail-fast: false
       matrix:
@@ -32,7 +33,6 @@ jobs:
             tree: |
               brew install tree
               tree -a
-    runs-on: ${{ matrix.os }}-latest
     steps:
     - uses: actions/checkout@v2
       with:
