@@ -28,6 +28,7 @@ public:
 
 			config.device_scale_hint = 1.0;
 			config.font_family_standard = "Arial";
+
 			Platform::instance().set_config(config);
 			Msg("c++: MyApp: Platform setted config\n");
 
@@ -134,9 +135,9 @@ LUA_FUNCTION(RenderImage) {
 			for (uint16_t x = 0; x < app->view->width(); x++)
 			{
 				LUA->GetField(-1, "SetDrawColor");
-				LUA->PushNumber(adress[i + 2]); // R
+				LUA->PushNumber(adress[i]); //     R
 				LUA->PushNumber(adress[i + 1]); // G
-				LUA->PushNumber(adress[i]); //     B
+				LUA->PushNumber(adress[i + 2]); // B
 				LUA->PushNumber(adress[i + 3]); // A
 				LUA->Call(4, 0);
 				i = i + 4;
