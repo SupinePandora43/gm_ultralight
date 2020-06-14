@@ -6,6 +6,7 @@ on:
     branches: [ master ]
 jobs:
   build:
+    name: ${{ matrix.os }}-${{ matrix.buildtype }}
     runs-on: ${{ matrix.os }}-latest
     strategy:
       fail-fast: false
