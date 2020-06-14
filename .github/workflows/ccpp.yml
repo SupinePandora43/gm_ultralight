@@ -9,6 +9,7 @@ jobs:
     strategy:
       fail-fast: false
       matrix:
+        name: [windows, ubuntu, macos]
         os: [windows, ubuntu, macos]
         buildtype: [Release, Debug]
         requirements: [source ./headers.sh]
