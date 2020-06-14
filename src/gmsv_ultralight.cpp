@@ -48,7 +48,6 @@ public:
 		}
 	}
 	void SetURL(String url) {
-		done_ = false;
 		view->LoadURL(url);
 	}
 	RefPtr<View> getView() {
@@ -62,6 +61,7 @@ public:
 	void Run() {
 		Msg("c++: MyApp: Run(): STARTED, Loading page\n");
 		int timeout = 0;
+		done_ = false;
 		while (!done_) {
 			timeout++;
 			renderer->Update();
@@ -75,22 +75,24 @@ public:
 		done_ = true;
 		Msg("c++: MyApp: OnFinishLoading: START renderer->Render()\n");
 		renderer->Render();
-		//view->bitmap()->WritePNG("result.png");
+		view->bitmap()->WritePNG("result.png");
 		Msg("c++: MyApp: OnFinishLoading(): END\n");
 	}
 };
+
 void (MyApp::* pRun)() = NULL; //https://stackoverflow.com/a/1486279/9765252
 void (MyApp::* pSetUrl)(String url) = NULL; //https://stackoverflow.com/a/1486279/9765252
 MyApp* app;
-LUA_FUNCTION_STATIC(RenderImage) {
+
+LUA_FUNCTION(RenderImage) {
 	try {
 		Msg("c++: RenderImage() called\n");
 		LUA->PushSpecial(GarrysMod::Lua::SPECIAL_GLOB);
 		//LUA->GetField(-2, "print");
 		//LUA->PushString("c++: RenderImage() called");
 		//LUA->Call(1, 0);
-		LUA->CheckString();
-		const char* url = LUA->GetString();
+		LUA->CheckString(-2);
+		const char* url = LUA->GetString(-2);
 		if (url == NULL) {
 			url = "https://google.com";
 		}
@@ -106,6 +108,17 @@ LUA_FUNCTION_STATIC(RenderImage) {
 		Msg(", height: ");
 		Msg(std::to_string(app->view->width()).c_str());
 		Msg(" )\n");
+
+		Msg("c++: MyApp: Color( ");
+		Msg(std::to_string(adress[2]).c_str());
+		Msg(",");
+		Msg(std::to_string(adress[1]).c_str());
+		Msg(",");
+		Msg(std::to_string(adress[0]).c_str());
+		Msg(",");
+		Msg(std::to_string(adress[3]).c_str());
+		Msg(" )");
+
 		// TODO:
 		// gm_ultralight -> vguimatsurface
 		// get `surface` from `vguimatsurface.dll`
@@ -121,10 +134,10 @@ LUA_FUNCTION_STATIC(RenderImage) {
 			for (uint16_t x = 0; x < app->view->width(); x++)
 			{
 				LUA->GetField(-1, "SetDrawColor");
-				LUA->PushNumber(adress[i + 2]);//R
-				LUA->PushNumber(adress[i + 1]);//G
-				LUA->PushNumber(adress[i]);//B
-				LUA->PushNumber(adress[i + 3]);//A
+				LUA->PushNumber(adress[i + 2]); // R
+				LUA->PushNumber(adress[i + 1]); // G
+				LUA->PushNumber(adress[i]); //     B
+				LUA->PushNumber(adress[i + 3]); // A
 				LUA->Call(4, 0);
 				i = i + 4;
 				LUA->GetField(-1, "DrawRect");
@@ -136,14 +149,34 @@ LUA_FUNCTION_STATIC(RenderImage) {
 			}
 		}
 		LUA->Pop();
+
+		LUA->PushNumber(adress[2]);
+		LUA->PushNumber(adress[1]);
+		LUA->PushNumber(adress[0]);
+		LUA->PushNumber(adress[3]);
+
 		app->view->bitmap()->UnlockPixels(); // maybe locking permanently disallow reusing it, Maybe all shit writed before not worked because it doesn't unlock bitmap
 		Msg("c++: Render end\n");
-		delete adress;
+		adress = nullptr;
 	}
 	catch (const std::exception& e) {
 		Msg(e.what());
 		Msg("\n");
 	}
+	return 3;
+}
+
+LUA_FUNCTION(createApp) {
+	app = new MyApp();
+	pRun = &MyApp::Run;
+	pSetUrl = &MyApp::SetURL;
+	Msg("c++: app created\n");
+	return 0;
+}
+LUA_FUNCTION(destroyApp) {
+	delete app;
+	pRun = nullptr;
+	pSetUrl = nullptr;
 	return 0;
 }
 
@@ -159,22 +192,22 @@ GMOD_MODULE_OPEN()
 #error unknown platform
 #endif
 
+	Msg("c++: Module opening...\n");
+
 	LUA->PushSpecial(GarrysMod::Lua::SPECIAL_GLOB);
 
-	Msg("c++: Module opening...\n");
-	try {
-		app = new MyApp();
-	}
-	catch (std::exception& e) {
-		Msg(e.what());
-	}
-	Msg("c++: app created\n");
-
-	pRun = &MyApp::Run;
-	pSetUrl = &MyApp::SetURL;
+	LUA->CreateTable(); // {
 
 	LUA->PushCFunction(RenderImage);
-	LUA->SetField(-2, "ultralight_render");
+	LUA->SetField(-2, "render");
+
+	LUA->PushCFunction(createApp);
+	LUA->SetField(-2, "createApp");
+
+	LUA->PushCFunction(destroyApp);
+	LUA->SetField(-2, "destroyApp");
+
+	LUA->SetField(-2, "ultralight"); // }
 
 	LUA->GetField(-1, "SERVER");
 	if (LUA->GetBool(-1)) {
@@ -187,14 +220,13 @@ GMOD_MODULE_OPEN()
 		Msg("c++: CLIENT\n");
 	}
 	LUA->Pop();
-
 	return 0;
 }
 
 GMOD_MODULE_CLOSE()
 {
 	// process with running MyApp is still active, after this :'C
-	delete app; //app->~MyApp();
+	delete app;
 	Msg = nullptr;
 	return 0;
 }
