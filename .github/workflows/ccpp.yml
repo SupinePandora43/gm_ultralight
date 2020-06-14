@@ -13,8 +13,6 @@ jobs:
       matrix:
         name: [windows, ubuntu, macos]
         buildtype: [Release, Debug]
-        requirements: [source ./headers.sh]
-        cmakeLists: [CMakeListsTxtBasic]
         include:
           - name: windows
             os: windows
@@ -28,12 +26,16 @@ jobs:
             tree: |
               sudo apt install tree
               tree -a .
+            requirements: source ./headers.sh
+            cmakeLists: CMakeListsTxtBasic
           - name: macos
             os: macos
             artifact: out/Release/libgmsv_ultralight_linux64.dylib
             tree: |
               brew install tree
               tree -a
+            requirements: source ./headers.sh
+            cmakeLists: CMakeListsTxtBasic
     steps:
     - uses: actions/checkout@v2
       with:
