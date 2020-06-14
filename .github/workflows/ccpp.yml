@@ -11,8 +11,8 @@ jobs:
       matrix:
         name: [windows-msvc, ubuntu-g++, ubuntu-clang, macos-clang]
         buildtype: [Release, Debug]
-        artifact: out/Release/libgmsv_ultralight_linux64.so
-        requirements: source ./headers.sh
+        artifact: [out/Release/libgmsv_ultralight_linux64.so]
+        requirements: [source ./headers.sh]
         include:
           - windows-msvc:
             os: windows
