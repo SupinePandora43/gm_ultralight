@@ -9,39 +9,25 @@ jobs:
     strategy:
       fail-fast: false
       matrix:
-        name: [windows-msvc, ubuntu-g++, ubuntu-clang, macos-clang]
         buildtype: [Release, Debug]
-        artifact: [out/Release/libgmsv_ultralight_linux64.so]
         requirements: [source ./headers.sh]
         cmakeLists: [CMakeListsTxtBasic]
         include:
-          - windows-msvc:
-            os: windows
-            cxx: cl.exe
+          - os: windows
             artifact: out/Build/Release/gmsv_ultralight_win64.dll
             tree: tree /f /a 
             requirements: start ./headers.bat
             cmakeLists: CMakeSettingsJson
-          - ubuntu-g++:
-            os: ubuntu
-            cxx: g++
+          - os: ubuntu
+            artifact: out/libgmsv_ultralight_linux64.so
             tree: |
               sudo apt install tree
               tree -a .
-          - ubuntu-clang:
-            os: ubuntu
-            cxx: clang++
-            tree: |
-              sudo apt install tree
-              tree -a .
-          - macos-clang:
-            os: macos
-            cxx: clang++
+          - os: macos
             artifact: out/Release/libgmsv_ultralight_linux64.dylib
             tree: |
               brew install tree
-              tree -a .
-
+              tree -a
     runs-on: ${{ matrix.os }}-latest
     steps:
     - uses: actions/checkout@v2
@@ -50,7 +36,6 @@ jobs:
     #- run: chmod +x ./headers.bat
     - run: ${{ matrix.requirements }}
     - uses: ilammy/msvc-dev-cmd@v1
-    - run: set CXX=${{ matrix.cxx }}
     - name: 'CMake'
       uses: lukka/run-cmake@v2
       with:
@@ -63,5 +48,5 @@ jobs:
     - name: Upload artifacts
       uses: actions/upload-artifact@v2
       with:
-        name: ${{ matrix.name }}
+        name: ${{ matrix.name }}-${{ matrix.buildtype }}
         path: ${{ matrix.artifact }}
