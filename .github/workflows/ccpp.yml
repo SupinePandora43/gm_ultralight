@@ -34,7 +34,7 @@ jobs:
       uses: actions/upload-artifact@v2
       with:
         name: Windows64
-        path: out/x64-Release/gmsv_ultralight_win64.dll
+        path: out/Release/gmsv_ultralight_win64.dll
   build-linux:
 
     runs-on: ubuntu-latest
@@ -51,7 +51,7 @@ jobs:
         cmakeListsOrSettingsJson: CMakeListsTxtAdvanced
         cmakeListsTxtPath: '${{ github.workspace }}/CMakeLists.txt'
         useVcpkgToolchainFile: true
-        buildDirectory: '${{ github.workspace }}/out/x64-Release'
+        buildDirectory: '${{ github.workspace }}/out/Release'
         cmakeAppendedArgs: '-GNinja ' # -DCMAKE_CXX_FLAGS=\"-std=c++11\"
     - name: tree
       run: tree -a .
@@ -59,4 +59,4 @@ jobs:
       uses: actions/upload-artifact@v2
       with:
         name: Linux64
-        path: out/x64-Release/libgmsv_ultralight_linux64.so
+        path: out/Release/libgmsv_ultralight_linux64.so
