@@ -1,64 +1,68 @@
-name: C/C++ CI
-
+name: CI
 on:
   push:
     branches: [ master ]
   pull_request:
     branches: [ master ]
-
 jobs:
-  build-windows:
-    runs-on: windows-latest
+  build:
+    strategy:
+      fail-fast: false
+      matrix:
+        name: [windows-msvc, ubuntu-g++, ubuntu-clang, macos-clang]
+        buildtype: [Release, Debug]
+        artifact: out/Release/libgmsv_ultralight_linux64.so
+        requirements: source ./headers.sh
+        include:
+          - windows-msvc:
+            os: windows
+            cxx: cl.exe
+            artifact: out/Build/Release/gmsv_ultralight_win64.dll
+            tree: tree /f /a 
+            requirements: start ./headers.bat
+        include:
+          - ubuntu-g++:
+            os: ubuntu
+            cxx: g++
+            tree: |
+              sudo apt install tree
+              tree -a .
+        include:
+          - ubuntu-clang:
+            os: ubuntu
+            cxx: clang++
+            tree: |
+              sudo apt install tree
+              tree -a .
+        include:
+          - macos-clang:
+            os: macos
+            cxx: clang++
+            artifact: out/Release/libgmsv_ultralight_linux64.dylib
+            tree: |
+              brew install tree
+              tree -a .
+
+    runs-on: ${{ matrix.os }}-latest
     steps:
     - uses: actions/checkout@v2
       with:
         submodules: true
-    - run: chmod +x ./headers.bat
-    - run: start ./headers.bat
-   # - run: set CGO_ENABLED=0
+    #- run: chmod +x ./headers.bat
+    - run: ${{ matrix.requirements }}
     - uses: ilammy/msvc-dev-cmd@v1
-    - name: 'Run CMake with Visual Studio'
+    - run: set CXX=${{ matrix.cxx }}
+    - name: 'CMake'
       uses: lukka/run-cmake@v2
       with:
         cmakeListsOrSettingsJson: CMakeSettingsJson
-        #cmakeListsTxtPath: '${{ github.workspace }}/CMakeLists.txt'
         useVcpkgToolchainFile: true
-        #cmakeAppendedArgs: '-G"Visual Studio 16 2019" -DCMAKE_CXX_COMPILER:FILEPATH=cl.exe' #  -DCMAKE_CXX_FLAGS=\"-std=c++11\"
-        #cmakeSettingsJsonPath: '${{ github.workspace }}/CMakeSettings.json'
-        #configurationRegexFilter: '${{ matrix.configuration }}'
-        cmakeBuildType: Release
+        cmakeBuildType: ${{ matrix.buildtype }}
         buildDirectory: '${{ github.workspace }}/out'
     - name: tree
-      run: tree /f /a 
+      run: ${{ matrix.tree }}
     - name: Upload artifacts
       uses: actions/upload-artifact@v2
       with:
-        name: Windows64
-        path: out/Release/gmsv_ultralight_win64.dll
-  build-linux:
-
-    runs-on: ubuntu-latest
-
-    steps:
-    - uses: actions/checkout@v2
-      with:
-        submodules: true
-    - run: chmod +x ./headers.sh
-    - run: source ./headers.sh
-    - run: sudo apt install tree
-    #- run: set CGO_ENABLED=0
-    - name: 'Run CMake with Ninja'
-      uses: lukka/run-cmake@v2
-      with:
-        cmakeListsOrSettingsJson: CMakeListsTxtAdvanced
-        cmakeListsTxtPath: '${{ github.workspace }}/CMakeLists.txt'
-        useVcpkgToolchainFile: true
-        buildDirectory: '${{ github.workspace }}/out/Release'
-        cmakeAppendedArgs: '-GNinja ' # -DCMAKE_CXX_FLAGS=\"-std=c++11\"
-    - name: tree
-      run: tree -a .
-    - name: Upload artifact
-      uses: actions/upload-artifact@v2
-      with:
-        name: Linux64
-        path: out/Release/libgmsv_ultralight_linux64.so
+        name: ${{ matrix.name }}
+        path: ${{ matrix.artifact }}
