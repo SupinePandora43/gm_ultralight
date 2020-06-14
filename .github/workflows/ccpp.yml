@@ -20,21 +20,18 @@ jobs:
             artifact: out/Build/Release/gmsv_ultralight_win64.dll
             tree: tree /f /a 
             requirements: start ./headers.bat
-        include:
           - ubuntu-g++:
             os: ubuntu
             cxx: g++
             tree: |
               sudo apt install tree
               tree -a .
-        include:
           - ubuntu-clang:
             os: ubuntu
             cxx: clang++
             tree: |
               sudo apt install tree
               tree -a .
-        include:
           - macos-clang:
             os: macos
             cxx: clang++
