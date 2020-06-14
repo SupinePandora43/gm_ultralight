@@ -30,7 +30,7 @@ jobs:
             cmakeLists: CMakeListsTxtBasic
           - name: macos
             os: macos
-            artifact: out/Release/libgmsv_ultralight_linux64.dylib
+            artifact: out/libgmsv_ultralight_linux64.dylib
             tree: |
               brew install tree
               tree -a
