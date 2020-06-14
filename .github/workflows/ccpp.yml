@@ -11,6 +11,8 @@ jobs:
     runs-on: windows-latest
     steps:
     - uses: actions/checkout@v2
+      with:
+        submodules: true
     - run: chmod +x ./headers.bat
     - run: start ./headers.bat
    # - run: set CGO_ENABLED=0
@@ -25,6 +27,7 @@ jobs:
         #cmakeListsOrSettingsJson: CMakeSettingsJson
         #cmakeSettingsJsonPath: '${{ github.workspace }}/CMakeSettings.json'
         #configurationRegexFilter: '${{ matrix.configuration }}'
+        cmakeBuildType: Release
         buildDirectory: '${{ github.workspace }}/out'
     - name: tree
       run: tree /f /a 
@@ -39,6 +42,8 @@ jobs:
 
     steps:
     - uses: actions/checkout@v2
+      with:
+        submodules: true
     - run: chmod +x ./headers.sh
     - run: source ./headers.sh
     - run: sudo apt install tree
