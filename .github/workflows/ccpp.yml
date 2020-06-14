@@ -15,19 +15,19 @@ jobs:
         requirements: [source ./headers.sh]
         cmakeLists: [CMakeListsTxtBasic]
         include:
-          - name:windows
+          - name: windows
             os: windows
             artifact: out/Build/Release/gmsv_ultralight_win64.dll
             tree: tree /f /a 
             requirements: start ./headers.bat
             cmakeLists: CMakeSettingsJson
-          - name:ubuntu
+          - name: ubuntu
             os: ubuntu
             artifact: out/libgmsv_ultralight_linux64.so
             tree: |
               sudo apt install tree
               tree -a .
-          - name:macos
+          - name: macos
             os: macos
             artifact: out/Release/libgmsv_ultralight_linux64.dylib
             tree: |
