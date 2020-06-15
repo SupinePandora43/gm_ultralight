@@ -173,8 +173,8 @@ void* getFunction(std::string library, const char* funcName) {
 		dll = LoadLibrary(library.c_str());
 	}
 	return GetProcAddress(dll, funcName);
-#elif __linux__ or _APPLE_
-#ifdef _APPLE_
+#elif __linux__ or __APPLE__
+#ifdef __APPLE__
 	const char* postfix = ".dylib";
 #else
 	const char* postfix = ".so";
