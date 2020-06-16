@@ -1,88 +1,153 @@
 ﻿#include "GarrysMod/Lua/Interface.h"
-//#include <Ultralight/Ultralight.h>
-#include <Ultralight/CAPI.h>
 #include <string>
+//#include <cstdlib>
+//#include <cstdint>
+#ifdef __linux__ or __APPLE__
+#include <fcntl.h>     // for O_* constants
+#include <sys/mman.h>  // mmap, munmap
+#include <sys/stat.h>  // for mode constants
+#include <unistd.h>    // unlink
+#if defined(__APPLE__)
+#include <errno.h>
+#endif
+#include <stdexcept>
+#endif
 #ifdef _WIN64
-#include <libloaderapi.h>
+#include <libloaderapi.h> // GetProcAddres
+#include <windows.h> // CreateFileMapping
+#include <io.h>
 #elif __linux__ or __APPLE__
-//#include <stdlib.h>
-#include <dlfcn.h>
+#include <dlfcn.h> // dlsym
 #endif
 
-using namespace GarrysMod::Lua;
-//using namespace ultralight;
-
-typedef void (*MsgP)(const char*, ...);
-
-MsgP Msg;
-
-bool done = false;
-void jojo() {
-	done = true;
-}
-
-class App {
-	ULRenderer renderer;
+enum ShoomError {
+	kOK = 0,
+	kErrorCreationFailed = 100,
+	kErrorMappingFailed = 110,
+	kErrorOpeningFailed = 120,
+};
+class Shm {
+	std::string path_;
+	uint8_t* data_ = nullptr;
+	size_t size_ = 0;
+#if defined(_WIN32)
+	HANDLE handle_;
+#else
+	int fd_ = -1;
+#endif
 public:
-	ULView view;
-	App() {
-		try {
-			Msg("c++: App: Creating...\n");
-
-			ULConfig config = ulCreateConfig();
-			Msg("c++: App: Config created\n");
-
-			ulConfigSetDeviceScaleHint(config, 2.0);
-			ulConfigSetFontFamilyStandard(config, ulCreateString("Arial"));
-
-			renderer = ulCreateRenderer(config);
-			Msg("c++: App: Renderer created\n");
-
-			view = ulCreateView(renderer, 2048, 2048, false); // https://github.com/ultralight-ux/Ultralight/issues/257#issuecomment-636330995
-			Msg("c++: App: Renderer created view\n");
-
-			ulViewResize(view, 512, 512);
-			Msg("c++ App: view->Resize(512, 512)\n");
-			ulViewSetFinishLoadingCallback(view, [](void* user_data, ULView caller) {jojo();}, nullptr);
-			Msg("c++: App: view setted listener\n");
+	//Shm(std::string path, size_t size) : path_(path), size_(size) {};
+	Shm(std::string path, size_t size) {
+#ifdef WIN32
+		path_ = path;
+#else
+		path_ = "/" + path;
+#endif
+		size_ = size;
+	};
+	ShoomError Create() { return CreateOrOpen(true); }
+	ShoomError Open() { return CreateOrOpen(false); }
+	uint8_t* Data() { return data_; }
+	ShoomError CreateOrOpen(bool create) {
+		if (create) {
+#ifdef WIN32
+			DWORD size_high_order = 0;
+			DWORD size_low_order = static_cast<DWORD>(size_);
+			handle_ = CreateFileMapping(INVALID_HANDLE_VALUE,  // use paging file
+				NULL,                  // default security
+				PAGE_READWRITE,        // read/write access
+				size_high_order, size_low_order,
+				path_.c_str()  // name of mapping object
+			);
+			if (!handle_) {
+				return kErrorCreationFailed;
+			}
+#else
+			int ret = shm_unlink(path_.c_str());
+			if (ret < 0) {
+				if (errno != ENOENT) {
+					return kErrorCreationFailed;
+				}
+			}
+#endif
 		}
-		catch (const std::exception& e) {
-			Msg(e.what());
+#ifndef WIN32
+		int flags = create ? (O_CREAT | O_RDWR) : O_RDONLY;
+		fd_ = shm_open(path_.c_str(), flags, 0755);
+		if (fd_ < 0) {
+			if (create) {
+				return kErrorCreationFailed;
+			}
+			else {
+				return kErrorOpeningFailed;
+			}
 		}
-	}
-	void SetURL(ULString url) {
-		ulViewLoadURL(view, url);
-	}
-	~App() {
-		Msg("c++: ~App\n");
-		ulDestroyView(view);
-		ulDestroyRenderer(renderer);
-	}
-	void Run() {
-		Msg("c++: App: Run(): STARTED, Loading page\n");
-		uint32_t timeout = 0;
-		done = false;
-		while (!done && timeout < 100000) {
-			timeout++;
-			ulUpdate(renderer);
+		if (create) {
+			// this is the only way to specify the size of a
+			// newly-created POSIX shared memory object
+			int ret = ftruncate(fd_, size_);
+			if (ret != 0) {
+				return kErrorCreationFailed;
+			}
 		}
-		Msg("c++: App: Run(): END, only ");
-		Msg(std::to_string(timeout).c_str());
-		Msg(" calls\n");
+		int prot = create ? (PROT_READ | PROT_WRITE) : PROT_READ;
+		auto memory = mmap(nullptr,     // addr
+			size_,       // length
+			prot,        // prot
+			MAP_SHARED,  // flags
+			fd_,         // fd
+			0            // offset
+		);
+		if (memory == MAP_FAILED) {
+			return kErrorMappingFailed;
+		}
+		data_ = static_cast<uint8_t*>(memory);
+		if (!data_) {
+			return kErrorMappingFailed;
+		}
+		return kOK;
+#endif
+		else {
+			handle_ = OpenFileMappingA(FILE_MAP_READ,  // read access
+				FALSE,          // do not inherit the name
+				path_.c_str()   // name of mapping object
+			);
+
+			if (!handle_) {
+				return kErrorOpeningFailed;
+			}
+		}
+		DWORD access = create ? FILE_MAP_ALL_ACCESS : FILE_MAP_READ;
+		data_ = static_cast<uint8_t*>(MapViewOfFile(handle_, access, 0, 0, size_));
+		if (!data_) {
+			return kErrorMappingFailed;
+		}
+		return kOK;
 	}
-	void OnFinishLoading() {
-		done = true;
-		Msg("c++: App: OnFinishLoading: START renderer->Render()\n");
-		ulRender(renderer);
-		ulBitmapWritePNG(ulViewGetBitmap(view), "result");
-		Msg("c++: App: OnFinishLoading(): END\n");
+	~Shm() {
+#ifndef WIN32
+		munmap(data_, size_);
+		close(fd_);
+		shm_unlink(path_.c_str());
+#else
+		if (data_) {
+			UnmapViewOfFile(data_);
+			data_ = nullptr;
+		}
+		CloseHandle(handle_);
+#endif
 	}
 };
+using namespace GarrysMod::Lua;
 
-App* app;
-void (App::* pRun)() = NULL; //https://stackoverflow.com/a/1486279/9765252
-void (App::* pSetUrl)(ULString url) = NULL; //https://stackoverflow.com/a/1486279/9765252
-
+typedef void (*MsgP)(const char*, ...);
+MsgP Msg;
+Shm* ul_io_rpc;
+Shm* ul_i_image;
+Shm* ul_o_url;
+uint16_t x;
+uint16_t y;
+/*
 LUA_FUNCTION(RenderImage) {
 	Msg("c++: RenderImage() called\n");
 	LUA->PushSpecial(GarrysMod::Lua::SPECIAL_GLOB);
@@ -95,18 +160,17 @@ LUA_FUNCTION(RenderImage) {
 		url = "https://google.com";
 	}
 
-	(*app.*pSetUrl)(ulCreateString(url));
+	(*app.*pSetUrl)(url);
 	Msg("c++: app.SetURL() is done\n");
 	(*app.*pRun)();
 	Msg("c++: app.Run() is done\n");
 
-	ULBitmap bitmap = ulViewGetBitmap(app->view);
-	uint8_t* adress = (uint8_t*)ulBitmapLockPixels(bitmap);
+	uint8_t* adress = (uint8_t*)app->view->bitmap()->LockPixels();
 
 	Msg("c++: Rendering on surface (width: ");
-	Msg(std::to_string(ulBitmapGetWidth(bitmap)).c_str());
+	Msg(std::to_string(app->view->width()).c_str());
 	Msg(", height: ");
-	Msg(std::to_string(ulBitmapGetHeight(bitmap)).c_str());
+	Msg(std::to_string(app->view->height()).c_str());
 	Msg(" )\n");
 
 	// TODO:
@@ -119,9 +183,9 @@ LUA_FUNCTION(RenderImage) {
 	// gm_ultralight -> LUA -> vguimatsurface
 	LUA->GetField(-1, "surface");
 	uint32_t i = 0;
-	for (uint16_t y = 0; y < ulBitmapGetHeight(bitmap); y++)
+	for (uint16_t y = 0; y < app->view->height(); y++)
 	{
-		for (uint16_t x = 0; x < ulBitmapGetWidth(bitmap); x++)
+		for (uint16_t x = 0; x < app->view->width(); x++)
 		{
 			LUA->GetField(-1, "SetDrawColor");
 			LUA->PushNumber(adress[i]); //     R
@@ -145,26 +209,15 @@ LUA_FUNCTION(RenderImage) {
 	LUA->PushNumber(adress[0]);
 	LUA->PushNumber(adress[3]);
 	adress = nullptr;
-
-	ulBitmapUnlockPixels(bitmap); // maybe locking permanently disallow reusing it, Maybe all shit writed before not worked because it doesn't unlock bitmap
+	app->view->bitmap()->UnlockPixels(); // maybe locking permanently disallow reusing it, Maybe all shit writed before not worked because it doesn't unlock bitmap
 	Msg("c++: Render end\n");
 	return 3;
 }
-
-LUA_FUNCTION(createApp) {
-	app = new App();
-	pRun = &App::Run;
-	pSetUrl = &App::SetURL;
-	Msg("c++: app created\n");
+*/
+LUA_FUNCTION(test) {
+	Msg("1", "2", "3", std::to_string(NULL).c_str());
 	return 0;
 }
-LUA_FUNCTION(destroyApp) {
-	delete app;
-	pRun = nullptr;
-	pSetUrl = nullptr;
-	return 0;
-}
-
 void* getFunction(std::string library, const char* funcName) {
 #ifdef _WIN64
 	library = library + ".dll";
@@ -186,7 +239,37 @@ void* getFunction(std::string library, const char* funcName) {
 #error unknown platform
 #endif
 }
-
+/* ul_io_rpc
+ * [0] - length of url
+ * [1...] - page to load
+*/
+/* ul_i_image
+ * [x * y * 4 ] exact as view->bitmap()->LockPixels()
+*/
+LUA_FUNCTION(InitializeRenderer) {
+	Msg("c++: Starting IPC\n");
+	const char* url = LUA->GetString(-2);
+	if (ul_io_rpc) delete ul_io_rpc;
+	ul_io_rpc = new Shm{ "ul_io_rpc", 128 };
+	ul_io_rpc->Create();
+	ul_io_rpc->Data()[0] = std::strlen(url);
+	if (ul_o_url) delete ul_o_url;
+	ul_o_url = new Shm{ "ui_o_url", 512 };
+	ul_o_url->Create();
+	memcpy(ul_o_url->Data(), url, std::strlen(url));
+	Msg("c++: Starting image pipe"); // = width * height * 4 (rgba)
+	if (ul_i_image) delete ul_i_image;
+	ul_i_image = new Shm{ "ul_i_image", x * y * 4 };
+	Msg("c++: Starting renderer\n");
+	std::system("./ultralight_renderer.exe");
+	Msg("c++: Starting renderer\n");
+	return 0;
+}
+LUA_FUNCTION(render) {
+	if (ul_io_rpc == nullptr || ul_i_image == nullptr) {
+		Msg("c++: sry, initialize first!");
+	}
+}
 GMOD_MODULE_OPEN()
 {
 	Msg = reinterpret_cast<MsgP>(getFunction("tier0", "Msg"));
@@ -197,14 +280,14 @@ GMOD_MODULE_OPEN()
 
 	LUA->CreateTable(); // {
 
-	LUA->PushCFunction(RenderImage);
+	LUA->PushCFunction(render);
 	LUA->SetField(-2, "render");
 
-	LUA->PushCFunction(createApp);
-	LUA->SetField(-2, "createApp");
+	LUA->PushCFunction(InitializeRenderer);
+	LUA->SetField(-2, "init");
 
-	LUA->PushCFunction(destroyApp);
-	LUA->SetField(-2, "destroyApp");
+	LUA->PushCFunction(test);
+	LUA->SetField(-2, "test");
 
 	LUA->SetField(-2, "ultralight"); // }
 
@@ -224,7 +307,9 @@ GMOD_MODULE_OPEN()
 
 GMOD_MODULE_CLOSE()
 {
-	delete app;
 	Msg = nullptr;
+	delete ul_i_image;
+	delete ul_io_rpc;
+	delete ul_o_url;
 	return 0;
 }

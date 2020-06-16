@@ -1,24 +1,22 @@
 ﻿cmake_minimum_required (VERSION 3.9)
 project (gmsv_ultralight CXX)
 set (CMAKE_CXX_STANDARD 11)
-add_compile_definitions("GMMODULE" "COMPILER_MSVC64" "WIN32" "ARCHITECTURE_X86_64")
-
+add_compile_definitions("GMMODULE" "ARCHITECTURE_X86_64")
 include_directories("./thirdparty/Ultralight-API")
 set(ULTRALIGHT_LIBRARY_DIR "lib")                  # .lib libraries
 if(NOT CMAKE_SYSTEM_NAME MATCHES "Windows")
     set(ULTRALIGHT_LIBRARY_DIR "bin")              # .so libraries
 	set(CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} -ldl") # dlsym.h
 endif()
-link_directories("${ULTRALIGHT_LIBRARY_DIR}")
 
-link_libraries(UltralightCore Ultralight WebCore)
 add_library(gmsv_ultralight SHARED "src/gmsv_ultralight.cpp")
-
-#include_directories("./thirdparty/garrysmod_common/sourcesdk-minimal/public")
-include_directories("./thirdparty/garrysmod_common/include")
-link_directories("./thirdparty/garrysmod_common/sourcesdk-minimal/lib/public/x64")
-link_libraries(tier0)
-
+link_directories("${ULTRALIGHT_LIBRARY_DIR}")
+project(ultralight_renderer CXX)
+add_executable(ultralight_renderer "src/ultralight_renderer.cpp")
+target_link_libraries(ultralight_renderer UltralightCore Ultralight WebCore)
+target_include_directories(gmsv_ultralight PUBLIC "./thirdparty/garrysmod_common/include")
+#link_directories("./thirdparty/garrysmod_common/sourcesdk-minimal/lib/public/x64")
+#link_libraries(tier0)
 set(ultralight "gmsv_ultralight_")
 if(WIN32)
 	set_target_properties(gmsv_ultralight PROPERTIES OUTPUT_NAME "${ultralight}win64")

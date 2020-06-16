@@ -3,3 +3,4 @@ include
 /out
 /bin
 /lib
+**/cookies.dat
