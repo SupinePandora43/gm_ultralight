@@ -6,7 +6,7 @@ include_directories("./thirdparty/Ultralight-API")
 set(ULTRALIGHT_LIBRARY_DIR "lib")                  # .lib libraries
 if(NOT CMAKE_SYSTEM_NAME MATCHES "Windows")
     set(ULTRALIGHT_LIBRARY_DIR "bin")              # .so libraries
-	set(CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} -ldl") # dlsym.h
+	set(CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} -ldl -lrt") # dlsym.h
 endif()
 add_library(gmsv_ultralight SHARED "src/gmsv_ultralight.cpp")
 link_directories("${ULTRALIGHT_LIBRARY_DIR}")
