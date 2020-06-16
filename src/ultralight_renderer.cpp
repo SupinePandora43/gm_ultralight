@@ -1,13 +1,24 @@
 #include <Ultralight/Ultralight.h>
 #include <iostream>
-#ifdef WIN32
-//#include <io.h>
-#include <windows.h> //UnmapViewOfFile
-#endif
-//#include <stdio.h>
-//#include <conio.h>
 #include <stdlib.h>
 #include <string>
+#if defined(__linux__) || defined(__APPLE__)
+#include <dlfcn.h> // dlsym
+#include <cstring> // memcpy
+#include <fcntl.h>     // for O_* constants
+#include <sys/mman.h>  // mmap, munmap
+#include <sys/stat.h>  // for mode constants
+#include <unistd.h>    // unlink
+#if defined(__APPLE__)
+#include <errno.h>
+#endif
+#include <stdexcept>
+#endif
+#ifdef _WIN64
+#include <libloaderapi.h> // GetProcAddres
+#include <windows.h> // CreateFileMapping
+#include <io.h>
+#endif
 using namespace ultralight;
 
 enum ShoomError {
