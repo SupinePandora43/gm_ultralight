@@ -49,8 +49,8 @@ public:
 	ShoomError Open() { return CreateOrOpen(false); }
 	uint8_t* Data() { return data_; }
 	ShoomError CreateOrOpen(bool create) {
-		if (create) {
 #ifdef WIN32
+		if (create) {
 			DWORD size_high_order = 0;
 			DWORD size_low_order = static_cast<DWORD>(size_);
 			handle_ = CreateFileMapping(INVALID_HANDLE_VALUE,  // use paging file
@@ -62,16 +62,33 @@ public:
 			if (!handle_) {
 				return kErrorCreationFailed;
 			}
-#else
-			int ret = shm_unlink(path_.c_str());
-			if (ret < 0) {
-				if (errno != ENOENT) {
-					return kErrorCreationFailed;
+			else {
+				handle_ = OpenFileMappingA(FILE_MAP_READ,  // read access
+					FALSE,          // do not inherit the name
+					path_.c_str()   // name of mapping object
+				);
+
+				if (!handle_) {
+					return kErrorOpeningFailed;
 				}
 			}
-#endif
+			DWORD access = create ? FILE_MAP_ALL_ACCESS : FILE_MAP_READ;
+			data_ = static_cast<uint8_t*>(MapViewOfFile(handle_, access, 0, 0, size_));
+			if (!data_) {
+				return kErrorMappingFailed;
+			}
+			return kOK;
 		}
+#endif
 #ifndef WIN32
+		int ret = shm_unlink(path_.c_str());
+		if (ret < 0) {
+			if (errno != ENOENT) {
+				return kErrorCreationFailed;
+			}
+		}
+	}
+	if (create) {
 		int flags = create ? (O_CREAT | O_RDWR) : O_RDONLY;
 		fd_ = shm_open(path_.c_str(), flags, 0755);
 		if (fd_ < 0) {
@@ -107,22 +124,6 @@ public:
 		}
 		return kOK;
 #endif
-		else {
-			handle_ = OpenFileMappingA(FILE_MAP_READ,  // read access
-				FALSE,          // do not inherit the name
-				path_.c_str()   // name of mapping object
-			);
-
-			if (!handle_) {
-				return kErrorOpeningFailed;
-			}
-		}
-		DWORD access = create ? FILE_MAP_ALL_ACCESS : FILE_MAP_READ;
-		data_ = static_cast<uint8_t*>(MapViewOfFile(handle_, access, 0, 0, size_));
-		if (!data_) {
-			return kErrorMappingFailed;
-		}
-		return kOK;
 	}
 	~Shm() {
 #ifndef WIN32
