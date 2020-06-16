@@ -2,7 +2,7 @@
 #include <string>
 //#include <cstdlib>
 //#include <cstdint>
-#ifdef __linux__ or __APPLE__
+#if defined(__linux__) or defined(__APPLE__)
 #include <fcntl.h>     // for O_* constants
 #include <sys/mman.h>  // mmap, munmap
 #include <sys/stat.h>  // for mode constants
@@ -16,7 +16,7 @@
 #include <libloaderapi.h> // GetProcAddres
 #include <windows.h> // CreateFileMapping
 #include <io.h>
-#elif __linux__ or __APPLE__
+#elif defined(__linux__) or defined(__APPLE__)
 #include <dlfcn.h> // dlsym
 #endif
 
