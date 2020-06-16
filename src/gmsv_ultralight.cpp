@@ -87,40 +87,41 @@ public:
 					return kErrorCreationFailed;
 				}
 			}
-			int flags = create ? (O_CREAT | O_RDWR) : O_RDONLY;
-			fd_ = shm_open(path_.c_str(), flags, 0755);
-			if (fd_ < 0) {
-				if (create) {
-					return kErrorCreationFailed;
-				}
-				else {
-					return kErrorOpeningFailed;
-				}
-			}
+		}
+		int flags = create ? (O_CREAT | O_RDWR) : O_RDONLY;
+		fd_ = shm_open(path_.c_str(), flags, 0755);
+		if (fd_ < 0) {
 			if (create) {
-				int ret = ftruncate(fd_, size_);
-				if (ret != 0) {
-					return kErrorCreationFailed;
-				}
+				return kErrorCreationFailed;
 			}
-			int prot = create ? (PROT_READ | PROT_WRITE) : PROT_READ;
-			auto memory = mmap(nullptr,     // addr
-				size_,       // length
-				prot,        // prot
-				MAP_SHARED,  // flags
-				fd_,         // fd
-				0            // offset
-			);
-			if (memory == MAP_FAILED) {
-				return kErrorMappingFailed;
+			else {
+				return kErrorOpeningFailed;
 			}
-			data_ = static_cast<uint8_t*>(memory);
-			if (!data_) {
-				return kErrorMappingFailed;
+		}
+		if (create) {
+			int ret = ftruncate(fd_, size_);
+			if (ret != 0) {
+				return kErrorCreationFailed;
 			}
-			return kOK;
+		}
+		int prot = create ? (PROT_READ | PROT_WRITE) : PROT_READ;
+		auto memory = mmap(nullptr,     // addr
+			size_,       // length
+			prot,        // prot
+			MAP_SHARED,  // flags
+			fd_,         // fd
+			0            // offset
+		);
+		if (memory == MAP_FAILED) {
+			return kErrorMappingFailed;
+		}
+		data_ = static_cast<uint8_t*>(memory);
+		if (!data_) {
+			return kErrorMappingFailed;
+		}
+		return kOK;
 #endif
-}
+	}
 	~Shm() {
 #ifndef WIN32
 		munmap(data_, size_);
@@ -133,7 +134,7 @@ public:
 		}
 		CloseHandle(handle_);
 #endif
-	}
+}
 	};
 using namespace GarrysMod::Lua;
 
