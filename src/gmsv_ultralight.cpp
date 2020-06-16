@@ -259,7 +259,7 @@ public:
 		memcpy(ul_o_url->Data(), url, std::strlen(url)); // put url
 		Msg("c++: Starting image pipe"); // = width * height * 4 (rgba)
 		if (ul_i_image) delete ul_i_image;
-		ul_i_image = new Shm{ "ul_i_image", x * y * 4 };
+		ul_i_image = new Shm{ "ul_i_image", (size_t)x * y * 4 };
 		Msg("c++: Starting renderer\n");
 		std::system("./ultralight_renderer.exe");
 		Msg("c++: Starting renderer\n");
