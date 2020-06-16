@@ -1,8 +1,8 @@
 ﻿#include "GarrysMod/Lua/Interface.h"
 #include <string>
-//#include <cstdlib>
-//#include <cstdint>
 #if defined(__linux__) || defined(__APPLE__)
+#include <dlfcn.h> // dlsym
+#include <cstring> // memcpy
 #include <fcntl.h>     // for O_* constants
 #include <sys/mman.h>  // mmap, munmap
 #include <sys/stat.h>  // for mode constants
@@ -16,8 +16,6 @@
 #include <libloaderapi.h> // GetProcAddres
 #include <windows.h> // CreateFileMapping
 #include <io.h>
-#elif defined(__linux__) or defined(__APPLE__)
-#include <dlfcn.h> // dlsym
 #endif
 
 enum ShoomError {
@@ -134,8 +132,8 @@ public:
 		}
 		CloseHandle(handle_);
 #endif
-}
-	};
+	}
+};
 using namespace GarrysMod::Lua;
 
 typedef void (*MsgP)(const char*, ...);
@@ -250,11 +248,11 @@ LUA_FUNCTION(InitializeRenderer) {
 	if (ul_io_rpc) delete ul_io_rpc;
 	ul_io_rpc = new Shm{ "ul_io_rpc", 128 };
 	ul_io_rpc->Create();
-	ul_io_rpc->Data()[0] = (uint8_t)std::strlen(url);
+	ul_io_rpc->Data()[0] = (uint8_t)std::string(url).length();
 	if (ul_o_url) delete ul_o_url;
 	ul_o_url = new Shm{ "ui_o_url", 512 };
 	ul_o_url->Create();
-	memcpy(ul_o_url->Data(), url, std::strlen(url)); // put url
+	std::memcpy(ul_o_url->Data(), url, std::string(url).length()); // put url
 	Msg("c++: Starting image pipe"); // = width * height * 4 (rgba)
 	if (ul_i_image) delete ul_i_image;
 	ul_i_image = new Shm{ "ul_i_image", (size_t)x * y * 4 };
