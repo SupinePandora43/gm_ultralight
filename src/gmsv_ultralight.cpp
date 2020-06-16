@@ -240,8 +240,8 @@ void* getFunction(std::string library, const char* funcName) {
 #endif
 }
 /* ul_io_rpc
- * [0] - length of url
- * [1...] - page to load
+ * [0] - url length - useless, i can just cast uint8_t* to char* cuz it exact same thing :D
+ * [] TODO
 */
 /* ul_i_image
  * [x * y * 4 ] exact as view->bitmap()->LockPixels()
@@ -256,7 +256,7 @@ LUA_FUNCTION(InitializeRenderer) {
 	if (ul_o_url) delete ul_o_url;
 	ul_o_url = new Shm{ "ui_o_url", 512 };
 	ul_o_url->Create();
-	memcpy(ul_o_url->Data(), url, std::strlen(url));
+	memcpy(ul_o_url->Data(), url, std::strlen(url)); // put url
 	Msg("c++: Starting image pipe"); // = width * height * 4 (rgba)
 	if (ul_i_image) delete ul_i_image;
 	ul_i_image = new Shm{ "ul_i_image", x * y * 4 };

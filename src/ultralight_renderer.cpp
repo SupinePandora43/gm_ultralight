@@ -130,7 +130,7 @@ public:
 };
 Shm* ul_io_rpc;
 Shm* ul_i_image;
-
+Shm* ul_o_url;
 
 class App : public LoadListener {
 	bool done = false;
@@ -184,6 +184,7 @@ public:
 int main(int argc, char* argv[]) {
 	ul_io_rpc = new Shm{ "ul_io_rpc", 64 };
 	ul_i_image = new Shm{ "ul_i_image", 1024 * 1024 * 4 };
+	ul_o_url = new Shm{ "ul_o_url", 512 };
 
 	ul_i_image->Create();
 	//Shm shoom{ "ultralight", 250 * 250 * 4 };
@@ -191,11 +192,11 @@ int main(int argc, char* argv[]) {
 	//shoomtest.Open();
 	//uint32_t one = (uint32_t)shoomtest.Data()[1];
 	//std::cout <<  << (uint32_t)shoomtest.Data()[1] << shoomtest.Data()[2] << shoomtest.Data()[3] << std::endl;
-	uint8_t* address = ul_io_rpc->Data();
-	const char a = '1';
-	address[0] = a;
 	App* app = new App();
-	app->SetURL(url);
+
+	ul_o_url->Open();
+
+	app->SetURL((char*)ul_o_url->Data());
 	app->Run();
 	try {
 		memcpy(ul_i_image->Data(), app->view->bitmap()->LockPixels(), app->view->bitmap()->size()); // https://stackoverflow.com/questions/2963898/faster-alternative-to-memcpy
