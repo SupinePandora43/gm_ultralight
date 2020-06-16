@@ -8,7 +8,7 @@ if(NOT CMAKE_SYSTEM_NAME MATCHES "Windows")
     set(ULTRALIGHT_LIBRARY_DIR "bin")              # .so libraries
 	set(CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} -ldl") # dlsym.h
 endif()
-if (UNIX)
+if (CMAKE_SYSTEM_NAME MATCHES "Linux")
 	link_libraries(rt)
 endif()
 add_library(gmsv_ultralight SHARED "src/gmsv_ultralight.cpp")
