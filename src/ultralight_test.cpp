@@ -136,11 +136,14 @@ public:
 Shm* ul_io_rpc;
 Shm* ul_i_image;
 Shm* ul_o_url;
+
+#include "log/fslog.h"
+
 void threadStarter() {
-	std::cout << std::system("ultralight_renderer.exe") << std::endl;
+	LOG(std::to_string(std::system("ultralight_renderer.exe")));
 }
 int main() {
-	std::cout << "c++: Starting IPC\n";
+	LOG("c++: Starting IPC");
 
 	if (ul_io_rpc != nullptr) delete ul_io_rpc;
 
@@ -155,20 +158,24 @@ int main() {
 
 	std::memcpy(ul_o_url->Data(), url, std::string(url).length()); // put url
 
-	std::cout << "c++: Starting renderer\n";
+	LOG("c++: Starting renderer");
 	//Shm shm{ "ultralight_o_url", 512 };
 	//shm.Create();
 	//memcpy(shm.Data(), url, std::strlen(url));
 	std::thread launchyer = std::thread(threadStarter);
 
 	//startup("ultralight_renderer");
-	std::cout << "c++: Started renderer\n";
+	LOG("c++: Started renderer");
 
 	uint8_t shutdown = 0;
 	while (true) {
 		std::cin >> shutdown;
 		ul_io_rpc->Data()[0] = shutdown;
+		if (shutdown != 0) break;
 	}
-
+	LOG("shutting down, joining thread");
+	launchyer.detach();
+	LOG("renderer end");
+	std::system("taskkill /F /T /IM ultralight_renderer.exe");
 	return 0;
 }

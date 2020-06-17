@@ -174,6 +174,8 @@ public:
 		view->bitmap()->WritePNG("jooj.png");
 	}
 };
+
+#include <cstdlib>
 char* url = "https://github.com";
 int main(int argc, char* argv[]) {
 	App app;
@@ -182,10 +184,11 @@ int main(int argc, char* argv[]) {
 	Shm ul_o_url{ "ul_o_url", 512 };
 	ul_i_image.Create();
 	while (true) {
+		std::cout << "lop" << std::endl;
 		std::this_thread::sleep_for(std::chrono::milliseconds(1000)); // sleep :D
 		ul_io_rpc.Open();
 		ul_o_url.Open();
-		if (ul_io_rpc.Data()[0] != 0) break; // stop renderer
+		if (ul_io_rpc.Data() != nullptr && ul_io_rpc.Data()[0] != 0) break; // stop renderer
 		if (ul_o_url.Data() != nullptr) {
 			std::cout << (char*)ul_o_url.Data() << std::endl;
 			if ((uint8_t*)url != ul_o_url.Data()) {
@@ -208,5 +211,6 @@ int main(int argc, char* argv[]) {
 		}
 	}
 	std::cout << "closing..." << std::endl;
+	exit(0);
 	return 0;
 }

@@ -238,32 +238,56 @@ void* getFunction(std::string library, const char* funcName) {
 }
 /* ul_io_rpc
  * [ 0 ] - shutdown
- * [ 1 ] - start render
+ * [ 1 ] - pid TASKKILL
  * [ 2 ] - is rendered ?
 */
+// ul_o_url - url
 /* ul_i_image
  * [x * y * 4 ] exact as view->bitmap()->LockPixels()
 */
 void rendererThread() {
 	std::system("ultralight_renderer.exe");
 }
+
+#define FSLOG_PREFIX "gm: "
+#include "log/fslog.h"
+
 LUA_FUNCTION(InitializeRenderer) {
+	LOG("checking renderer");
 	if (renderer != nullptr) {
+		LOG("renderer != nullptr");
 		Msg("c++: renderer already created >:");
 		return 0;
 	}
+	LOG("getting url");
+	//LUA->CheckString(-2);
 	const char* url = LUA->GetString(-2);
 	if (ul_io_rpc == nullptr) {
 		Msg("c++: shoom first!");
 		return 0;
 	}
+	LOG("checking ul_o_url");
 	if (ul_o_url == nullptr) {
+		LOG("ul_o_url == nullptr");
 		Msg("c++: shoom first!");
 		return 0;
 	}
-	std::memcpy(ul_o_url->Data(), url, std::strlen(url)); // put url
+	if (url == NULL || url == nullptr) {
+		LOG("url is nullptr");
+		Msg("c++: url == nullptr");
+		url = "https://github.com";
+	}
+	LOG("PRINTING URL");
+	LOG(std::string("url is ").append(url).c_str());
+	LOG("printed url :D");
+	LOG("memcpy");
+	std::memcpy(ul_o_url->Data(), url, std::string(url).length()); // put url
+	LOG("memcpy end");
+	LOG("Starting renderer");
 	Msg("c++: Starting renderer\n");
 	renderer = new std::thread(rendererThread);
+	LOG("Renderer thread started");
+	Msg("c++: Renderer thread started");
 	return 0;
 }
 LUA_FUNCTION(Render) {
@@ -273,12 +297,17 @@ LUA_FUNCTION(Render) {
 	return 0;
 }
 LUA_FUNCTION(shoom) {
+	LOG("Initializing shoom");
 	Msg("c++: Starting IPC\n");
+	LOG("Initializing ul_io_rpc");
 	ul_io_rpc = new Shm{ "ul_io_rpc", 128 };
 	ul_io_rpc->Create();
+	LOG("Initializing ui_o_url");
 	ul_o_url = new Shm{ "ui_o_url", 512 };
 	ul_o_url->Create();
+	LOG("Initializing ul_i_image");
 	ul_i_image = new Shm{ "ul_i_image", (size_t)x * y * 4 };
+	LOG("Initialized shoom");
 	return 0;
 }
 LUA_FUNCTION(UpdateRenderResult) {
@@ -358,6 +387,7 @@ GMOD_MODULE_OPEN()
 GMOD_MODULE_CLOSE()
 {
 	Msg = nullptr;
+	if (renderer != nullptr) renderer->detach();
 	if (ul_i_image) delete ul_i_image;
 	if (ul_io_rpc) delete ul_io_rpc;
 	if (ul_o_url) delete ul_o_url;
