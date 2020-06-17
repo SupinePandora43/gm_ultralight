@@ -237,37 +237,33 @@ void* getFunction(std::string library, const char* funcName) {
 #endif
 }
 /* ul_io_rpc
- * [ 0 ] - start render
- * [ 1 ] - is rendered ?
+ * [ 0 ] - shutdown
+ * [ 1 ] - start render
+ * [ 2 ] - is rendered ?
 */
 /* ul_i_image
  * [x * y * 4 ] exact as view->bitmap()->LockPixels()
 */
+void rendererThread() {
+	std::system("ultralight_renderer.exe");
+}
 LUA_FUNCTION(InitializeRenderer) {
-
 	if (renderer != nullptr) {
 		Msg("c++: renderer already created >:");
 		return 0;
 	}
-
-	Msg("c++: Starting IPC\n");
-
-	if (ul_io_rpc != nullptr) delete ul_io_rpc;
-
-	ul_io_rpc = new Shm{ "ul_io_rpc", 128 };
-	ul_io_rpc->Create();
-
 	const char* url = LUA->GetString(-2);
-
-	if (ul_o_url != nullptr) delete ul_o_url;
-	ul_o_url = new Shm{ "ui_o_url", 512 };
-	ul_o_url->Create();
-
-	std::memcpy(ul_o_url->Data(), url, std::string(url).length()); // put url
-
+	if (ul_io_rpc == nullptr) {
+		Msg("c++: shoom first!");
+		return 0;
+	}
+	if (ul_o_url == nullptr) {
+		Msg("c++: shoom first!");
+		return 0;
+	}
+	std::memcpy(ul_o_url->Data(), url, std::strlen(url)); // put url
 	Msg("c++: Starting renderer\n");
-
-	std::system("./ultralight_renderer.exe");
+	renderer = new std::thread(rendererThread);
 	return 0;
 }
 LUA_FUNCTION(Render) {
@@ -276,16 +272,23 @@ LUA_FUNCTION(Render) {
 	}
 	return 0;
 }
-LUA_FUNCTION(UpdateRenderResult) {
-	if (ul_i_image) delete ul_i_image;
+LUA_FUNCTION(shoom) {
+	Msg("c++: Starting IPC\n");
+	ul_io_rpc = new Shm{ "ul_io_rpc", 128 };
+	ul_io_rpc->Create();
+	ul_o_url = new Shm{ "ui_o_url", 512 };
+	ul_o_url->Create();
 	ul_i_image = new Shm{ "ul_i_image", (size_t)x * y * 4 };
+	return 0;
+}
+LUA_FUNCTION(UpdateRenderResult) {
 	ul_i_image->Open();
 
 	LUA->GetField(-1, "surface");
 	uint32_t i = 0;
 	uint8_t* address = ul_i_image->Data();
-	for (uint16_t y = 0; y < 250; y++)
-	{
+	for (uint16_t y = 0; y < 250; y++) //https://github.com/danielga/sourcesdk-minimal/blob/403f18104139472451a2b3518973fadeaf9691cf/tier1/interface.cpp#L472
+	{ // https://github.com/danielga/sourcesdk-minimal/blob/403f18104139472451a2b3518973fadeaf9691cf/tier1/interface.cpp#L423
 		for (uint16_t x = 0; x < 250; x++)
 		{
 			LUA->GetField(-1, "SetDrawColor");
@@ -323,6 +326,9 @@ GMOD_MODULE_OPEN()
 
 	LUA->PushCFunction(Render);
 	LUA->SetField(-2, "Render");
+
+	LUA->PushCFunction(shoom);
+	LUA->SetField(-2, "shoom");
 
 	LUA->PushCFunction(UpdateRenderResult);
 	LUA->SetField(-2, "UpdateRenderResult");

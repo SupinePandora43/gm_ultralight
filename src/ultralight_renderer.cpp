@@ -138,9 +138,7 @@ public:
 #endif
 	}
 };
-Shm* ul_io_rpc;
-Shm* ul_i_image;
-Shm* ul_o_url;
+
 
 class App : public LoadListener {
 	bool done = false;
@@ -176,28 +174,29 @@ public:
 		view->bitmap()->WritePNG("jooj.png");
 	}
 };
-App* app;
 char* url = "https://github.com";
 int main(int argc, char* argv[]) {
-	app = new App();
-	ul_io_rpc = new Shm{ "ul_io_rpc", 64 };
-	ul_i_image = new Shm{ "ul_i_image", 1024 * 1024 * 4 };
-	ul_i_image->Create();
+	App app;
+	Shm ul_io_rpc{ "ul_io_rpc", 64 };
+	Shm ul_i_image{ "ul_i_image", 1024 * 1024 * 4 };
+	Shm ul_o_url{ "ul_o_url", 512 };
+	ul_i_image.Create();
 	while (true) {
 		std::this_thread::sleep_for(std::chrono::milliseconds(1000)); // sleep :D
-		if (ul_o_url) delete ul_o_url;
-		ul_o_url = new Shm{ "ul_o_url", 512 };
-		ul_o_url->Open();
-		if (ul_o_url->Data() != nullptr) {
-			std::cout << (char*)ul_o_url->Data() << std::endl;
-			if ((uint8_t*)url != ul_o_url->Data()) {
-				url = (char*)ul_o_url->Data();
-				app->SetURL(url);
-				app->Run();
+		ul_io_rpc.Open();
+		ul_o_url.Open();
+		if (ul_io_rpc.Data()[0] != 0) break; // stop renderer
+		if (ul_o_url.Data() != nullptr) {
+			std::cout << (char*)ul_o_url.Data() << std::endl;
+			if ((uint8_t*)url != ul_o_url.Data()) {
+				url = (char*)ul_o_url.Data();
+				app.SetURL(url);
+				app.Run();
 				std::cout << "app->Run - succeful" << std::endl;
 				try {
-					//memcpy(ul_i_image->Data(), app->view->bitmap()->LockPixels(), app->view->bitmap()->size()); // https://stackoverflow.com/questions/2963898/faster-alternative-to-memcpy
-					//app->view->bitmap()->UnlockPixels();
+					std::cout << app.view->bitmap()->size() << std::endl;
+					memcpy(ul_i_image.Data(), app.view->bitmap()->LockPixels(), app.view->bitmap()->size() / 4); // https://stackoverflow.com/questions/2963898/faster-alternative-to-memcpy
+					app.view->bitmap()->UnlockPixels();
 				}
 				catch (std::exception e) {
 					std::cout << e.what() << std::endl;
@@ -209,9 +208,5 @@ int main(int argc, char* argv[]) {
 		}
 	}
 	std::cout << "closing..." << std::endl;
-	delete app;
-	delete ul_io_rpc;
-	delete ul_i_image;
-	delete ul_o_url;
 	return 0;
 }

@@ -162,7 +162,13 @@ int main() {
 	std::thread launchyer = std::thread(threadStarter);
 
 	//startup("ultralight_renderer");
-	launchyer.join();
 	std::cout << "c++: Started renderer\n";
+
+	uint8_t shutdown = 0;
+	while (true) {
+		std::cin >> shutdown;
+		ul_io_rpc->Data()[0] = shutdown;
+	}
+
 	return 0;
 }
