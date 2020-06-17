@@ -279,22 +279,27 @@ LUA_FUNCTION(StartRendererThread) {
 	return 0;
 }
 LUA_FUNCTION(SetUrl) {
-	if (ul_o_url == nullptr) {
-		LOG("SetUrl @ ul_o_url == nullptr");
-		Msg("c++: sry, initialize first!");
-		return 0;
+	try {
+		if (ul_o_url == nullptr) {
+			LOG("SetUrl @ ul_o_url == nullptr");
+			Msg("c++: sry, initialize first!");
+			return 0;
+		}
+		//LUA->CheckString();
+		const char* url = LUA->GetString();
+		LOG(url);
+		//if (url == nullptr || url == NULL) {
+		//	url = "https://github.com";
+		//}
+		//LOG("copying");
+		//Msg("copying");
+		memcpy(ul_o_url->Data(), url, std::strlen(url));
+		//LOG("done");
+		//Msg("done");
 	}
-	const char* url = LUA->GetString(-2);
-	if (url == nullptr || url == NULL) {
-		url = "https://github.com";
+	catch (std::exception e) {
+		LOG(e.what());
 	}
-	LOG(url);
-	Msg(url);
-	LOG("copying");
-	Msg("copying");
-	memcpy(ul_o_url->Data(), url, std::strlen(url));
-	LOG("done");
-	Msg("done");
 	return 0;
 }
 LUA_FUNCTION(shoom) {
@@ -303,8 +308,8 @@ LUA_FUNCTION(shoom) {
 	LOG("Initializing ul_io_rpc");
 	ul_io_rpc = new Shm{ "ul_io_rpc", 128 };
 	ul_io_rpc->Create();
-	LOG("Initializing ui_o_url");
-	ul_o_url = new Shm{ "ui_o_url", 512 };
+	LOG("Initializing ul_o_url");
+	ul_o_url = new Shm{ "ul_o_url", 512 };
 	ul_o_url->Create();
 	LOG("Initializing ul_i_image");
 	ul_i_image = new Shm{ "ul_i_image", (size_t)x * y * 4 };
@@ -349,13 +354,13 @@ GMOD_MODULE_OPEN()
 
 	LUA->PushSpecial(GarrysMod::Lua::SPECIAL_GLOB);
 
+	LUA->PushCFunction(SetUrl);
+	LUA->SetField(-2, "SetUrl");
+
 	LUA->CreateTable(); // {
 
 	LUA->PushNumber(1);
 	LUA->SetField(-2, "delay");
-
-	LUA->PushCFunction(SetUrl);
-	LUA->SetField(-2, "SetUrl");
 
 	LUA->PushCFunction(shoom);
 	LUA->SetField(-2, "shoom");
@@ -390,7 +395,7 @@ GMOD_MODULE_CLOSE()
 	Msg = nullptr;
 	if (renderer != nullptr) renderer->detach();
 	if (ul_i_image) delete ul_i_image;
-	if (ul_io_rpc) delete ul_io_rpc;
+	if (ul_io_rpc) { ul_io_rpc->Data()[0] = 1; delete ul_io_rpc; }
 	if (ul_o_url) delete ul_o_url;
 	return 0;
 }

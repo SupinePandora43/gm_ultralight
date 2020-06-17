@@ -1,7 +1,7 @@
 #pragma once
 #include <iostream>
 #include <fstream>
-static void LOG(char* message) {
+static void LOG(const char* message) {
 	std::cout << message << std::endl;
 	std::fstream fs;
 #ifndef FSLOG_NAME
@@ -15,6 +15,6 @@ static void LOG(char* message) {
 	fs << "\n";
 	fs.close();
 }
-static void LOG(std::string message) {
-	LOG((char*)message.c_str());
-}
+//static void LOG(std::string message) {
+//	LOG((char*)message.c_str());
+//}

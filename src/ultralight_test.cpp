@@ -140,7 +140,7 @@ Shm* ul_o_url;
 #include "log/fslog.h"
 
 void threadStarter() {
-	LOG(std::to_string(std::system("ultralight_renderer.exe")));
+	LOG(std::to_string(std::system("ultralight_renderer.exe")).c_str());
 }
 int main() {
 	LOG("c++: Starting IPC");
