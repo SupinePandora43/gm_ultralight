@@ -252,17 +252,16 @@ void rendererThread() {
 #define FSLOG_PREFIX "gm: "
 #include "log/fslog.h"
 
-LUA_FUNCTION(InitializeRenderer) {
+LUA_FUNCTION(StartRendererThread) {
 	LOG("checking renderer");
 	if (renderer != nullptr) {
 		LOG("renderer != nullptr");
 		Msg("c++: renderer already created >:");
 		return 0;
 	}
-	LOG("getting url");
-	//LUA->CheckString(-2);
-	const char* url = LUA->GetString(-2);
+	LOG("checking rpc");
 	if (ul_io_rpc == nullptr) {
+		LOG("ul_io_rpc == nullptr");
 		Msg("c++: shoom first!");
 		return 0;
 	}
@@ -272,17 +271,6 @@ LUA_FUNCTION(InitializeRenderer) {
 		Msg("c++: shoom first!");
 		return 0;
 	}
-	if (url == NULL || url == nullptr) {
-		LOG("url is nullptr");
-		Msg("c++: url == nullptr");
-		url = "https://github.com";
-	}
-	LOG("PRINTING URL");
-	LOG(std::string("url is ").append(url).c_str());
-	LOG("printed url :D");
-	LOG("memcpy");
-	std::memcpy(ul_o_url->Data(), url, std::string(url).length()); // put url
-	LOG("memcpy end");
 	LOG("Starting renderer");
 	Msg("c++: Starting renderer\n");
 	renderer = new std::thread(rendererThread);
@@ -290,10 +278,23 @@ LUA_FUNCTION(InitializeRenderer) {
 	Msg("c++: Renderer thread started");
 	return 0;
 }
-LUA_FUNCTION(Render) {
-	if (ul_io_rpc == nullptr || ul_i_image == nullptr) {
+LUA_FUNCTION(SetUrl) {
+	if (ul_o_url == nullptr) {
+		LOG("SetUrl @ ul_o_url == nullptr");
 		Msg("c++: sry, initialize first!");
+		return 0;
 	}
+	const char* url = LUA->GetString(-2);
+	if (url == nullptr || url == NULL) {
+		url = "https://github.com";
+	}
+	LOG(url);
+	Msg(url);
+	LOG("copying");
+	Msg("copying");
+	memcpy(ul_o_url->Data(), url, std::strlen(url));
+	LOG("done");
+	Msg("done");
 	return 0;
 }
 LUA_FUNCTION(shoom) {
@@ -353,8 +354,8 @@ GMOD_MODULE_OPEN()
 	LUA->PushNumber(1);
 	LUA->SetField(-2, "delay");
 
-	LUA->PushCFunction(Render);
-	LUA->SetField(-2, "Render");
+	LUA->PushCFunction(SetUrl);
+	LUA->SetField(-2, "SetUrl");
 
 	LUA->PushCFunction(shoom);
 	LUA->SetField(-2, "shoom");
@@ -362,8 +363,8 @@ GMOD_MODULE_OPEN()
 	LUA->PushCFunction(UpdateRenderResult);
 	LUA->SetField(-2, "UpdateRenderResult");
 
-	LUA->PushCFunction(InitializeRenderer);
-	LUA->SetField(-2, "InitializeRenderer");
+	LUA->PushCFunction(StartRendererThread);
+	LUA->SetField(-2, "StartRendererThread");
 
 	LUA->PushCFunction(test);
 	LUA->SetField(-2, "test");
