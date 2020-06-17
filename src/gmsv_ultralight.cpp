@@ -1,5 +1,6 @@
 ﻿#include "GarrysMod/Lua/Interface.h"
 #include <string>
+#include <thread>
 #if defined(__linux__) || defined(__APPLE__)
 #include <dlfcn.h> // dlsym
 #include <cstring> // memcpy
@@ -11,8 +12,7 @@
 #include <errno.h>
 #endif
 #include <stdexcept>
-#endif
-#ifdef _WIN64
+#elif _WIN64
 #include <libloaderapi.h> // GetProcAddres
 #include <windows.h> // CreateFileMapping
 #include <io.h>
@@ -141,8 +141,9 @@ MsgP Msg;
 Shm* ul_io_rpc;
 Shm* ul_i_image;
 Shm* ul_o_url;
-uint16_t x;
-uint16_t y;
+uint16_t x = 1024;
+uint16_t y = 1024;
+std::thread* renderer;
 /*
 LUA_FUNCTION(RenderImage) {
 	Msg("c++: RenderImage() called\n");
@@ -236,37 +237,77 @@ void* getFunction(std::string library, const char* funcName) {
 #endif
 }
 /* ul_io_rpc
- * [0] - url length - useless, i can just cast uint8_t* to char* cuz it exact same thing :D
- * [] TODO
+ * [ 0 ] - start render
+ * [ 1 ] - is rendered ?
 */
 /* ul_i_image
  * [x * y * 4 ] exact as view->bitmap()->LockPixels()
 */
 LUA_FUNCTION(InitializeRenderer) {
+
+	if (renderer != nullptr) {
+		Msg("c++: renderer already created >:");
+		return 0;
+	}
+
 	Msg("c++: Starting IPC\n");
-	const char* url = LUA->GetString(-2);
-	if (ul_io_rpc) delete ul_io_rpc;
+
+	if (ul_io_rpc != nullptr) delete ul_io_rpc;
+
 	ul_io_rpc = new Shm{ "ul_io_rpc", 128 };
 	ul_io_rpc->Create();
-	ul_io_rpc->Data()[0] = (uint8_t)std::string(url).length();
-	if (ul_o_url) delete ul_o_url;
+
+	const char* url = LUA->GetString(-2);
+
+	if (ul_o_url != nullptr) delete ul_o_url;
 	ul_o_url = new Shm{ "ui_o_url", 512 };
 	ul_o_url->Create();
+
 	std::memcpy(ul_o_url->Data(), url, std::string(url).length()); // put url
-	Msg("c++: Starting image pipe"); // = width * height * 4 (rgba)
-	if (ul_i_image) delete ul_i_image;
-	ul_i_image = new Shm{ "ul_i_image", (size_t)x * y * 4 };
+
 	Msg("c++: Starting renderer\n");
+
 	std::system("./ultralight_renderer.exe");
-	Msg("c++: Starting renderer\n");
 	return 0;
 }
-LUA_FUNCTION(render) {
+LUA_FUNCTION(Render) {
 	if (ul_io_rpc == nullptr || ul_i_image == nullptr) {
 		Msg("c++: sry, initialize first!");
 	}
 	return 0;
 }
+LUA_FUNCTION(UpdateRenderResult) {
+	if (ul_i_image) delete ul_i_image;
+	ul_i_image = new Shm{ "ul_i_image", (size_t)x * y * 4 };
+	ul_i_image->Open();
+
+	LUA->GetField(-1, "surface");
+	uint32_t i = 0;
+	uint8_t* address = ul_i_image->Data();
+	for (uint16_t y = 0; y < 250; y++)
+	{
+		for (uint16_t x = 0; x < 250; x++)
+		{
+			LUA->GetField(-1, "SetDrawColor");
+			LUA->PushNumber(address[i]); //     R
+			LUA->PushNumber(address[i + 1]); // G
+			LUA->PushNumber(address[i + 2]); // B
+			LUA->PushNumber(address[i + 3]); // A
+			LUA->Call(4, 0);
+			i = i + 4;
+			LUA->GetField(-1, "DrawRect");
+			LUA->PushNumber(x);
+			LUA->PushNumber(y);
+			LUA->PushNumber(1);
+			LUA->PushNumber(1);
+			LUA->Call(4, 0);
+		}
+	}
+	LUA->Pop();
+	Msg("c++: Render end\n");
+	return 0;
+}
+
 GMOD_MODULE_OPEN()
 {
 	Msg = reinterpret_cast<MsgP>(getFunction("tier0", "Msg"));
@@ -277,11 +318,17 @@ GMOD_MODULE_OPEN()
 
 	LUA->CreateTable(); // {
 
-	LUA->PushCFunction(render);
-	LUA->SetField(-2, "render");
+	LUA->PushNumber(1);
+	LUA->SetField(-2, "delay");
+
+	LUA->PushCFunction(Render);
+	LUA->SetField(-2, "Render");
+
+	LUA->PushCFunction(UpdateRenderResult);
+	LUA->SetField(-2, "UpdateRenderResult");
 
 	LUA->PushCFunction(InitializeRenderer);
-	LUA->SetField(-2, "init");
+	LUA->SetField(-2, "InitializeRenderer");
 
 	LUA->PushCFunction(test);
 	LUA->SetField(-2, "test");
@@ -305,8 +352,8 @@ GMOD_MODULE_OPEN()
 GMOD_MODULE_CLOSE()
 {
 	Msg = nullptr;
-	delete ul_i_image;
-	delete ul_io_rpc;
-	delete ul_o_url;
+	if (ul_i_image) delete ul_i_image;
+	if (ul_io_rpc) delete ul_io_rpc;
+	if (ul_o_url) delete ul_o_url;
 	return 0;
 }

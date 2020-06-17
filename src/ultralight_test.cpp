@@ -1,11 +1,9 @@
-#include <Ultralight/Ultralight.h>
-#include <chrono> // sleep
-#include <thread> // thread
 #include <string>
 #include <iostream>
-#include <cstring> // memcpy
+#include <thread>
 #if defined(__linux__) || defined(__APPLE__)
 #include <dlfcn.h> // dlsym
+#include <cstring> // memcpy
 #include <fcntl.h>     // for O_* constants
 #include <sys/mman.h>  // mmap, munmap
 #include <sys/stat.h>  // for mode constants
@@ -14,14 +12,11 @@
 #include <errno.h>
 #endif
 #include <stdexcept>
-#endif
-#ifdef _WIN64
+#elif _WIN64
 #include <libloaderapi.h> // GetProcAddres
 #include <windows.h> // CreateFileMapping
 #include <io.h>
 #endif
-using namespace ultralight;
-
 enum ShoomError {
 	kOK = 0,
 	kErrorCreationFailed = 100,
@@ -141,77 +136,61 @@ public:
 Shm* ul_io_rpc;
 Shm* ul_i_image;
 Shm* ul_o_url;
+#include <windows.h>
+VOID startup(LPCTSTR lpApplicationName)
+{
+	// additional information
+	STARTUPINFO si;
+	PROCESS_INFORMATION pi;
 
-class App : public LoadListener {
-	bool done = false;
-public:
-	RefPtr<Renderer> renderer;
-	RefPtr<View> view;
-	App() {
-		Config config;
-		config.device_scale_hint = 2.0;
-		config.font_family_standard = "Arial";
-		Platform::instance().set_config(config);
-		renderer = Renderer::Create();
-		view = renderer->CreateView(4096, 4096, false); // https://github.com/ultralight-ux/Ultralight/issues/257#issuecomment-636330995
-		view->set_load_listener(this);
-		view->Resize(1024, 1024);
-	}
-	void SetURL(String url) {
-		view->LoadURL(url);
-	}
-	~App() {
-		view = nullptr;
-		renderer = nullptr;
-	}
-	void Run() {
-		done = false;
-		while (!done) {
-			renderer->Update();
-		}
-	}
-	void OnFinishLoading(View* caller) {
-		done = true;
-		renderer->Render();
-		view->bitmap()->WritePNG("jooj.png");
-	}
-};
-App* app;
-char* url = "https://github.com";
-int main(int argc, char* argv[]) {
-	app = new App();
-	ul_io_rpc = new Shm{ "ul_io_rpc", 64 };
-	ul_i_image = new Shm{ "ul_i_image", 1024 * 1024 * 4 };
-	ul_i_image->Create();
-	while (true) {
-		std::this_thread::sleep_for(std::chrono::milliseconds(1000)); // sleep :D
-		if (ul_o_url) delete ul_o_url;
-		ul_o_url = new Shm{ "ul_o_url", 512 };
-		ul_o_url->Open();
-		if (ul_o_url->Data() != nullptr) {
-			std::cout << (char*)ul_o_url->Data() << std::endl;
-			if ((uint8_t*)url != ul_o_url->Data()) {
-				url = (char*)ul_o_url->Data();
-				app->SetURL(url);
-				app->Run();
-				std::cout << "app->Run - succeful" << std::endl;
-				try {
-					//memcpy(ul_i_image->Data(), app->view->bitmap()->LockPixels(), app->view->bitmap()->size()); // https://stackoverflow.com/questions/2963898/faster-alternative-to-memcpy
-					//app->view->bitmap()->UnlockPixels();
-				}
-				catch (std::exception e) {
-					std::cout << e.what() << std::endl;
-				}
-			}
-		}
-		else {
-			std::cout << "ul_o_url->Data() is nullptr" << std::endl;
-		}
-	}
-	std::cout << "closing..." << std::endl;
-	delete app;
-	delete ul_io_rpc;
-	delete ul_i_image;
-	delete ul_o_url;
+	// set the size of the structures
+	ZeroMemory(&si, sizeof(si));
+	si.cb = sizeof(si);
+	ZeroMemory(&pi, sizeof(pi));
+
+	// start the program up
+	CreateProcess(lpApplicationName,   // the path
+		"",        // Command line
+		NULL,           // Process handle not inheritable
+		NULL,           // Thread handle not inheritable
+		FALSE,          // Set handle inheritance to FALSE
+		0,              // No creation flags
+		NULL,           // Use parent's environment block
+		NULL,           // Use parent's starting directory 
+		&si,            // Pointer to STARTUPINFO structure
+		&pi             // Pointer to PROCESS_INFORMATION structure (removed extra parentheses)
+	);
+	// Close process and thread handles. 
+	CloseHandle(pi.hProcess);
+	CloseHandle(pi.hThread);
+}
+void threadStarter() {
+	std::cout << std::system("ultralight_renderer.exe") << std::endl;
+}
+int main() {
+	std::cout << "c++: Starting IPC\n";
+
+	if (ul_io_rpc != nullptr) delete ul_io_rpc;
+
+	ul_io_rpc = new Shm{ "ul_io_rpc", 128 };
+	ul_io_rpc->Create();
+
+	const char* url = "https://youtube.com";
+
+	if (ul_o_url != nullptr) delete ul_o_url;
+	ul_o_url = new Shm{ "ul_o_url", 512 };
+	ul_o_url->Create();
+
+	std::memcpy(ul_o_url->Data(), url, std::string(url).length()); // put url
+
+	std::cout << "c++: Starting renderer\n";
+	//Shm shm{ "ultralight_o_url", 512 };
+	//shm.Create();
+	//memcpy(shm.Data(), url, std::strlen(url));
+	std::thread launchyer = std::thread(threadStarter);
+
+	//startup("ultralight_renderer");
+	launchyer.join();
+	std::cout << "c++: Started renderer\n";
 	return 0;
 }
