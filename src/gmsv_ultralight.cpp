@@ -4,7 +4,7 @@
 
 #include <interface.h>
 #include <vgui/ISurface.h>
-#include <interfaces/interfaces.h>
+//#include <interfaces/interfaces.h>
 #include "shoom/shm.h" // Shm
 using namespace GarrysMod::Lua;
 
@@ -228,6 +228,15 @@ LUA_FUNCTION(UpdateRenderResult) {
 	return 0;
 }
 
+LUA_FUNCTION(ul_surface) {
+	LOG("loading interface");
+	if (!Sys_LoadInterface("vguimatsurface", "VGUI_Surface030", NULL, (void**)&surface)) {
+		Msg("c++: failed to load matsurface");
+		LOG("failed to load matsurface");
+	}
+	return 0;
+}
+
 GMOD_MODULE_OPEN()
 {
 	//Msg = reinterpret_cast<MsgP>(getFunction("tier0", "Msg"));
@@ -235,11 +244,7 @@ GMOD_MODULE_OPEN()
 	LOG("opening");
 	Msg("c++: Module opening...\n");
 	LOG("fisrst msg called");
-	LOG("loading interface");
-	if (!Sys_LoadInterface("vguimatsurface", "VGUI_Surface030", NULL, (void**)surface)) {
-		Msg("c++: failed to load matsurface");
-		LOG("failed to load matsurface");
-	}
+
 	LUA->PushSpecial(GarrysMod::Lua::SPECIAL_GLOB);
 
 	LUA->PushCFunction(SetUrl);
@@ -261,6 +266,9 @@ GMOD_MODULE_OPEN()
 
 	LUA->PushCFunction(test);
 	LUA->SetField(-2, "test");
+
+	LUA->PushCFunction(ul_surface);
+	LUA->SetField(-2, "ul_surface");
 
 	//LUA->SetField(-2, "ultralight"); // }
 
