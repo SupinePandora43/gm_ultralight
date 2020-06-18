@@ -50,8 +50,9 @@ jobs:
     #    useVcpkgToolchainFile: true
     #    cmakeBuildType: ${{ matrix.buildtype }}
     #    buildDirectory: '${{ github.workspace }}/out'
-    - run: "curl -L ${{matrix.premake}} -o premakeA"
-    - run: unzip -qq premakeA -d ./
+    - run: "curl -L ${{matrix.premake}} -o premakeA.zip"
+    - run: Expand-Archive premakeA.zip -DestinationPath ./
+    - run: ${{matrix.tree}}
     - run: premake5.exe vs2019
     - run: "msbuild.exe projects/windows/vs2019/ultralight.sln /t:Build/p:Configuration=${{ matrix.buildtype }};Platform=x64"
     - name: tree
