@@ -39,7 +39,7 @@ jobs:
     steps:
     - uses: actions/checkout@v2
       with:
-        submodules: true
+        submodules: recursive
     #- run: chmod +x ./headers.bat
     - run: ${{ matrix.requirements }}
     #- uses: ilammy/msvc-dev-cmd@v1
