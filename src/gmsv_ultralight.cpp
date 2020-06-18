@@ -190,7 +190,10 @@ vgui::ISurface* surface;
 //void (vgui::ISurface::* DrawSetColor)(int r, int g, int b, int a) = NULL;
 //void (vgui::ISurface::* DrawFilledRect)(int x0, int y0, int x1, int y1) = NULL;
 LUA_FUNCTION(UpdateRenderResult) {
-	Sys_LoadInterface("vguimatsurface", "VGUI_Surface031", NULL, (void**)surface);
+	if (surface == nullptr) {
+		Msg("c++: surface==nullptr");
+		LOG("surface==nullptr");
+	}
 	ul_i_image->Open();
 	LUA->PushSpecial(GarrysMod::Lua::SPECIAL_GLOB);
 	LUA->GetField(-1, "surface");
@@ -229,8 +232,14 @@ GMOD_MODULE_OPEN()
 {
 	//Msg = reinterpret_cast<MsgP>(getFunction("tier0", "Msg"));
 
+	LOG("opening");
 	Msg("c++: Module opening...\n");
-
+	LOG("fisrst msg called");
+	LOG("loading interface");
+	if (!Sys_LoadInterface("vguimatsurface", "VGUI_Surface030", NULL, (void**)surface)) {
+		Msg("c++: failed to load matsurface");
+		LOG("failed to load matsurface");
+	}
 	LUA->PushSpecial(GarrysMod::Lua::SPECIAL_GLOB);
 
 	LUA->PushCFunction(SetUrl);
@@ -272,6 +281,7 @@ GMOD_MODULE_OPEN()
 GMOD_MODULE_CLOSE()
 {
 	//Msg = nullptr;
+	surface = nullptr;
 	if (renderer != nullptr) renderer->detach();
 	if (ul_i_image) delete ul_i_image;
 	if (ul_io_rpc) { ul_io_rpc->Data()[0] = 1; delete ul_io_rpc; }

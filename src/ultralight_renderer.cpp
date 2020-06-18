@@ -4,22 +4,6 @@
 #include <string>
 #include <iostream>
 #include <cstring> // memcpy
-#if defined(__linux__) || defined(__APPLE__)
-#include <dlfcn.h> // dlsym
-#include <fcntl.h>     // for O_* constants
-#include <sys/mman.h>  // mmap, munmap
-#include <sys/stat.h>  // for mode constants
-#include <unistd.h>    // unlink
-#if defined(__APPLE__)
-#include <errno.h>
-#endif
-#include <stdexcept>
-#endif
-#ifdef _WIN64
-#include <libloaderapi.h> // GetProcAddres
-#include <windows.h> // CreateFileMapping
-#include <io.h>
-#endif
 
 #include "shoom/shm.h"
 
@@ -32,7 +16,7 @@ public:
 	RefPtr<View> view;
 	App() {
 		Config config;
-		config.device_scale_hint = 2.0;
+		config.device_scale_hint = 1.0;
 		config.font_family_standard = "Arial";
 		Platform::instance().set_config(config);
 		renderer = Renderer::Create();
