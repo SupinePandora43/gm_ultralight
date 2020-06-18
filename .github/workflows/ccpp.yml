@@ -32,7 +32,6 @@ jobs:
               curl -L https://github.com/premake/premake-core/releases/download/v5.0.0-alpha15/premake-5.0.0-alpha15-linux.tar.gz -o premakeA.tar.gz
               tar -xvzf premakeA.tar.gz -C ./
               ./premake5 gmake
-              make ./projects/${{matrix.name}}/gmake/Makefile
           - name: macosx
             os: macos
             tree: |
@@ -43,7 +42,6 @@ jobs:
               curl -L https://github.com/premake/premake-core/releases/download/v5.0.0-alpha15/premake-5.0.0-alpha15-macosx.tar.gz -o premakeA.tar.gz
               tar -xvzf premakeA.tar.gz -C ./
               ./premake5 gmake
-              make ./projects/${{matrix.name}}/gmake/Makefile
     steps:
     - uses: actions/checkout@v2
       with:
@@ -61,6 +59,9 @@ jobs:
     - run: ${{ matrix.premake }}
     - run: ${{ matrix.tree }}
     - run: "msbuild.exe ${{ github.workspace }}/projects/windows/vs2019/ultralight.sln -p:Configuration=${{ matrix.buildtype }} -p:Platform=x64" #Platform=x64
+      if: "contains(matrix.name, 'windows')"
+    - run: "make ./projects/${{matrix.name}}/gmake/Makefile"
+      if: "!contains(matrix.name, 'windows')"
     - name: tree
       run: ${{ matrix.tree }}
     - name: Upload artifacts
