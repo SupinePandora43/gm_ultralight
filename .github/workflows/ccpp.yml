@@ -59,7 +59,7 @@ jobs:
     #    useVcpkgToolchainFile: true
     #    cmakeBuildType: ${{ matrix.buildtype }}
     #    buildDirectory: '${{ github.workspace }}/out'
-    - run: "curl -L ${{matrix.premake}} -o ${{ github.workspace }}/premakeA"
+    - run: "${{matrix.premake}}"
     - run: ${{ matrix.premake }}
     - run: ${{ matrix.tree }}
     - run: "msbuild.exe ${{ github.workspace }}/projects/windows/vs2019/ultralight.sln -p:Configuration=${{ matrix.buildtype }} -p:Platform=x64" #Platform=x64
