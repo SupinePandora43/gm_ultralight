@@ -42,7 +42,7 @@ jobs:
         submodules: recursive
     #- run: chmod +x ./headers.bat
     - run: ${{ matrix.requirements }}
-    #- uses: ilammy/msvc-dev-cmd@v1
+    - uses: ilammy/msvc-dev-cmd@v1
     #- name: 'CMake'
     #  uses: lukka/run-cmake@v2
     #  with:
@@ -52,7 +52,6 @@ jobs:
     #    buildDirectory: '${{ github.workspace }}/out'
     - run: "curl -L ${{matrix.premake}} -o ${{ github.workspace }}/premakeA.zip"
     - run: Expand-Archive ${{ github.workspace }}/premakeA.zip -DestinationPath ${{ github.workspace }}
-    - run: ${{matrix.tree}}
     - run: ${{ github.workspace }}/premake5.exe vs2019
     - run: "msbuild.exe ${{ github.workspace }}/projects/windows/vs2019/ultralight.sln /t:Build/p:Configuration=${{ matrix.buildtype }};Platform=x64"
     - name: tree
