@@ -19,7 +19,10 @@ jobs:
             tree: tree /f /a 
             requirements: start ./windows.bat
             artifact: out/*
-            premake: https://github.com/premake/premake-core/releases/download/v5.0.0-alpha15/premake-5.0.0-alpha15-windows.zip
+            premake: |
+              curl -L https://github.com/premake/premake-core/releases/download/v5.0.0-alpha15/premake-5.0.0-alpha15-windows.zip -o premakeA
+              Expand-Archive premakeA -DestinationPath ./
+              ./premake5.exe vs2019
           - name: ubuntu
             os: ubuntu
             artifact: out/*
@@ -27,7 +30,10 @@ jobs:
               sudo apt install tree
               tree -a .
             requirements: source ./linux.sh
-            premake: https://github.com/premake/premake-core/releases/download/v5.0.0-alpha15/premake-5.0.0-alpha15-linux.tar.gz
+            premake: |
+              curl -o premakeA -L https://github.com/premake/premake-core/releases/download/v5.0.0-alpha15/premake-5.0.0-alpha15-linux.tar.gz
+              unzip -qq premakeA -d ./
+              ./premake5 gmake
           - name: macos
             os: macos
             artifact: out/*
@@ -35,7 +41,10 @@ jobs:
               brew install tree
               tree -a
             requirements: source ./macos.sh
-            premake: https://github.com/premake/premake-core/releases/download/v5.0.0-alpha15/premake-5.0.0-alpha15-macosx.tar.gz
+            premake: |
+              curl -o premakeA -L https://github.com/premake/premake-core/releases/download/v5.0.0-alpha15/premake-5.0.0-alpha15-macosx.tar.gz
+              unzip -qq premakeA -d ./
+              ./premake5 gmake
     steps:
     - uses: actions/checkout@v2
       with:
@@ -51,8 +60,8 @@ jobs:
     #    cmakeBuildType: ${{ matrix.buildtype }}
     #    buildDirectory: '${{ github.workspace }}/out'
     - run: "curl -L ${{matrix.premake}} -o ${{ github.workspace }}/premakeA"
-    - run: Expand-Archive ${{ github.workspace }}/premakeA -DestinationPath ${{ github.workspace }}
-    - run: ${{ github.workspace }}/premake5.exe vs2019
+    - run: ${{ matrix.premake }}
+      run: ${{ matrix.tree }}
     - run: "msbuild.exe ${{ github.workspace }}/projects/windows/vs2019/ultralight.sln -p:Configuration=${{ matrix.buildtype }} -p:Platform=x64" #Platform=x64
     - name: tree
       run: ${{ matrix.tree }}
