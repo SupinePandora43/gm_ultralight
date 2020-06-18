@@ -60,7 +60,7 @@ jobs:
     #    buildDirectory: '${{ github.workspace }}/out'
     - run: "curl -L ${{matrix.premake}} -o premakeA"
     - run: unzip -qq premakeA -d ./
-    - run: premake5 vs2019
+    - run: premake5.exe vs2019
     - run: "msbuild.exe SolutionFile.sln /t:Build/p:Configuration=${{ matrix.buildtype }};Platform=x64"
     - name: tree
       run: ${{ matrix.tree }}
