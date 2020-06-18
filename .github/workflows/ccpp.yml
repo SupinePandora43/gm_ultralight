@@ -67,7 +67,7 @@ jobs:
     - run: |
         cd ./projects/${{matrix.name}}/gmake
         echo starthere
-        make config=${{env.BUILDCONFIGURATION}}_x86_64
+        make config=${{env.BUILDCONFIGURATION}}_x86_64 all
         echo endhere
         cd ../../../
       if: "!contains(matrix.name, 'windows')"
