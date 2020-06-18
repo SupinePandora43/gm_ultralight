@@ -32,7 +32,7 @@ jobs:
             requirements: source ./linux.sh
             premake: |
               wget https://github.com/premake/premake-core/releases/download/v5.0.0-alpha15/premake-5.0.0-alpha15-linux.tar.gz -o premakeA.tar.gz
-              unzip -qq premakeA.tar.gz -d ./
+              tar -xvzf premakeA.tar.gz -C ./
               ./premake5 gmake
           - name: macos
             os: macos
@@ -43,7 +43,7 @@ jobs:
             requirements: source ./macos.sh
             premake: |
               wget https://github.com/premake/premake-core/releases/download/v5.0.0-alpha15/premake-5.0.0-alpha15-macosx.tar.gz -o premakeA.tar.gz
-              unzip -qq premakeA.tar.gz -d ./
+              tar -xvzf premakeA.tar.gz -C ./
               ./premake5 gmake
     steps:
     - uses: actions/checkout@v2
