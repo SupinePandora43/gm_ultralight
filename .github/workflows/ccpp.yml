@@ -65,6 +65,7 @@ jobs:
       if: "contains(matrix.buildtype, 'Release')"
     - run: |
         cd ./projects/${{matrix.name}}/gmake
+        cat Makefile
         make config=${{env.BUILDCONFIGURATION}}_x86_64
         cd ../../../
       if: "!contains(matrix.name, 'windows')"
