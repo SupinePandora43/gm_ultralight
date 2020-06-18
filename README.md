@@ -2,6 +2,13 @@
 
 [Ultralight](https://github.com/ultralight-ux/Ultralight) gmod integration
 
+# HELP ME PLS
+
+`make` don't want to work, until it get figured out, on linux/osx surface's functions called via `LUA`
+
+create fork, edit `.github/workflows/ccpp.yml`, if linux/osx build work, make PR.
+
+
 # Contributors
 [SupinePandora43](https://github.com/SupinePandora43)
 
