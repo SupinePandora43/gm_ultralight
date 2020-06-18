@@ -66,6 +66,7 @@ jobs:
     - run: |
         cd ./projects/${{matrix.name}}/gmake
         cat Makefile
+        echo end
         make config=${{env.BUILDCONFIGURATION}}_x86_64
         cd ../../../
       if: "!contains(matrix.name, 'windows')"
