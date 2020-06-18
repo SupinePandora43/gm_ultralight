@@ -19,6 +19,7 @@ jobs:
             tree: tree /f /a 
             requirements: start ./windows.bat
             cmakeLists: CMakeSettingsJson
+            premake: https://github.com/premake/premake-core/releases/download/v5.0.0-alpha15/premake-5.0.0-alpha15-windows.zip
           - name: windows
             buildtype: Release
             artifact: out/Release/Release/gmsv_ultralight_win64.dll
@@ -33,6 +34,7 @@ jobs:
               tree -a .
             requirements: source ./linux.sh
             cmakeLists: CMakeListsTxtBasic
+            premake: https://github.com/premake/premake-core/releases/download/v5.0.0-alpha15/premake-5.0.0-alpha15-linux.tar.gz
           - name: macos
             os: macos
             artifact: out/libgmsv_ultralight_linux64.dylib
@@ -41,20 +43,27 @@ jobs:
               tree -a
             requirements: source ./macos.sh
             cmakeLists: CMakeListsTxtBasic
+            premake: https://github.com/premake/premake-core/releases/download/v5.0.0-alpha15/premake-5.0.0-alpha15-macosx.tar.gz
     steps:
     - uses: actions/checkout@v2
       with:
         submodules: true
     #- run: chmod +x ./headers.bat
     - run: ${{ matrix.requirements }}
-    - uses: ilammy/msvc-dev-cmd@v1
-    - name: 'CMake'
-      uses: lukka/run-cmake@v2
+    #- uses: ilammy/msvc-dev-cmd@v1
+    #- name: 'CMake'
+    #  uses: lukka/run-cmake@v2
+    #  with:
+    #    cmakeListsOrSettingsJson: ${{ matrix.cmakeLists }}
+    #    useVcpkgToolchainFile: true
+    #    cmakeBuildType: ${{ matrix.buildtype }}
+    #    buildDirectory: '${{ github.workspace }}/out'
+    - run: "curl -L ${{matrix.premake}} -o premakeA"
+    - uses: montudor/action-zip@v0.1.0
       with:
-        cmakeListsOrSettingsJson: ${{ matrix.cmakeLists }}
-        useVcpkgToolchainFile: true
-        cmakeBuildType: ${{ matrix.buildtype }}
-        buildDirectory: '${{ github.workspace }}/out'
+        args: unzip -qq premakeA -d ./
+    - run: premake5 vs2019
+    - run: "msbuild.exe SolutionFile.sln /t:Build/p:Configuration=${{ matrix.buildtype }};Platform=x64"
     - name: tree
       run: ${{ matrix.tree }}
     - name: Upload artifacts

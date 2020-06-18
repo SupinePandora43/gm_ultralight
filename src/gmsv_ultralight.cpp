@@ -1,33 +1,18 @@
 ﻿#include "GarrysMod/Lua/Interface.h"
 #include <string>
 #include <thread>
-#if defined(__linux__) || defined(__APPLE__)
-#include <dlfcn.h> // dlsym
-#include <cstring> // memcpy
-#include <fcntl.h>     // for O_* constants
-#include <sys/mman.h>  // mmap, munmap
-#include <sys/stat.h>  // for mode constants
-#include <unistd.h>    // unlink
-#if defined(__APPLE__)
-#include <errno.h>
-#endif
-#include <stdexcept>
-#elif _WIN64
-#include <libloaderapi.h> // GetProcAddres
-#include <windows.h> // CreateFileMapping
-#include <io.h>
-#endif
-#include "shoom/shm.h" // Shm
 
+#include <interface.h>
+#include <vgui/ISurface.h>
+#include <interfaces/interfaces.h>
+#include "shoom/shm.h" // Shm
 using namespace GarrysMod::Lua;
 
-typedef void (*MsgP)(const char*, ...);
-MsgP Msg;
+//typedef void (*MsgP)(const char*, ...);
+//MsgP* Msg;
 Shm* ul_io_rpc;
 Shm* ul_i_image;
 Shm* ul_o_url;
-uint16_t x = 1024;
-uint16_t y = 1024;
 std::thread* renderer;
 /*
 LUA_FUNCTION(RenderImage) {
@@ -197,11 +182,15 @@ LUA_FUNCTION(shoom) {
 	ul_o_url = new Shm{ "ul_o_url", 512 };
 	ul_o_url->Create();
 	LOG("Initializing ul_i_image");
-	ul_i_image = new Shm{ "ul_i_image", (size_t)(512 * 512 * 4 )+1 };
+	ul_i_image = new Shm{ "ul_i_image", (size_t)(512 * 512 * 4) + 1 };
 	LOG("Initialized shoom");
 	return 0;
 }
+vgui::ISurface* surface;
+//void (vgui::ISurface::* DrawSetColor)(int r, int g, int b, int a) = NULL;
+//void (vgui::ISurface::* DrawFilledRect)(int x0, int y0, int x1, int y1) = NULL;
 LUA_FUNCTION(UpdateRenderResult) {
+	Sys_LoadInterface("vguimatsurface", "VGUI_Surface031", NULL, (void**)surface);
 	ul_i_image->Open();
 	LUA->PushSpecial(GarrysMod::Lua::SPECIAL_GLOB);
 	LUA->GetField(-1, "surface");
@@ -211,19 +200,23 @@ LUA_FUNCTION(UpdateRenderResult) {
 	{ // https://github.com/danielga/sourcesdk-minimal/blob/403f18104139472451a2b3518973fadeaf9691cf/tier1/interface.cpp#L423
 		for (uint16_t x = 0; x < 512; x++)
 		{
-			LUA->GetField(-1, "SetDrawColor");
-			LUA->PushNumber(address[i]); //     R
-			LUA->PushNumber(address[i + 1]); // G
-			LUA->PushNumber(address[i + 2]); // B
-			LUA->PushNumber(address[i + 3]); // A
-			LUA->Call(4, 0);
+			surface->DrawSetColor(address[0], address[1], address[2], address[3]);
+			surface->DrawFilledRect(x, y, 1, 1);
+			//(*surface.*DrawSetColor)(address[0], address[1], address[2], address[3]);
+			//(*surface.*DrawFilledRect)(x, y, 1, 1);
 			i = i + 4;
-			LUA->GetField(-1, "DrawRect");
-			LUA->PushNumber(x);
-			LUA->PushNumber(y);
-			LUA->PushNumber(1);
-			LUA->PushNumber(1);
-			LUA->Call(4, 0);
+			//LUA->GetField(-1, "SetDrawColor");
+			//LUA->PushNumber(address[i]); //     R
+			//LUA->PushNumber(address[i + 1]); // G
+			//LUA->PushNumber(address[i + 2]); // B
+			//LUA->PushNumber(address[i + 3]); // A
+			//LUA->Call(4, 0);
+			//LUA->GetField(-1, "DrawRect");
+			//LUA->PushNumber(x);
+			//LUA->PushNumber(y);
+			//LUA->PushNumber(1);
+			//LUA->PushNumber(1);
+			//LUA->Call(4, 0);
 		}
 	}
 	address = nullptr;
@@ -234,7 +227,7 @@ LUA_FUNCTION(UpdateRenderResult) {
 
 GMOD_MODULE_OPEN()
 {
-	Msg = reinterpret_cast<MsgP>(getFunction("tier0", "Msg"));
+	//Msg = reinterpret_cast<MsgP>(getFunction("tier0", "Msg"));
 
 	Msg("c++: Module opening...\n");
 
@@ -278,7 +271,7 @@ GMOD_MODULE_OPEN()
 
 GMOD_MODULE_CLOSE()
 {
-	Msg = nullptr;
+	//Msg = nullptr;
 	if (renderer != nullptr) renderer->detach();
 	if (ul_i_image) delete ul_i_image;
 	if (ul_io_rpc) { ul_io_rpc->Data()[0] = 1; delete ul_io_rpc; }

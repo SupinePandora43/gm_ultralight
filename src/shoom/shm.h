@@ -1,5 +1,20 @@
 #pragma once
-
+#if defined(__linux__) || defined(__APPLE__)
+#include <dlfcn.h> // dlsym
+#include <cstring> // memcpy
+#include <fcntl.h>     // for O_* constants
+#include <sys/mman.h>  // mmap, munmap
+#include <sys/stat.h>  // for mode constants
+#include <unistd.h>    // unlink
+#if defined(__APPLE__)
+#include <errno.h>
+#endif
+#include <stdexcept>
+#elif _WIN64
+#include <libloaderapi.h> // GetProcAddres
+#include <windows.h> // CreateFileMapping
+#include <io.h>
+#endif
 enum ShoomError {
 	kOK = 0,
 	kErrorCreationFailed = 100,
