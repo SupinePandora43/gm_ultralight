@@ -64,7 +64,7 @@ jobs:
         cd ./projects/${{matrix.name}}/gmake
         cat Makefile
         set MAKECMDGOALS=${{matrix.buildtype}}_x86_64
-        make
+        make config=${{matrix.buildtype}}_x86_64
         cd ../../../
       if: "!contains(matrix.name, 'windows')"
     - name: tree
