@@ -63,11 +63,12 @@ jobs:
     - run: set BUILDCONFIGURATION=debug
     - run: set BUILDCONFIGURATION=release
       if: "contains(matrix.buildtype, 'Release')"
+    - run: cat ./projects/${{matrix.name}}/gmake/Makefile
     - run: |
         cd ./projects/${{matrix.name}}/gmake
-        cat Makefile
-        echo end
+        echo starthere
         make config=${{env.BUILDCONFIGURATION}}_x86_64
+        echo endhere
         cd ../../../
       if: "!contains(matrix.name, 'windows')"
     - name: tree
