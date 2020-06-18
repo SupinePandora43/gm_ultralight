@@ -16,6 +16,6 @@ create fork, edit `.github/workflows/ccpp.yml`, if linux/osx build work, make PR
 
 [GlebChili](https://github.com/GlebChili) - guy who help me with c++
 
-**`Eclipse`@`Eclipse#2437`** - `Sys_LoadInterface("vguimatsurface", "VGUI_Surface030", NULL, (void**)&surface)`
+**`Eclipse`@`Eclipse#2437`** - [`Sys_LoadInterface("vguimatsurface", "VGUI_Surface030", NULL, (void**)&surface)`](https://discord.com/channels/565105920414318602/567672652714475530/723205466838270024)
 
 [Uros Spasojevic](https://app.slack.com/client/TC4C8F4CT/CC492VBLL/user_profile/ULE28P1AL) - reading pixel buffer
