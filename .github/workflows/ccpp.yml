@@ -18,31 +18,23 @@ jobs:
             os: windows
             tree: tree /f /a 
             requirements: start ./windows.bat
-            cmakeLists: CMakeSettingsJson
+            artifact: out/*
             premake: https://github.com/premake/premake-core/releases/download/v5.0.0-alpha15/premake-5.0.0-alpha15-windows.zip
-          - name: windows
-            buildtype: Release
-            artifact: out/Release/Release/gmsv_ultralight_win64.dll
-          - name: windows
-            buildtype: Debug
-            artifact: out/Debug/Debug/gmsv_ultralight_win64.dll
           - name: ubuntu
             os: ubuntu
-            artifact: out/libgmsv_ultralight_linux64.so
+            artifact: out/*
             tree: |
               sudo apt install tree
               tree -a .
             requirements: source ./linux.sh
-            cmakeLists: CMakeListsTxtBasic
             premake: https://github.com/premake/premake-core/releases/download/v5.0.0-alpha15/premake-5.0.0-alpha15-linux.tar.gz
           - name: macos
             os: macos
-            artifact: out/libgmsv_ultralight_linux64.dylib
+            artifact: out/*
             tree: |
               brew install tree
               tree -a
             requirements: source ./macos.sh
-            cmakeLists: CMakeListsTxtBasic
             premake: https://github.com/premake/premake-core/releases/download/v5.0.0-alpha15/premake-5.0.0-alpha15-macosx.tar.gz
     steps:
     - uses: actions/checkout@v2
@@ -61,7 +53,7 @@ jobs:
     - run: "curl -L ${{matrix.premake}} -o premakeA"
     - run: unzip -qq premakeA -d ./
     - run: premake5.exe vs2019
-    - run: "msbuild.exe SolutionFile.sln /t:Build/p:Configuration=${{ matrix.buildtype }};Platform=x64"
+    - run: "msbuild.exe projects/windows/vs2019/ultralight.sln /t:Build/p:Configuration=${{ matrix.buildtype }};Platform=x64"
     - name: tree
       run: ${{ matrix.tree }}
     - name: Upload artifacts
