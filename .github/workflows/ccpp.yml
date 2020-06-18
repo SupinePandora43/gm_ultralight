@@ -31,7 +31,7 @@ jobs:
               tree -a .
             requirements: source ./linux.sh
             premake: |
-              curl -L https://github.com/premake/premake-core/releases/download/v5.0.0-alpha15/premake-5.0.0-alpha15-linux.tar.gz -o premakeA.tar.gz
+              wget https://github.com/premake/premake-core/releases/download/v5.0.0-alpha15/premake-5.0.0-alpha15-linux.tar.gz -o premakeA.tar.gz
               unzip -qq premakeA.tar.gz -d ./
               ./premake5 gmake
           - name: macos
@@ -42,7 +42,7 @@ jobs:
               tree -a
             requirements: source ./macos.sh
             premake: |
-              curl -L https://github.com/premake/premake-core/releases/download/v5.0.0-alpha15/premake-5.0.0-alpha15-macosx.tar.gz -o premakeA.tar.gz
+              wget https://github.com/premake/premake-core/releases/download/v5.0.0-alpha15/premake-5.0.0-alpha15-macosx.tar.gz -o premakeA.tar.gz
               unzip -qq premakeA.tar.gz -d ./
               ./premake5 gmake
     steps:
