@@ -57,9 +57,14 @@ int main(int argc, char* argv[]) {
 	ul_i_image.Create();
 	while (true) {
 		std::this_thread::sleep_for(std::chrono::milliseconds(1000)); // sleep :D
+		std::cout << "opening rpc/url" << std::endl;
 		ul_io_rpc.Open();
 		ul_o_url.Open();
-		if (ul_io_rpc.Data() == nullptr || ul_io_rpc.Data()[0] != 0) break; // stop renderer
+		if (ul_o_url.Data() != nullptr) {
+			std::cout << (char*)ul_o_url.Data() << std::endl;
+			if (ul_io_rpc.Data() == nullptr || ul_io_rpc.Data()[0] != 0){ // stop renderer
+				std::cout << "rpc[0]=1 -> shutting down" << std::endl;
+		}
 		if (ul_o_url.Data() != nullptr) {
 			std::cout << (char*)ul_o_url.Data() << std::endl;
 			if (url != (char*)ul_o_url.Data()) {

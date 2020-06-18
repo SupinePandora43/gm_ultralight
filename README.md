@@ -12,6 +12,8 @@ create fork, edit `.github/workflows/ccpp.yml`, if linux/osx build work, make PR
 # Contributors
 [SupinePandora43](https://github.com/SupinePandora43)
 
+**`mijyuoon#6666`** - `vgui::ISurface->DrawSetTextureRGBA`
+
 [GlebChili](https://github.com/GlebChili) - guy who help me with c++
 
 **`Eclipse#2437`** - `Sys_LoadInterface("vguimatsurface", "VGUI_Surface030", NULL, (void**)&surface)`
