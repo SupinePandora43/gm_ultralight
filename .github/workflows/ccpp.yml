@@ -18,14 +18,12 @@ jobs:
             os: windows
             tree: tree /f /a 
             requirements: start ./windows.bat
-            artifact: out/*
             premake: |
               curl -L https://github.com/premake/premake-core/releases/download/v5.0.0-alpha15/premake-5.0.0-alpha15-windows.zip -o premakeA
               Expand-Archive premakeA -DestinationPath ./
               ./premake5.exe vs2019
           - name: linux
             os: ubuntu
-            artifact: out/*
             tree: |
               sudo apt install tree
               tree -a .
@@ -34,9 +32,9 @@ jobs:
               curl -L https://github.com/premake/premake-core/releases/download/v5.0.0-alpha15/premake-5.0.0-alpha15-linux.tar.gz -o premakeA.tar.gz
               tar -xvzf premakeA.tar.gz -C ./
               ./premake5 gmake
+              make ./projects/${{matrix.name}}/gmake/Makefile
           - name: macosx
             os: macos
-            artifact: out/*
             tree: |
               brew install tree
               tree -a
@@ -45,6 +43,7 @@ jobs:
               curl -L https://github.com/premake/premake-core/releases/download/v5.0.0-alpha15/premake-5.0.0-alpha15-macosx.tar.gz -o premakeA.tar.gz
               tar -xvzf premakeA.tar.gz -C ./
               ./premake5 gmake
+              make ./projects/${{matrix.name}}/gmake/Makefile
     steps:
     - uses: actions/checkout@v2
       with:
@@ -68,4 +67,4 @@ jobs:
       uses: actions/upload-artifact@v2
       with:
         name: ${{ matrix.os }}-${{ matrix.buildtype }}
-        path: ${{ matrix.artifact }}
+        path: out/*
