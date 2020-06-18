@@ -53,7 +53,7 @@ jobs:
     - run: "curl -L ${{matrix.premake}} -o premakeA.zip"
     - run: Expand-Archive premakeA.zip -DestinationPath ./
     - run: ${{matrix.tree}}
-    - run: premake5.exe vs2019
+    - run: ./premake5.exe vs2019
     - run: "msbuild.exe projects/windows/vs2019/ultralight.sln /t:Build/p:Configuration=${{ matrix.buildtype }};Platform=x64"
     - name: tree
       run: ${{ matrix.tree }}
