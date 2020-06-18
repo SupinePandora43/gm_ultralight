@@ -12,10 +12,10 @@ create fork, edit `.github/workflows/ccpp.yml`, if linux/osx build work, make PR
 # Contributors
 [SupinePandora43](https://github.com/SupinePandora43)
 
-**`mijyuoon#6666`** - `vgui::ISurface->DrawSetTextureRGBA`
+**`NULL`@`mijyuoon#6666`** - [`vgui::ISurface->DrawSetTextureRGBA`](https://discord.com/channels/565105920414318602/565108080300261398/723218859322114161)
 
 [GlebChili](https://github.com/GlebChili) - guy who help me with c++
 
-**`Eclipse#2437`** - `Sys_LoadInterface("vguimatsurface", "VGUI_Surface030", NULL, (void**)&surface)`
+**`Eclipse`@`Eclipse#2437`** - `Sys_LoadInterface("vguimatsurface", "VGUI_Surface030", NULL, (void**)&surface)`
 
 [Uros Spasojevic](https://app.slack.com/client/TC4C8F4CT/CC492VBLL/user_profile/ULE28P1AL) - reading pixel buffer
