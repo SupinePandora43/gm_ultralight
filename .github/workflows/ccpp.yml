@@ -60,7 +60,6 @@ jobs:
     - run: ${{ matrix.tree }}
     - run: "msbuild.exe ${{ github.workspace }}/projects/windows/vs2019/ultralight.sln -p:Configuration=${{ matrix.buildtype }} -p:Platform=x64" #Platform=x64
       if: "contains(matrix.name, 'windows')"
-    - run: cat Makefile
     - run: set BUILDCONFIGURATION=debug
     - run: set BUILDCONFIGURATION=release
       if: "contains(matrix.buildtype, 'Release')"
