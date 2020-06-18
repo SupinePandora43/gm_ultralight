@@ -31,7 +31,7 @@ jobs:
             premake: |
               curl -L https://github.com/premake/premake-core/releases/download/v5.0.0-alpha15/premake-5.0.0-alpha15-linux.tar.gz -o premakeA.tar.gz
               tar -xvzf premakeA.tar.gz -C ./
-              ./premake5 gmake
+              ./premake5 gmake2
           - name: macosx
             os: macos
             tree: |
@@ -41,7 +41,7 @@ jobs:
             premake: |
               curl -L https://github.com/premake/premake-core/releases/download/v5.0.0-alpha15/premake-5.0.0-alpha15-macosx.tar.gz -o premakeA.tar.gz
               tar -xvzf premakeA.tar.gz -C ./
-              ./premake5 gmake
+              ./premake5 gmake2
     steps:
     - uses: actions/checkout@v2
       with:
@@ -63,9 +63,8 @@ jobs:
     - run: set BUILDCONFIGURATION=debug
     - run: set BUILDCONFIGURATION=release
       if: "contains(matrix.buildtype, 'Release')"
-    - run: cat ./projects/${{matrix.name}}/gmake/Makefile
     - run: |
-        cd ./projects/${{matrix.name}}/gmake
+        cd ./projects/${{matrix.name}}/gmake2
         echo starthere
         make config=${{env.BUILDCONFIGURATION}}_x86_64 all
         echo endhere
