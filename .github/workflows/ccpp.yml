@@ -61,7 +61,7 @@ jobs:
     #    buildDirectory: '${{ github.workspace }}/out'
     - run: "curl -L ${{matrix.premake}} -o ${{ github.workspace }}/premakeA"
     - run: ${{ matrix.premake }}
-      run: ${{ matrix.tree }}
+    - run: ${{ matrix.tree }}
     - run: "msbuild.exe ${{ github.workspace }}/projects/windows/vs2019/ultralight.sln -p:Configuration=${{ matrix.buildtype }} -p:Platform=x64" #Platform=x64
     - name: tree
       run: ${{ matrix.tree }}
