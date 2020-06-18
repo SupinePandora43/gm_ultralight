@@ -60,7 +60,10 @@ jobs:
     - run: ${{ matrix.tree }}
     - run: "msbuild.exe ${{ github.workspace }}/projects/windows/vs2019/ultralight.sln -p:Configuration=${{ matrix.buildtype }} -p:Platform=x64" #Platform=x64
       if: "contains(matrix.name, 'windows')"
-    - run: "make ./projects/${{matrix.name}}/gmake/Makefile"
+    - run: |
+        cd ./projects/${{matrix.name}}/gmake
+        make
+        cd ../../../
       if: "!contains(matrix.name, 'windows')"
     - name: tree
       run: ${{ matrix.tree }}
