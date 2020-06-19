@@ -64,8 +64,8 @@ jobs:
       if: "contains(matrix.name, 'windows')"
     - run: |
         cd ./projects/${{matrix.name}}/gmake2
+        cat ultralight_renderer.make
         echo starthere
-        set GARRYSMOD_COMMON=thirdparty/garrysmod_common
         make config=release_x86_64 all
         echo endhere
         cd ../../../
