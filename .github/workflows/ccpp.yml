@@ -60,8 +60,9 @@ jobs:
     #    useVcpkgToolchainFile: true
     #    cmakeBuildType: ${{ matrix.buildtype }}
     #    buildDirectory: '${{ github.workspace }}/out'
-    - run: set BUILDTYPE=${{matrix.buildtype}}
     - run: ${{ matrix.build }}
+      env:
+        BUILDTYPE=${{matrix.buildtype}}
     - run: ${{ matrix.tree }}
     #- run: |
     #    cd ./projects/${{matrix.name}}/gmake
