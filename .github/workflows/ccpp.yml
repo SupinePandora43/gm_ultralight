@@ -20,19 +20,17 @@ jobs:
             os: windows
             tree: tree /f /a 
             requirements: start ./windows.bat
-            build: |
+            premake: |
               curl -L https://github.com/premake/premake-core/releases/download/v5.0.0-alpha15/premake-5.0.0-alpha15-windows.zip -o premakeA
               Expand-Archive premakeA -DestinationPath ./
               ./premake5.exe vs2019
-              echo %BUILDTYPE%
-              msbuild.exe ${{ github.workspace }}/projects/windows/vs2019/ultralight.sln -p:Configuration=%BUILDTYPE% -p:Platform=x64
           #- name: linux
           #  os: ubuntu
           #  tree: |
           #    sudo apt install tree
           #    tree -a .
           #  requirements: source ./linux.sh
-          #  build: |
+          #  premake: |
           #    curl -L https://github.com/premake/premake-core/releases/download/v5.0.0-alpha15/premake-5.0.0-alpha15-linux.tar.gz -o premakeA.tar.gz
           #    tar -xvzf premakeA.tar.gz -C ./
           #    ./premake5 gmake
@@ -42,7 +40,7 @@ jobs:
           #    brew install tree
           #    tree -a
           #  requirements: source ./macos.sh
-          #  build: |
+          #  premake: |
           #    curl -L https://github.com/premake/premake-core/releases/download/v5.0.0-alpha15/premake-5.0.0-alpha15-macosx.tar.gz -o premakeA.tar.gz
           #    tar -xvzf premakeA.tar.gz -C ./
           #    ./premake5 gmake2
@@ -60,9 +58,9 @@ jobs:
     #    useVcpkgToolchainFile: true
     #    cmakeBuildType: ${{ matrix.buildtype }}
     #    buildDirectory: '${{ github.workspace }}/out'
-    - run: ${{ matrix.build }}
-      env:
-        BUILDTYPE: ${{matrix.buildtype}}
+    - run: ${{ matrix.premake }}
+    - run: "msbuild.exe ${{ github.workspace }}/projects/windows/vs2019/ultralight.sln -p:Configuration=%BUILDTYPE% -p:Platform=x64"
+      if: "contains(matrix.name, 'windows')"
     - run: ${{ matrix.tree }}
     #- run: |
     #    cd ./projects/${{matrix.name}}/gmake
