@@ -33,7 +33,7 @@ jobs:
             premake: |
               curl -L https://github.com/premake/premake-core/releases/download/v5.0.0-alpha15/premake-5.0.0-alpha15-linux.tar.gz -o premakeA.tar.gz
               tar -xvzf premakeA.tar.gz -C ./
-              ./premake5 gmake2
+              ./premake5 gmake
           #- name: macosx
           #  os: macos
           #  tree: |
@@ -63,7 +63,7 @@ jobs:
     - run: "msbuild.exe ${{ github.workspace }}/projects/windows/vs2019/ultralight.sln -p:Configuration=${{ matrix.buildtype }} -p:Platform=x64" #Platform=x64
       if: "contains(matrix.name, 'windows')"
     - run: |
-        cd ./projects/${{matrix.name}}/gmake2
+        cd ./projects/${{matrix.name}}/gmake
         cat ultralight_renderer.make
         echo starthere
         make config=release_x86_64 all
