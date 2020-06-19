@@ -57,7 +57,7 @@ configurations({"Release", "Debug"})
 filter({"system:windows"})
     defines({"COMPILER_MSVC", "WIN32", "_WIN32"})
 filter({"system:windows", "platforms:x86_64"})
-    defines({"_AMD64_", "COMPILER_MSVC64", "_WIN64", "WIN64", "ARCHITECTURE_X86_64", "__x86_64__"})
+    defines({"_AMD64_", "COMPILER_MSVC64", "_WIN64", "WIN64", "ARCHITECTURE_X86_64", "__x86_64__", "PERFORMANCE"})
 defines(defineT)
 defaultplatform("x86_64")
 IncludeLuaShared() -- uses this repo path
