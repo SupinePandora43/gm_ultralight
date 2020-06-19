@@ -64,7 +64,7 @@ jobs:
     - run: ${{ matrix.tree }}
     - run: |
         echo starthere
-        make -f=projects/${{matrix.name}}/gmake/Makefile config=release_x86_64 all
+        make -f projects/${{matrix.name}}/gmake/Makefile config=release_x86_64 all
         echo endhere
         cd ../../../
       if: "!contains(matrix.name, 'windows')&&contains(matrix.buildtype, 'Release')"
