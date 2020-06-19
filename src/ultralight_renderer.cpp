@@ -1,96 +1,85 @@
 #include <Ultralight/Ultralight.h>
 #include <chrono>   // std::chrono::milliseconds
 #include <thread>   // std::this_thread::sleep_for
-//#include <string> // string
-#include <iostream> // std
+#include <string>   // std::string
+#include <iostream> // std::cout
 #include <cstring>  // memcpy
+#include <vector>   // std::vector
 #include "shoom/shm.h"
 
 using namespace ultralight;
 
-class App : public LoadListener {
-	bool done = false;
+#define URLLEN 512
+
+class IView :public LoadListener {
+	Shm* SHMwidth;
+	Shm* SHMheight;
+	Shm* SHMurl;
 public:
-	RefPtr<Renderer> renderer;
+	Shm* image;
+	uint32_t width = 0;
+	uint32_t height = 0;
+	char* url;
 	RefPtr<View> view;
-	App() {
-		Config config;
-		config.device_scale_hint = 1.0;
-		config.font_family_standard = "Arial";
-		Platform::instance().set_config(config);
-		renderer = Renderer::Create();
-		view = renderer->CreateView(2048, 2048, false); // https://github.com/ultralight-ux/Ultralight/issues/257#issuecomment-636330995
+	bool rendered = false;
+
+	IView(uint8_t id, RefPtr<Renderer> renderer) {
+		SHMwidth = new Shm{ std::string("ul_o_width_").append(std::to_string(id)), 64 };
+		SHMwidth->Open();
+		width = std::stoi((char*)SHMwidth->Data());
+
+		SHMheight = new Shm{ std::string("ul_o_height_").append(std::to_string(id)), 64 };
+		SHMheight->Open();
+		height = std::stoi((char*)SHMheight->Data());
+
+		SHMurl = new Shm{ std::string("ul_o_url_").append(std::to_string(id)), URLLEN };
+		SHMurl->Open();
+		url = (char*)SHMurl->Data();
+
+		image = new Shm{ std::string("ul_i_image_").append(std::to_string(id)), 1 + (width * height * 4) };
+		image->Create();
+
+		view = renderer->CreateView(width * 4, height * 4, false); // https://github.com/ultralight-ux/Ultralight/issues/257#issuecomment-636330995
 		view->set_load_listener(this);
-		view->Resize(512, 512);
+		view->Resize(width, height);
+
 	}
-	void SetURL(String url) {
-		view->LoadURL(url);
+	void SetURL(char* url) {
+		memcpy(SHMurl->Data(), url, std::string(url).length());
 	}
-	~App() {
-		view = nullptr;
-		renderer = nullptr;
+	uint8_t* Get() {
+		return image->Data();
 	}
-	void Run() {
-		uint32_t timeout = 0;
-		done = false;
-		while (timeout < 1000000000 && !done) {
-			timeout++;
-			renderer->Update();
-		}
-		std::cout << timeout << std::endl;
-	}
-	void OnFinishLoading(View* caller) {
-		done = true;
-		renderer->Render();
-		view->bitmap()->WritePNG("jooj.png");
+	~IView() {
+		delete SHMwidth;
+		delete SHMheight;
+		delete SHMurl;
+		delete image;
 	}
 };
 
-#include <cstdlib>
-char* url = "https://pornhub.com";
+void SendImage(IView iview) {
+	memcpy(iview.Get(), iview.view->bitmap()->LockPixels(), iview.width * iview.height * 4);
+	iview.view->bitmap()->UnlockPixels();
+}
+//#include <cstdlib>
 int main(int argc, char* argv[]) {
-	App app;
-	Shm ul_io_rpc{ "ul_io_rpc", 64 };
-	Shm ul_i_image{ "ul_i_image", (512 * 512 * 4) + 1 };
-	Shm ul_o_url{ "ul_o_url", 512 };
-	ul_i_image.Create();
+	std::cout << "starting renderer" << std::endl;
+	std::vector<IView> views;
+	Shm ul_o_rpc{ "ul_o_rpc", 64 };
+	Shm ul_i_rpc{ "ul_i_rpc", 64 };
+	ul_i_rpc.Create();
+	Config config;
+	config.device_scale_hint = 1.0;
+	config.font_family_standard = "Arial";
+	Platform::instance().set_config(config);
+	RefPtr<Renderer> renderer = Renderer::Create();
 	while (true) {
-		std::this_thread::sleep_for(std::chrono::milliseconds(1000)); // sleep :D
-		std::cout << "opening rpc/url" << std::endl;
-		ul_io_rpc.Open();
-		ul_o_url.Open();
-		if (ul_o_url.Data() != nullptr) {
-			std::cout << "url != nullptr" << std::endl;
-			if (ul_io_rpc.Data() == nullptr || ul_io_rpc.Data()[0] != 0) { // stop renderer
-				std::cout << "rpc[0]=1 -> shutting down" << std::endl;
-			}
-			if (std::string(url) != std::string((char*)ul_o_url.Data())) {
-				if (url != nullptr) {
-					std::cout << "old url: |" << url << "|" << std::endl;
-				}
-				url = (char*)ul_o_url.Data();
-				std::cout << "new url: |" << url << "|" << std::endl;
-				std::cout << "setting url" << std::endl;
-				app.SetURL(url);
-				app.Run();
-				std::cout << "app->Run - succeful" << std::endl;
-				try {
-					std::cout << app.view->bitmap()->size() << std::endl;
-					memcpy(ul_i_image.Data(), (uint8_t*)app.view->bitmap()->LockPixels(), 512 * 512 * 4); // https://stackoverflow.com/questions/2963898/faster-alternative-to-memcpy
-					app.view->bitmap()->UnlockPixels();
-				}
-				catch (std::exception e) {
-					std::cout << e.what() << std::endl;
-				}
-			}
-			else {
-				std::cout << "url not updated" << std::endl;
-			}
-		}
-		else {
-			std::cout << "ul_o_url->Data() is nullptr" << std::endl;
-		}
+		std::this_thread::sleep_for(std::chrono::milliseconds(1000));
+		std::cout << "opening rpc" << std::endl;
+		ul_o_rpc.Open();
 	}
 	std::cout << "closing..." << std::endl;
+	renderer = nullptr;
 	return 0;
 }
