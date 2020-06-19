@@ -14,7 +14,7 @@ jobs:
         name: [windows, linux]
         #name: [windows, linux, macosx]
         buildtype: [Release, Debug]
-        mode: [Performance]
+        link: [compatibility]
         include:
           - name: windows
             os: windows
@@ -24,6 +24,7 @@ jobs:
               curl -L https://github.com/premake/premake-core/releases/download/v5.0.0-alpha15/premake-5.0.0-alpha15-windows.zip -o premakeA
               Expand-Archive premakeA -DestinationPath ./
               ./premake5.exe vs2019
+            link: performance
           - name: linux
             os: ubuntu
             tree: |
@@ -51,32 +52,19 @@ jobs:
     #- run: chmod +x ./headers.bat
     - run: ${{ matrix.requirements }}
     - uses: ilammy/msvc-dev-cmd@v1
-    #- name: 'CMake'
-    #  uses: lukka/run-cmake@v2
-    #  with:
-    #    cmakeListsOrSettingsJson: ${{ matrix.cmakeLists }}
-    #    useVcpkgToolchainFile: true
-    #    cmakeBuildType: ${{ matrix.buildtype }}
-    #    buildDirectory: '${{ github.workspace }}/out'
+    - name: 'CMake'
+      uses: lukka/run-cmake@v2
+      if: "contains(matrix.link, 'compatibility')"
+      with:
+        cmakeListsOrSettingsJson: CMakeListsTxtBasic
+        useVcpkgToolchainFile: true
+        cmakeBuildType: ${{ matrix.buildtype }}
+        buildDirectory: '${{ github.workspace }}/out'
     - run: ${{ matrix.premake }}
+      if: "contains(matrix.link, 'performance')"
     - run: "msbuild.exe ${{ github.workspace }}/projects/windows/vs2019/ultralight.sln -p:Configuration=${{ matrix.buildtype }} -p:Platform=x64"
-      if: "contains(matrix.name, 'windows')"
+      if: "contains(matrix.name, 'windows')&&contains(matrix.link, 'performance')"
     - run: ${{ matrix.tree }}
-    - run: |
-        echo starthere
-        make -f projects/${{matrix.name}}/gmake/Makefile config=release_x86_64 all
-        echo endhere
-        cd ../../../
-      if: "!contains(matrix.name, 'windows')&&contains(matrix.buildtype, 'Release')"
-    #- run: |
-    #    cd ./projects/${{matrix.name}}/gmake2
-    #    echo starthere
-    #    make config=debug_x86_64 all
-    #    echo endhere
-    #    cd ../../../
-    #  if: "!contains(matrix.name, 'windows')&&contains(matrix.buildtype, 'Debug')"
-    #- name: tree
-    #  run: ${{ matrix.tree }}
     - name: Upload artifacts
       uses: actions/upload-artifact@v2
       with:
