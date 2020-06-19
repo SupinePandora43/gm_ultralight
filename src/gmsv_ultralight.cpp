@@ -6,13 +6,12 @@
 #include <vgui/ISurface.h>
 #include "shoom/shm.h"
 
-// backup
-// https://github.com/SupinePandora43/gm_ultralight/blob/e9535c7598d3db17c7a063d2a9a80091d34bd7fb/src/gmsv_ultralight.cpp
-
 using namespace GarrysMod::Lua;
 
 Shm* ul_o_rpc;
 Shm* ul_i_rpc;
+Shm* ul_o_render;
+Shm* ul_o_createview;
 std::thread* renderer;
 
 void* getFunction(std::string library, const char* funcName) {
@@ -39,14 +38,11 @@ void* getFunction(std::string library, const char* funcName) {
 
 /* ul_o_rpc
  * [ 0 ] - shutdown
+ * [ 1 ] - render
+ * [ 2 .. 127 ] - create view id
 */
 /* ul_i_rpc
- * [ 0 ] - pid TASKKILL
- * [ 1 ] - is rendered ?
-*/
-// ul_o_url_%id
-/* ul_i_image_%id
- * [x * y * 4 ] exact as view->bitmap()->LockPixels()
+ * unused ?
 */
 
 #define URLLEN 512
@@ -55,6 +51,7 @@ class IView {
 	Shm* SHMwidth;
 	Shm* SHMheight;
 	Shm* SHMurl;
+	Shm* SHMisloaded;
 public:
 	Shm* image;
 	uint32_t width = 0;
@@ -71,6 +68,7 @@ public:
 		SHMurl = new Shm{ std::string("ul_o_url_").append(std::to_string(id)), URLLEN };
 		SHMurl->Create();
 		image = new Shm{ std::string("ul_i_image_").append(std::to_string(id)), 1 + (iwidth * iheight * 4) };
+		SHMisloaded = new Shm{ std::string("ul_i_isloaded_").append(std::to_string(id)), 16 };
 	}
 	void SetURL(char* url) {
 		memcpy(SHMurl->Data(), url, std::string(url).length());
@@ -79,11 +77,16 @@ public:
 		image->Open();
 		return image->Data();
 	}
+	bool IsLoaded() {
+		SHMisloaded->Open();
+		return SHMisloaded->Data()[0];
+	}
 	~IView() {
 		delete SHMwidth;
 		delete SHMheight;
 		delete SHMurl;
 		delete image;
+		delete SHMisloaded;
 	}
 };
 std::vector<IView> views;
@@ -105,6 +108,7 @@ LUA_FUNCTION(CreateView) {
 	uint32_t height = LUA->GetNumber(2);
 	IView view(viewcount, width, height);
 	LUA->PushNumber(viewcount);
+	ul_o_createview->Data()[viewcount] = viewcount;
 	viewcount++;
 	return 1;
 }
@@ -117,6 +121,26 @@ LUA_FUNCTION(SetURL) {
 	else {
 		Msg("c++: not exists\n");
 	}
+	return 0;
+}
+LUA_FUNCTION(UpdateUntilLoads) {
+	uint8_t id = LUA->GetNumber(-1);
+
+	return 0;
+}
+LUA_FUNCTION(IsLoaded) {
+	uint8_t id = LUA->GetNumber(-1);
+	if (id < views.size()) {
+		LUA->PushBool(views.at(id).IsLoaded());
+		return 1;
+	}
+	else {
+		Msg("c++: not exists\n");
+		return 0;
+	}
+}
+LUA_FUNCTION(Render) {
+	ul_o_render->Data()[0] = 1;
 	return 0;
 }
 LUA_FUNCTION(RenderView) {
@@ -160,7 +184,8 @@ GMOD_MODULE_OPEN()
 	ul_o_rpc = new Shm{ "ul_o_rpc", 128 };
 	ul_o_rpc->Create();
 	ul_i_rpc = new Shm{ "ul_i_rpc", 128 };
-
+	ul_o_createview = new Shm{ "ul_o_render", 255 };
+	ul_o_createview->Create();
 	LUA->GetField(-1, "SERVER");
 	if (LUA->GetBool(-1)) {
 		Msg("c++: SERVER\n");
@@ -180,6 +205,7 @@ GMOD_MODULE_CLOSE()
 	surface = nullptr;
 	if (renderer != nullptr) renderer->detach();
 	if (ul_o_rpc) { ul_o_rpc->Data()[0] = 1; delete ul_o_rpc; }
-	if (ul_i_rpc) { delete ul_i_rpc; }
+	if (ul_i_rpc)delete ul_i_rpc;
+	if (ul_o_createview)delete ul_o_createview;
 	return 0;
 }

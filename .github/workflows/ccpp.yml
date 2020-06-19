@@ -12,7 +12,7 @@ jobs:
       fail-fast: false
       matrix:
         name: [windows]
-        #name: [windows, linux, macosx]
+        name: [windows, linux] # macosx
         buildtype: [Release, Debug]
         mode: [Performance]
         include:
@@ -24,16 +24,16 @@ jobs:
               curl -L https://github.com/premake/premake-core/releases/download/v5.0.0-alpha15/premake-5.0.0-alpha15-windows.zip -o premakeA
               Expand-Archive premakeA -DestinationPath ./
               ./premake5.exe vs2019
-          #- name: linux
-          #  os: ubuntu
-          #  tree: |
-          #    sudo apt install tree
-          #    tree -a .
-          #  requirements: source ./linux.sh
-          #  premake: |
-          #    curl -L https://github.com/premake/premake-core/releases/download/v5.0.0-alpha15/premake-5.0.0-alpha15-linux.tar.gz -o premakeA.tar.gz
-          #    tar -xvzf premakeA.tar.gz -C ./
-          #    ./premake5 gmake2
+          - name: linux
+            os: ubuntu
+            tree: |
+              sudo apt install tree
+              tree -a .
+            requirements: source ./linux.sh
+            premake: |
+              curl -L https://github.com/premake/premake-core/releases/download/v5.0.0-alpha15/premake-5.0.0-alpha15-linux.tar.gz -o premakeA.tar.gz
+              tar -xvzf premakeA.tar.gz -C ./
+              ./premake5 gmake2
           #- name: macosx
           #  os: macos
           #  tree: |
@@ -61,14 +61,14 @@ jobs:
     - run: ${{ matrix.premake }}
     - run: ${{ matrix.tree }}
     - run: "msbuild.exe ${{ github.workspace }}/projects/windows/vs2019/ultralight.sln -p:Configuration=${{ matrix.buildtype }} -p:Platform=x64" #Platform=x64
-    #  if: "contains(matrix.name, 'windows')"
-    #- run: |
-    #    cd ./projects/${{matrix.name}}/gmake2
-    #    echo starthere
-    #    make config=release_x86_64 all
-    #    echo endhere
-    #    cd ../../../
-    #  if: "!contains(matrix.name, 'windows')&&contains(matrix.buildtype, 'Release')"
+      if: "contains(matrix.name, 'windows')"
+    - run: |
+        cd ./projects/${{matrix.name}}/gmake2
+        echo starthere
+        make -j=1 config=release_x86_64 all
+        echo endhere
+        cd ../../../
+      if: "!contains(matrix.name, 'windows')&&contains(matrix.buildtype, 'Release')"
     #- run: |
     #    cd ./projects/${{matrix.name}}/gmake2
     #    echo starthere

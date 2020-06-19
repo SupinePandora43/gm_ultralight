@@ -15,6 +15,7 @@ class IView :public LoadListener {
 	Shm* SHMwidth;
 	Shm* SHMheight;
 	Shm* SHMurl;
+	Shm* SHMisloaded;
 public:
 	Shm* image;
 	uint32_t width = 0;
@@ -39,10 +40,11 @@ public:
 		image = new Shm{ std::string("ul_i_image_").append(std::to_string(id)), 1 + (width * height * 4) };
 		image->Create();
 
+		SHMisloaded = new Shm{ std::string("ul_i_isloaded_").append(std::to_string(id)), 16 };
+		SHMisloaded->Create();
 		view = renderer->CreateView(width * 4, height * 4, false); // https://github.com/ultralight-ux/Ultralight/issues/257#issuecomment-636330995
 		view->set_load_listener(this);
 		view->Resize(width, height);
-
 	}
 	void SetURL(char* url) {
 		memcpy(SHMurl->Data(), url, std::string(url).length());
@@ -51,10 +53,15 @@ public:
 		return image->Data();
 	}
 	~IView() {
+		view = nullptr;
 		delete SHMwidth;
 		delete SHMheight;
 		delete SHMurl;
+		delete SHMisloaded;
 		delete image;
+	}
+	void OnFinishLoading(View* caller) {
+
 	}
 };
 
@@ -66,8 +73,8 @@ void SendImage(IView iview) {
 int main(int argc, char* argv[]) {
 	std::cout << "starting renderer" << std::endl;
 	std::vector<IView> views;
-	Shm ul_o_rpc{ "ul_o_rpc", 64 };
-	Shm ul_i_rpc{ "ul_i_rpc", 64 };
+	Shm ul_o_rpc{ "ul_o_rpc", 128 };
+	Shm ul_i_rpc{ "ul_i_rpc", 128 };
 	ul_i_rpc.Create();
 	Config config;
 	config.device_scale_hint = 1.0;
@@ -78,6 +85,10 @@ int main(int argc, char* argv[]) {
 		std::this_thread::sleep_for(std::chrono::milliseconds(1000));
 		std::cout << "opening rpc" << std::endl;
 		ul_o_rpc.Open();
+		for (uint8_t i = 0; i < sizeof(ul_o_rpc.Data()); i++)
+		{
+			
+		}
 	}
 	std::cout << "closing..." << std::endl;
 	renderer = nullptr;

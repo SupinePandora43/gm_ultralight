@@ -8,6 +8,10 @@
 
 create fork, edit `.github/workflows/ccpp.yml`, if linux/osx build work, make PR.
 
+# TODO
+
+* [security](https://github.com/okdshin/PicoSHA2)
+* [CMAKE with compatibility mode](https://github.com/SupinePandora43/gm_ultralight/blob/e9535c7598d3db17c7a063d2a9a80091d34bd7fb/src/gmsv_ultralight.cpp)
 
 # Contributors
 [SupinePandora43](https://github.com/SupinePandora43)
