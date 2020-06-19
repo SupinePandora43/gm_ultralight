@@ -62,7 +62,7 @@ jobs:
     #    buildDirectory: '${{ github.workspace }}/out'
     - run: ${{ matrix.build }}
       env:
-        BUILDTYPE=${{matrix.buildtype}}
+        BUILDTYPE: ${{matrix.buildtype}}
     - run: ${{ matrix.tree }}
     #- run: |
     #    cd ./projects/${{matrix.name}}/gmake
