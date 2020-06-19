@@ -1,10 +1,9 @@
 #include <Ultralight/Ultralight.h>
-#include <chrono> // sleep
-#include <thread> // thread
-#include <string>
-#include <iostream>
-#include <cstring> // memcpy
-
+#include <chrono>   // std::chrono::milliseconds
+#include <thread>   // std::this_thread::sleep_for
+//#include <string> // string
+#include <iostream> // std
+#include <cstring>  // memcpy
 #include "shoom/shm.h"
 
 using namespace ultralight;
@@ -48,7 +47,7 @@ public:
 };
 
 #include <cstdlib>
-char* url = "https://github.com";
+char* url = "https://pornhub.com";
 int main(int argc, char* argv[]) {
 	App app;
 	Shm ul_io_rpc{ "ul_io_rpc", 64 };
@@ -61,14 +60,17 @@ int main(int argc, char* argv[]) {
 		ul_io_rpc.Open();
 		ul_o_url.Open();
 		if (ul_o_url.Data() != nullptr) {
-			std::cout << (char*)ul_o_url.Data() << std::endl;
-			if (ul_io_rpc.Data() == nullptr || ul_io_rpc.Data()[0] != 0){ // stop renderer
+			std::cout << "url != nullptr" << std::endl;
+			if (ul_io_rpc.Data() == nullptr || ul_io_rpc.Data()[0] != 0) { // stop renderer
 				std::cout << "rpc[0]=1 -> shutting down" << std::endl;
-		}
-		if (ul_o_url.Data() != nullptr) {
-			std::cout << (char*)ul_o_url.Data() << std::endl;
-			if (url != (char*)ul_o_url.Data()) {
+			}
+			if (std::string(url) != std::string((char*)ul_o_url.Data())) {
+				if (url != nullptr) {
+					std::cout << "old url: |" << url << "|" << std::endl;
+				}
 				url = (char*)ul_o_url.Data();
+				std::cout << "new url: |" << url << "|" << std::endl;
+				std::cout << "setting url" << std::endl;
 				app.SetURL(url);
 				app.Run();
 				std::cout << "app->Run - succeful" << std::endl;
@@ -80,6 +82,9 @@ int main(int argc, char* argv[]) {
 				catch (std::exception e) {
 					std::cout << e.what() << std::endl;
 				}
+			}
+			else {
+				std::cout << "url not updated" << std::endl;
 			}
 		}
 		else {
