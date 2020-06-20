@@ -2,6 +2,7 @@
 #include <string>
 #include <thread>
 #include <vector>
+#include <cstring>
 #ifdef PERFORMANCE
 #include <interface.h>
 #include <vgui/ISurface.h>
