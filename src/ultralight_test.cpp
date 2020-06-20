@@ -77,6 +77,7 @@ int main() {
 	IView view(1, 2048, 2048);
 	view.SetURL("https://github.com");
 	ul_o_createview.Data()[1] = 1;
+	view.Update();
 	const char* url = "https://youtube.com";
 
 	//std::memcpy(ul_o_url->Data(), url, std::string(url).length()); // put url
@@ -90,7 +91,6 @@ int main() {
 	while (true) {
 		std::cin >> shutdown;
 		std::cout << shutdown;
-		view.Update();
 		ul_o_rpc.Data()[0] = shutdown;
 		//if (shutdown != 0) break;
 	}

@@ -72,18 +72,17 @@ public:
 	}
 	void Update() {
 		uint32_t timeout = 0;
-		while (!rendered && timeout < 1000000) {
+		while (!rendered && timeout < 10000000) {
 			timeout++;
 			renderer->Update();
 		}
 	}
 	void OnFinishLoading(View* caller) {
 		renderer->Render();
-		uint8_t* address = (uint8_t*)view->bitmap()->LockPixels();
-		memcpy(Get(), address, width * height * 4);
+		view->bitmap()->WritePNG((std::string("ul_") + std::to_string(vid) + ".png").c_str());
+		memcpy(Get(), view->bitmap()->LockPixels(), width * height * 4);
 		view->bitmap()->UnlockPixels();
 		SHMisloaded->Data()[0] = 1;
-		view->bitmap()->WritePNG((std::string("ul_") + std::to_string(vid) + ".png").c_str());
 		rendered = true;
 	}
 };
