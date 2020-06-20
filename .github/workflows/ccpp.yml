@@ -11,8 +11,7 @@ jobs:
     strategy:
       fail-fast: false
       matrix:
-        name: [windows, linux]
-        #name: [windows, linux, macosx]
+        name: [windows, linux, macosx]
         buildtype: [Release, Debug]
         link: [compatibility, performance]
         include:
