@@ -102,7 +102,8 @@ int main() {
 		std::this_thread::sleep_for(std::chrono::milliseconds(1000));
 		std::cout << "opening rpc" << std::endl;
 		ul_o_rpc.Open();
-		if (ul_o_rpc.Data()[0] != 0) break;
+		if (ul_o_rpc.Data() == nullptr) continue;
+		if (ul_o_rpc.Data()[0] != 1) break;
 		ul_o_createview.Open();
 		for (uint8_t i = 0; i < 255; i++)
 		{
