@@ -50,8 +50,8 @@ public:
 		SHMupdate = new Shm{ std::string("ul_o_update_").append(std::to_string(id)), 16 };
 
 		view = renderer->CreateView(width * 4, height * 4, false); // https://github.com/ultralight-ux/Ultralight/issues/257#issuecomment-636330995
-		view->set_load_listener(this);
 		view->Resize(width, height);
+		view->set_load_listener(this);
 	}
 	void SetURL(char* ur) {
 		rendered = false;
@@ -79,16 +79,18 @@ public:
 	}
 	void OnFinishLoading(View* caller) {
 		renderer->Render();
-		memcpy(Get(), view->bitmap()->LockPixels(), width * height);
+		uint8_t* address = (uint8_t*)view->bitmap()->LockPixels();
+		memcpy(Get(), address, width * height * 4);
 		view->bitmap()->UnlockPixels();
 		SHMisloaded->Data()[0] = 1;
-		view->bitmap()->WritePNG((std::string("ul_") + std::to_string(vid)).c_str());
+		view->bitmap()->WritePNG((std::string("ul_") + std::to_string(vid) + ".png").c_str());
+		rendered = true;
 	}
 };
 
 int main() {
 	std::cout << "starting renderer" << std::endl;
-	std::vector<IView> views;
+	std::vector<IView*> views;
 	Shm ul_o_rpc{ "ul_o_rpc", 128 };
 	Shm ul_i_rpc{ "ul_i_rpc", 128 };
 	Shm ul_o_createview{ "ul_o_createview", 255 };
@@ -98,30 +100,36 @@ int main() {
 	config.font_family_standard = "Arial";
 	Platform::instance().set_config(config);
 	renderer = Renderer::Create();
+	std::cout << "while" << std::endl;
 	while (true) {
+		std::cout << "this_thread::sleep_for" << std::endl;
 		std::this_thread::sleep_for(std::chrono::milliseconds(1000));
+		std::cout << "cout" << std::endl;
 		std::cout << "opening rpc" << std::endl;
 		ul_o_rpc.Open();
 		if (ul_o_rpc.Data() == nullptr) continue;
-		if (ul_o_rpc.Data()[0] != 1) break;
+		if (ul_o_rpc.Data()[0] != 0) { std::cout << "ul_o_rpc.Data()[0]!=0" << std::endl; break; }
 		ul_o_createview.Open();
-		for (uint8_t i = 0; i < 255; i++)
-		{
-			uint8_t id = ul_o_createview.Data()[i];
-			if (id != 0) {
-				views.push_back(IView(id));
+		if (ul_o_createview.Data() != nullptr) {
+			for (uint8_t i = 0; i < 255; i++) // sizeof(ul_o_createview.Data()) / sizeof(uint8_t)
+			{
+				uint8_t id = ul_o_createview.Data()[i];
+				if (id == 1 && i > views.size()) {
+					IView* view = new IView(id);
+					views.push_back(view);
+				}
 			}
 		}
-		for each (IView view in views)
+		for each (IView * view in views)
 		{
-			view.SHMurl->Open();
-			std::string url = (char*)view.SHMurl->Data();
-			if (std::string(view.url) != url && url != "") {
-				view.SetURL((char*)url.c_str());
+			view->SHMurl->Open();
+			std::string url = std::string((char*)view->SHMurl->Data());
+			if (std::string(view->url) != url && url != "") {
+				view->SetURL((char*)url.c_str());
 			}
-			view.SHMupdate->Open();
-			if (view.SHMupdate->Data()[0] == 1) {
-				view.Update();
+			view->SHMupdate->Open();
+			if (view->SHMupdate->Data()[0] == 1) {
+				view->Update();
 			}
 		}
 	}
