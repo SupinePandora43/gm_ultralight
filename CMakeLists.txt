@@ -1,6 +1,6 @@
 cmake_minimum_required (VERSION 3.9)
 project (gmsv_ultralight CXX)
-set (CMAKE_CXX_STANDARD 17)
+set (CMAKE_CXX_STANDARD 11)
 add_compile_definitions("GMMODULE")
 include_directories("./thirdparty/Ultralight-API")
 set(ULTRALIGHT_LIBRARY_DIR "lib")                  # .lib libraries
