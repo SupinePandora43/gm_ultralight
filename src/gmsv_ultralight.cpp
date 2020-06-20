@@ -54,10 +54,12 @@ class IView {
 	Shm* SHMurl;
 	Shm* SHMupdate;
 	Shm* SHMisloaded;
+	Shm* SHMsync;
 public:
 	Shm* image;
 	uint32_t width = 0;
 	uint32_t height = 0;
+	uint8_t sync = 111;
 	IView(uint8_t id, uint32_t iwidth, uint32_t iheight) {
 		width = iwidth;
 		SHMwidth = new Shm{ std::string("ul_o_width_").append(std::to_string(id)), 64 };
@@ -71,20 +73,34 @@ public:
 		SHMurl->Create();
 		image = new Shm{ std::string("ul_i_image_").append(std::to_string(id)), 1 + (iwidth * iheight * 4) };
 		SHMisloaded = new Shm{ std::string("ul_i_isloaded_").append(std::to_string(id)), 16 };
-		SHMupdate = new Shm{ std::string("ul_o_update_").append(std::to_string(id)), 16 };
-		SHMupdate->Create();
+		SHMsync = new Shm{ std::string("ul_i_sync_").append(std::to_string(id)), 16 };
+	}
+	bool isSynced() {
+		SHMsync->Open();
+		if (SHMsync->Data() != nullptr && SHMsync->Data()[0] != sync) {
+			sync = SHMsync->Data()[0];
+			return true;
+		}
+		else return false;
 	}
 	void SetURL(char* url) {
 		memcpy(SHMurl->Data(), url, std::string(url).length());
 	}
-	void Update() {
-		SHMupdate->Data()[0] = 1;
-	}
 	bool IsLoaded() {
-		SHMisloaded->Open();
-		return SHMisloaded->Data()[0];
+		if (isSynced()) {
+			SHMisloaded->Open();
+			return SHMisloaded->Data() != nullptr ? SHMisloaded->Data()[0] : false;
+		}
+		else return false;
+	}
+	bool IsReady() {
+		if (isSynced()) {
+			return true;
+		}
+		return false;
 	}
 	uint8_t* Get() {
+		SHMupdate->Data()[0] = 0;
 		image->Open();
 		return image->Data();
 	}
@@ -126,10 +142,10 @@ LUA_FUNCTION(Start) {
 LUA_FUNCTION(CreateView) {
 	uint32_t width = LUA->GetNumber(1);
 	uint32_t height = LUA->GetNumber(2);
-	viewcount++;
 	IView view(viewcount, width, height);
 	LUA->PushNumber(viewcount);
 	ul_o_createview->Data()[viewcount] = viewcount;
+	viewcount++;
 	return 1;
 }
 LUA_FUNCTION(SetURL) {
@@ -143,13 +159,16 @@ LUA_FUNCTION(SetURL) {
 	}
 	return 0;
 }
-LUA_FUNCTION(Update) {
+// view->is_bitmap_dirty()
+LUA_FUNCTION(IsReady) {
 	uint8_t id = LUA->GetNumber(1);
 	if (id < views.size()) {
-		views.at(id).Update();
+		LUA->PushBool(views.at(id).IsReady());
+		return 1;
 	}
 	return 0;
 }
+// OnFinishLoading
 LUA_FUNCTION(IsLoaded) {
 	uint8_t id = LUA->GetNumber(1);
 	if (id < views.size()) {
@@ -235,7 +254,7 @@ GMOD_MODULE_OPEN()
 	ul_o_rpc->Data()[1] = 0;
 	ul_i_rpc = new Shm{ "ul_i_rpc", 128 };
 
-	ul_o_createview = new Shm{ "ul_o_createview", 255 };
+	ul_o_createview = new Shm{ "ul_o_createview", 200 };
 	ul_o_createview->Create();
 
 	LUA->PushCFunction(Start);
@@ -247,8 +266,8 @@ GMOD_MODULE_OPEN()
 	LUA->PushCFunction(SetURL);
 	LUA->SetField(-2, "ul_SetURL");
 
-	LUA->PushCFunction(Update);
-	LUA->SetField(-2, "ul_Update");
+	LUA->PushCFunction(IsReady);
+	LUA->SetField(-2, "ul_IsReady");
 
 	LUA->PushCFunction(IsLoaded);
 	LUA->SetField(-2, "ul_IsLoaded");

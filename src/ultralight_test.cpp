@@ -22,7 +22,6 @@ class IView {
 	Shm* SHMwidth;
 	Shm* SHMheight;
 	Shm* SHMurl;
-	Shm* SHMupdate;
 	Shm* SHMisloaded;
 public:
 	Shm* image;
@@ -41,14 +40,9 @@ public:
 		SHMurl->Create();
 		image = new Shm{ std::string("ul_i_image_").append(std::to_string(id)), 1 + (iwidth * iheight * 4) };
 		SHMisloaded = new Shm{ std::string("ul_i_isloaded_").append(std::to_string(id)), 16 };
-		SHMupdate = new Shm{ std::string("ul_o_update_").append(std::to_string(id)), 16 };
-		SHMupdate->Create();
 	}
 	void SetURL(char* url) {
 		memcpy(SHMurl->Data(), url, std::string(url).length());
-	}
-	void Update() {
-		SHMupdate->Data()[0] = 1;
 	}
 	bool IsLoaded() {
 		SHMisloaded->Open();
@@ -63,7 +57,6 @@ public:
 		delete SHMheight;
 		delete SHMurl;
 		delete image;
-		delete SHMupdate;
 		delete SHMisloaded;
 	}
 };
@@ -77,7 +70,6 @@ int main() {
 	IView view(1, 2048, 2048);
 	view.SetURL("https://github.com");
 	ul_o_createview.Data()[1] = 1;
-	view.Update();
 	const char* url = "https://youtube.com";
 
 	//std::memcpy(ul_o_url->Data(), url, std::string(url).length()); // put url

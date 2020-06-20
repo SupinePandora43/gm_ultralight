@@ -19,13 +19,13 @@ class IView :public LoadListener {
 public:
 	Shm* SHMurl;
 	Shm* SHMisloaded;
-	Shm* SHMupdate;
+	Shm* SHMsync;
 	Shm* image;
 	uint32_t width = 0;
 	uint32_t height = 0;
 	char* url;
 	RefPtr<View> view;
-	bool rendered = false;
+	bool loaded = false;
 	uint8_t vid;
 
 	IView(uint8_t id) {
@@ -47,19 +47,27 @@ public:
 		SHMisloaded = new Shm{ std::string("ul_i_isloaded_").append(std::to_string(id)), 16 };
 		SHMisloaded->Create();
 
-		SHMupdate = new Shm{ std::string("ul_o_update_").append(std::to_string(id)), 16 };
+		SHMsync = new Shm{ std::string("ul_i_sync_").append(std::to_string(id)), 16 };
+		SHMsync->Create();
 
 		view = renderer->CreateView(width * 4, height * 4, false); // https://github.com/ultralight-ux/Ultralight/issues/257#issuecomment-636330995
 		view->Resize(width, height);
 		view->set_load_listener(this);
 	}
-	void SetURL(char* ur) {
-		rendered = false;
-		url = ur;
-		view->LoadURL(ur);
-	}
-	uint8_t* Get() {
-		return image->Data();
+	void thonk() {
+		SHMurl->Open();
+		if (std::string((char*)SHMurl->Data()) != "" && std::string((char*)SHMurl->Data()) != url) {
+			loaded = false;
+			SHMisloaded->Data()[0] = 0;
+			url = (char*)SHMurl->Data();
+			view->LoadURL(url);
+		}
+		if (loaded && view->is_bitmap_dirty()) {
+			memcpy(image->Data(), view->bitmap()->LockPixels(), width * height * 4);
+			view->bitmap()->UnlockPixels();
+			SHMisloaded->Data()[0] = 1;
+			SHMsync->Data()[0] = SHMsync->Data()[0] > 100 ? 0 : SHMsync->Data()[0] + 1;
+		}
 	}
 	~IView() {
 		view = nullptr;
@@ -67,23 +75,11 @@ public:
 		delete SHMheight;
 		delete SHMurl;
 		delete SHMisloaded;
-		delete SHMupdate;
+		delete SHMsync;
 		delete image;
 	}
-	void Update() {
-		uint32_t timeout = 0;
-		while (!rendered && timeout < 10000000) {
-			timeout++;
-			renderer->Update();
-		}
-	}
 	void OnFinishLoading(View* caller) {
-		renderer->Render();
-		view->bitmap()->WritePNG((std::string("ul_") + std::to_string(vid) + ".png").c_str());
-		memcpy(Get(), view->bitmap()->LockPixels(), width * height * 4);
-		view->bitmap()->UnlockPixels();
-		SHMisloaded->Data()[0] = 1;
-		rendered = true;
+		loaded = true;
 	}
 };
 
@@ -92,7 +88,7 @@ int main() {
 	std::vector<IView*> views;
 	Shm ul_o_rpc{ "ul_o_rpc", 128 };
 	Shm ul_i_rpc{ "ul_i_rpc", 128 };
-	Shm ul_o_createview{ "ul_o_createview", 255 };
+	Shm ul_o_createview{ "ul_o_createview", 200 };
 	ul_i_rpc.Create();
 	Config config;
 	config.device_scale_hint = 1.0;
@@ -110,7 +106,7 @@ int main() {
 		if (ul_o_rpc.Data()[0] != 0) { std::cout << "ul_o_rpc.Data()[0]!=0" << std::endl; break; }
 		ul_o_createview.Open();
 		if (ul_o_createview.Data() != nullptr) {
-			for (uint8_t i = 0; i < 255; i++) // sizeof(ul_o_createview.Data()) / sizeof(uint8_t)
+			for (uint8_t i = 0; i < 200; i++) // sizeof(ul_o_createview.Data()) / sizeof(uint8_t)
 			{
 				uint8_t id = ul_o_createview.Data()[i];
 				if (id == 1 && i > views.size()) {
@@ -119,17 +115,13 @@ int main() {
 				}
 			}
 		}
+		for (uint32_t i = 0;i < 1000;i++) {
+			renderer->Update();
+		}
+		renderer->Render();
 		for each (IView * view in views)
 		{
-			view->SHMurl->Open();
-			std::string url = std::string((char*)view->SHMurl->Data());
-			if (std::string(view->url) != url && url != "") {
-				view->SetURL((char*)url.c_str());
-			}
-			view->SHMupdate->Open();
-			if (view->SHMupdate->Data()[0] == 1) {
-				view->Update();
-			}
+			view->thonk();
 		}
 	}
 	std::cout << "closing..." << std::endl;
