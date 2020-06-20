@@ -119,9 +119,9 @@ int main() {
 			renderer->Update();
 		}
 		renderer->Render();
-		for each (IView * view in views)
+		for (size_t i = 0; i < views.size(); i++)
 		{
-			view->thonk();
+			views.at(i)->thonk();
 		}
 	}
 	std::cout << "closing..." << std::endl;
