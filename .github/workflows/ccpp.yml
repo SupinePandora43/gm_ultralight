@@ -15,7 +15,6 @@ jobs:
         #name: [windows, linux, macosx]
         buildtype: [Release, Debug]
         link: [compatibility, performance]
-        cmake: [CMakeListsTxtBasic]
         include:
           - name: windows
             os: windows
@@ -32,6 +31,7 @@ jobs:
               sudo apt install tree
               tree -a .
             requirements: source ./linux.sh
+            cmake: CMakeListsTxtBasic
             premake: |
               curl -L https://github.com/premake/premake-core/releases/download/v5.0.0-alpha15/premake-5.0.0-alpha15-linux.tar.gz -o premakeA.tar.gz
               tar -xvzf premakeA.tar.gz -C ./
@@ -42,6 +42,7 @@ jobs:
               brew install tree
               tree -a
             requirements: source ./macos.sh
+            cmake: CMakeListsTxtBasic
             premake: |
               curl -L https://github.com/premake/premake-core/releases/download/v5.0.0-alpha15/premake-5.0.0-alpha15-macosx.tar.gz -o premakeA.tar.gz
               tar -xvzf premakeA.tar.gz -C ./
