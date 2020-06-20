@@ -15,11 +15,13 @@ jobs:
         #name: [windows, linux, macosx]
         buildtype: [Release, Debug]
         link: [compatibility, performance]
+        cmake: [CMakeListsTxtBasic]
         include:
           - name: windows
             os: windows
             tree: tree /f /a 
             requirements: start ./windows.bat
+            cmake: CMakeSettingsJson
             premake: |
               curl -L https://github.com/premake/premake-core/releases/download/v5.0.0-alpha15/premake-5.0.0-alpha15-windows.zip -o premakeA
               Expand-Archive premakeA -DestinationPath ./
@@ -34,19 +36,21 @@ jobs:
               curl -L https://github.com/premake/premake-core/releases/download/v5.0.0-alpha15/premake-5.0.0-alpha15-linux.tar.gz -o premakeA.tar.gz
               tar -xvzf premakeA.tar.gz -C ./
               ./premake5 gmake
+          - name: macosx
+            os: macos
+            tree: |
+              brew install tree
+              tree -a
+            requirements: source ./macos.sh
+            premake: |
+              curl -L https://github.com/premake/premake-core/releases/download/v5.0.0-alpha15/premake-5.0.0-alpha15-macosx.tar.gz -o premakeA.tar.gz
+              tar -xvzf premakeA.tar.gz -C ./
+              ./premake5 gmake2
         exclude:
           - name: linux
             link: performance
-          #- name: macosx
-          #  os: macos
-          #  tree: |
-          #    brew install tree
-          #    tree -a
-          #  requirements: source ./macos.sh
-          #  premake: |
-          #    curl -L https://github.com/premake/premake-core/releases/download/v5.0.0-alpha15/premake-5.0.0-alpha15-macosx.tar.gz -o premakeA.tar.gz
-          #    tar -xvzf premakeA.tar.gz -C ./
-          #    ./premake5 gmake2
+          - name: macosx
+            link: performance
     steps:
     - uses: actions/checkout@v2
       with:
@@ -58,7 +62,7 @@ jobs:
       uses: lukka/run-cmake@v2
       if: "contains(matrix.link, 'compatibility')"
       with:
-        cmakeListsOrSettingsJson: CMakeListsTxtBasic
+        cmakeListsOrSettingsJson: ${{ matrix.cmake }}
         useVcpkgToolchainFile: true
         cmakeBuildType: ${{ matrix.buildtype }}
         buildDirectory: '${{ github.workspace }}/out'
@@ -70,5 +74,5 @@ jobs:
     - name: Upload artifacts
       uses: actions/upload-artifact@v2
       with:
-        name: ${{ matrix.os }}-${{ matrix.buildtype }}
+        name: ${{ matrix.os }}-${{ matrix.link }}-${{ matrix.buildtype }}
         path: out/*
