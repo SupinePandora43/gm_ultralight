@@ -231,9 +231,30 @@ GMOD_MODULE_OPEN()
 
 	ul_o_rpc = new Shm{ "ul_o_rpc", 128 };
 	ul_o_rpc->Create();
+	ul_o_rpc->Data()[0] = 0;
+	ul_o_rpc->Data()[1] = 0;
 	ul_i_rpc = new Shm{ "ul_i_rpc", 128 };
+
 	ul_o_createview = new Shm{ "ul_o_createview", 255 };
 	ul_o_createview->Create();
+
+	LUA->PushCFunction(Start);
+	LUA->SetField(-2, "ul_Start");
+
+	LUA->PushCFunction(CreateView);
+	LUA->SetField(-2, "ul_CreateView");
+
+	LUA->PushCFunction(SetURL);
+	LUA->SetField(-2, "ul_SetURL");
+
+	LUA->PushCFunction(Update);
+	LUA->SetField(-2, "ul_Update");
+
+	LUA->PushCFunction(IsLoaded);
+	LUA->SetField(-2, "ul_IsLoaded");
+
+	LUA->PushCFunction(RenderView);
+	LUA->SetField(-2, "ul_RenderView");
 
 	LUA->GetField(-1, "SERVER");
 	if (LUA->GetBool(-1)) {

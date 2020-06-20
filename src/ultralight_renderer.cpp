@@ -16,17 +16,20 @@ RefPtr<Renderer> renderer;
 class IView :public LoadListener {
 	Shm* SHMwidth;
 	Shm* SHMheight;
+public:
 	Shm* SHMurl;
 	Shm* SHMisloaded;
-public:
+	Shm* SHMupdate;
 	Shm* image;
 	uint32_t width = 0;
 	uint32_t height = 0;
 	char* url;
 	RefPtr<View> view;
 	bool rendered = false;
+	uint8_t vid;
 
 	IView(uint8_t id) {
+		vid = id;
 		SHMwidth = new Shm{ std::string("ul_o_width_").append(std::to_string(id)), 64 };
 		SHMwidth->Open();
 		width = std::stoi((char*)SHMwidth->Data());
@@ -36,17 +39,24 @@ public:
 		height = std::stoi((char*)SHMheight->Data());
 
 		SHMurl = new Shm{ std::string("ul_o_url_").append(std::to_string(id)), URLLEN };
-		SHMurl->Open();
-		url = (char*)SHMurl->Data();
+		url = "placeholder";
 
 		image = new Shm{ std::string("ul_i_image_").append(std::to_string(id)), 1 + (width * height * 4) };
 		image->Create();
 
 		SHMisloaded = new Shm{ std::string("ul_i_isloaded_").append(std::to_string(id)), 16 };
 		SHMisloaded->Create();
+
+		SHMupdate = new Shm{ std::string("ul_o_update_").append(std::to_string(id)), 16 };
+
 		view = renderer->CreateView(width * 4, height * 4, false); // https://github.com/ultralight-ux/Ultralight/issues/257#issuecomment-636330995
 		view->set_load_listener(this);
 		view->Resize(width, height);
+	}
+	void SetURL(char* ur) {
+		rendered = false;
+		url = ur;
+		view->LoadURL(ur);
 	}
 	uint8_t* Get() {
 		return image->Data();
@@ -57,17 +67,25 @@ public:
 		delete SHMheight;
 		delete SHMurl;
 		delete SHMisloaded;
+		delete SHMupdate;
 		delete image;
+	}
+	void Update() {
+		uint32_t timeout = 0;
+		while (!rendered && timeout < 1000000) {
+			timeout++;
+			renderer->Update();
+		}
 	}
 	void OnFinishLoading(View* caller) {
 		renderer->Render();
 		memcpy(Get(), view->bitmap()->LockPixels(), width * height);
 		view->bitmap()->UnlockPixels();
 		SHMisloaded->Data()[0] = 1;
+		view->bitmap()->WritePNG((std::string("ul_") + std::to_string(vid)).c_str());
 	}
 };
 
-//#include <cstdlib>
 int main() {
 	std::cout << "starting renderer" << std::endl;
 	std::vector<IView> views;
@@ -93,9 +111,18 @@ int main() {
 				views.push_back(IView(id));
 			}
 		}
-		/*if (ul_o_rpc.Data()[1] == 1) {
-			renderer->Render();
-		}*/
+		for each (IView view in views)
+		{
+			view.SHMurl->Open();
+			std::string url = (char*)view.SHMurl->Data();
+			if (std::string(view.url) != url && url != "") {
+				view.SetURL((char*)url.c_str());
+			}
+			view.SHMupdate->Open();
+			if (view.SHMupdate->Data()[0] == 1) {
+				view.Update();
+			}
+		}
 	}
 	std::cout << "closing..." << std::endl;
 	renderer = nullptr;
