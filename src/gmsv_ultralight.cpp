@@ -13,7 +13,6 @@ using namespace GarrysMod::Lua;
 
 Shm* ul_o_rpc;
 Shm* ul_i_rpc;
-Shm* ul_o_render;
 Shm* ul_o_createview;
 std::thread* renderer;
 
@@ -42,7 +41,6 @@ void* getFunction(std::string library, const char* funcName) {
 /* ul_o_rpc
  * [ 0 ] - shutdown
  * [ 1 ] - render
- * [ 2 .. 127 ] - create view id
 */
 /* ul_i_rpc
  * unused ?
@@ -54,6 +52,7 @@ class IView {
 	Shm* SHMwidth;
 	Shm* SHMheight;
 	Shm* SHMurl;
+	Shm* SHMupdate;
 	Shm* SHMisloaded;
 public:
 	Shm* image;
@@ -72,23 +71,29 @@ public:
 		SHMurl->Create();
 		image = new Shm{ std::string("ul_i_image_").append(std::to_string(id)), 1 + (iwidth * iheight * 4) };
 		SHMisloaded = new Shm{ std::string("ul_i_isloaded_").append(std::to_string(id)), 16 };
+		SHMupdate = new Shm{ std::string("ul_o_update_").append(std::to_string(id)), 16 };
+		SHMupdate->Create();
 	}
 	void SetURL(char* url) {
 		memcpy(SHMurl->Data(), url, std::string(url).length());
 	}
-	uint8_t* Get() {
-		image->Open();
-		return image->Data();
+	void Update() {
+		SHMupdate->Data()[0] = 1;
 	}
 	bool IsLoaded() {
 		SHMisloaded->Open();
 		return SHMisloaded->Data()[0];
+	}
+	uint8_t* Get() {
+		image->Open();
+		return image->Data();
 	}
 	~IView() {
 		delete SHMwidth;
 		delete SHMheight;
 		delete SHMurl;
 		delete image;
+		delete SHMupdate;
 		delete SHMisloaded;
 	}
 };
@@ -108,8 +113,14 @@ MsgP Msg;
 void rendererThread() {
 	std::system("ultralight_renderer.exe");
 }
-LUA_FUNCTION(StartRendererThread) {
-	renderer = new std::thread(rendererThread);
+LUA_FUNCTION(Start) {
+	bool force = LUA->GetBool(1);
+	if (renderer != nullptr && !force) {
+		Msg("c++: already started\n");
+	}
+	else {
+		renderer = new std::thread(rendererThread);
+	}
 	return 0;
 }
 LUA_FUNCTION(CreateView) {
@@ -122,8 +133,8 @@ LUA_FUNCTION(CreateView) {
 	return 1;
 }
 LUA_FUNCTION(SetURL) {
-	uint8_t id = LUA->GetNumber(-1);
-	char* url = (char*)LUA->GetString(-2);
+	uint8_t id = LUA->GetNumber(1);
+	char* url = (char*)LUA->GetString(2);
 	if (id < views.size()) {
 		views.at(id).SetURL(url);
 	}
@@ -132,13 +143,15 @@ LUA_FUNCTION(SetURL) {
 	}
 	return 0;
 }
-LUA_FUNCTION(UpdateUntilLoads) {
-	uint8_t id = LUA->GetNumber(-1);
-
+LUA_FUNCTION(Update) {
+	uint8_t id = LUA->GetNumber(1);
+	if (id < views.size()) {
+		views.at(id).Update();
+	}
 	return 0;
 }
 LUA_FUNCTION(IsLoaded) {
-	uint8_t id = LUA->GetNumber(-1);
+	uint8_t id = LUA->GetNumber(1);
 	if (id < views.size()) {
 		LUA->PushBool(views.at(id).IsLoaded());
 		return 1;
@@ -148,12 +161,12 @@ LUA_FUNCTION(IsLoaded) {
 		return 0;
 	}
 }
-LUA_FUNCTION(Render) {
-	ul_o_render->Data()[0] = 1;
+/*LUA_FUNCTION(Render) {
+	ul_o_rpc->Data()[1] = 1;
 	return 0;
-}
+}*/
 LUA_FUNCTION(RenderView) {
-	uint8_t id = LUA->GetNumber(-1);
+	uint8_t id = LUA->GetNumber(1);
 #ifdef PERFORMANCE
 	if (surface == nullptr) {
 		Msg("c++: surface==nullptr");
@@ -166,9 +179,9 @@ LUA_FUNCTION(RenderView) {
 	if (id < views.size()) {
 		uint32_t i = 0;
 		uint8_t* address = views.at(id).Get();
-		for (uint16_t y = 0; y < views.at(id).height; y++)
+		for (uint32_t y = 0; y < views.at(id).height; y++)
 		{
-			for (uint16_t x = 0; x < views.at(id).width; x++)
+			for (uint32_t x = 0; x < views.at(id).width; x++)
 			{
 #ifdef PERFORMANCE
 				surface->DrawSetColor(address[0], address[1], address[2], address[3]);
@@ -199,6 +212,7 @@ LUA_FUNCTION(RenderView) {
 	}
 	return 0;
 }
+
 GMOD_MODULE_OPEN()
 {
 	LOG("opening");
@@ -233,7 +247,6 @@ GMOD_MODULE_OPEN()
 	LUA->Pop();
 	return 0;
 }
-
 GMOD_MODULE_CLOSE()
 {
 #ifdef PERFORMANCE

@@ -11,6 +11,8 @@ using namespace ultralight;
 
 #define URLLEN 512
 
+RefPtr<Renderer> renderer;
+
 class IView :public LoadListener {
 	Shm* SHMwidth;
 	Shm* SHMheight;
@@ -24,7 +26,7 @@ public:
 	RefPtr<View> view;
 	bool rendered = false;
 
-	IView(uint8_t id, RefPtr<Renderer> renderer) {
+	IView(uint8_t id) {
 		SHMwidth = new Shm{ std::string("ul_o_width_").append(std::to_string(id)), 64 };
 		SHMwidth->Open();
 		width = std::stoi((char*)SHMwidth->Data());
@@ -58,14 +60,13 @@ public:
 		delete image;
 	}
 	void OnFinishLoading(View* caller) {
+		renderer->Render();
+		memcpy(Get(), view->bitmap()->LockPixels(), width * height);
+		view->bitmap()->UnlockPixels();
 		SHMisloaded->Data()[0] = 1;
 	}
 };
 
-void SendImage(IView iview) {
-	memcpy(iview.Get(), iview.view->bitmap()->LockPixels(), iview.width * iview.height * 4);
-	iview.view->bitmap()->UnlockPixels();
-}
 //#include <cstdlib>
 int main() {
 	std::cout << "starting renderer" << std::endl;
@@ -78,7 +79,7 @@ int main() {
 	config.device_scale_hint = 1.0;
 	config.font_family_standard = "Arial";
 	Platform::instance().set_config(config);
-	RefPtr<Renderer> renderer = Renderer::Create();
+	renderer = Renderer::Create();
 	while (true) {
 		std::this_thread::sleep_for(std::chrono::milliseconds(1000));
 		std::cout << "opening rpc" << std::endl;
@@ -89,10 +90,12 @@ int main() {
 		{
 			uint8_t id = ul_o_createview.Data()[i];
 			if (id != 0) {
-				views.push_back(IView(id, renderer));
+				views.push_back(IView(id));
 			}
 		}
-
+		/*if (ul_o_rpc.Data()[1] == 1) {
+			renderer->Render();
+		}*/
 	}
 	std::cout << "closing..." << std::endl;
 	renderer = nullptr;
