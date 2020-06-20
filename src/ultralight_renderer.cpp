@@ -46,9 +46,6 @@ public:
 		view->set_load_listener(this);
 		view->Resize(width, height);
 	}
-	void SetURL(char* url) {
-		memcpy(SHMurl->Data(), url, std::string(url).length());
-	}
 	uint8_t* Get() {
 		return image->Data();
 	}
@@ -61,7 +58,7 @@ public:
 		delete image;
 	}
 	void OnFinishLoading(View* caller) {
-
+		SHMisloaded->Data()[0] = 1;
 	}
 };
 
@@ -70,11 +67,12 @@ void SendImage(IView iview) {
 	iview.view->bitmap()->UnlockPixels();
 }
 //#include <cstdlib>
-int main(int argc, char* argv[]) {
+int main() {
 	std::cout << "starting renderer" << std::endl;
 	std::vector<IView> views;
 	Shm ul_o_rpc{ "ul_o_rpc", 128 };
 	Shm ul_i_rpc{ "ul_i_rpc", 128 };
+	Shm ul_o_createview{ "ul_o_createview", 255 };
 	ul_i_rpc.Create();
 	Config config;
 	config.device_scale_hint = 1.0;
@@ -85,10 +83,16 @@ int main(int argc, char* argv[]) {
 		std::this_thread::sleep_for(std::chrono::milliseconds(1000));
 		std::cout << "opening rpc" << std::endl;
 		ul_o_rpc.Open();
-		for (uint8_t i = 0; i < sizeof(ul_o_rpc.Data()); i++)
+		if (ul_o_rpc.Data()[0] != 0) break;
+		ul_o_createview.Open();
+		for (uint8_t i = 0; i < 255; i++)
 		{
-			
+			uint8_t id = ul_o_createview.Data()[i];
+			if (id != 0) {
+				views.push_back(IView(id, renderer));
+			}
 		}
+
 	}
 	std::cout << "closing..." << std::endl;
 	renderer = nullptr;

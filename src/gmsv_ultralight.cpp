@@ -114,10 +114,10 @@ LUA_FUNCTION(StartRendererThread) {
 LUA_FUNCTION(CreateView) {
 	uint32_t width = LUA->GetNumber(1);
 	uint32_t height = LUA->GetNumber(2);
+	viewcount++;
 	IView view(viewcount, width, height);
 	LUA->PushNumber(viewcount);
 	ul_o_createview->Data()[viewcount] = viewcount;
-	viewcount++;
 	return 1;
 }
 LUA_FUNCTION(SetURL) {
@@ -217,14 +217,14 @@ GMOD_MODULE_OPEN()
 	ul_o_rpc = new Shm{ "ul_o_rpc", 128 };
 	ul_o_rpc->Create();
 	ul_i_rpc = new Shm{ "ul_i_rpc", 128 };
-	ul_o_createview = new Shm{ "ul_o_render", 255 };
+	ul_o_createview = new Shm{ "ul_o_createview", 255 };
 	ul_o_createview->Create();
+
 	LUA->GetField(-1, "SERVER");
 	if (LUA->GetBool(-1)) {
 		Msg("c++: SERVER\n");
 	}
 	LUA->Pop();
-
 	LUA->GetField(-1, "CLIENT");
 	if (LUA->GetBool(-1)) {
 		Msg("c++: CLIENT\n");
