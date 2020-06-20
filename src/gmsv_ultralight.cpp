@@ -23,7 +23,7 @@ void* getFunction(std::string library, const char* funcName) {
 	if (dll == nullptr) {
 		dll = LoadLibrary(library.c_str());
 	}
-	return (void*)GetProcAddress(dll, funcName);
+	return GetProcAddress(dll, funcName);
 #elif __linux__ or __APPLE__
 #ifdef __APPLE__
 	const char* postfix = ".dylib";
