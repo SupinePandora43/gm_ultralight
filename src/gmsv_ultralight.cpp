@@ -9,6 +9,9 @@
 #endif
 #include "shoom/shm.h"
 
+#define FSLOG_PREFIX "gm: "
+#include "log/fslog.h"
+
 using namespace GarrysMod::Lua;
 
 Shm* ul_o_rpc;
@@ -61,18 +64,25 @@ public:
 	uint32_t height = 0;
 	uint8_t sync = 111;
 	IView(uint8_t id, uint32_t iwidth, uint32_t iheight) {
+		LOG("IView()");
 		width = iwidth;
+		LOG("SHMwidth");
 		SHMwidth = new Shm{ std::string("ul_o_width_").append(std::to_string(id)), 64 };
 		SHMwidth->Create();
 		memcpy(SHMwidth->Data(), std::to_string(iwidth).c_str(), std::to_string(iwidth).length());
 		height = iheight;
+		LOG("SHMheight");
 		SHMheight = new Shm{ std::string("ul_o_height_").append(std::to_string(id)), 64 };
 		SHMheight->Create();
 		memcpy(SHMheight->Data(), std::to_string(iheight).c_str(), std::to_string(iheight).length());
+		LOG("SHMurl");
 		SHMurl = new Shm{ std::string("ul_o_url_").append(std::to_string(id)), URLLEN };
 		SHMurl->Create();
+		LOG("image");
 		image = new Shm{ std::string("ul_i_image_").append(std::to_string(id)), 1 + (iwidth * iheight * 4) };
+		LOG("SHMisloaded");
 		SHMisloaded = new Shm{ std::string("ul_i_isloaded_").append(std::to_string(id)), 16 };
+		LOG("SHMsync");
 		SHMsync = new Shm{ std::string("ul_i_sync_").append(std::to_string(id)), 16 };
 	}
 	bool isSynced() {
@@ -123,30 +133,38 @@ typedef void (*MsgP)(const char*, ...);
 MsgP Msg;
 #endif
 
-#define FSLOG_PREFIX "gm: "
-#include "log/fslog.h"
-
 void rendererThread() {
 	std::system("ultralight_renderer.exe");
 }
 LUA_FUNCTION(Start) {
-	bool force = LUA->GetBool(1);
-	if (renderer != nullptr && !force) {
-		Msg("c++: already started\n");
-	}
-	else {
-		renderer = new std::thread(rendererThread);
-	}
+	//bool force = LUA->GetBool(1);
+	//if (renderer != nullptr && !force) {
+	//	Msg("c++: already started\n");
+	//}
+	//else {
+	renderer = new std::thread(rendererThread);
+	//}
 	return 0;
 }
 LUA_FUNCTION(CreateView) {
+	LOG("getting numbers");
 	uint32_t width = LUA->GetNumber(1);
 	uint32_t height = LUA->GetNumber(2);
-	IView view(viewcount, width, height);
-	LUA->PushNumber(viewcount);
-	ul_o_createview->Data()[viewcount] = viewcount;
-	viewcount++;
-	return 1;
+	if (ul_o_createview->Data() != nullptr) {
+		LOG("creating view");
+		IView view(viewcount, width, height);
+		LOG("returning id of view");
+		LUA->PushNumber(viewcount);
+		LOG("setting ul_o_createview->Data()");
+		ul_o_createview->Data()[viewcount] = 1;
+		LOG("viewcount++");
+		viewcount++;
+		return 1; // crashes here
+	}
+	LOG("ul_o_createview->Data() == nullptr");
+	Msg("c++: ul_o_createview->Data() == nullptr");
+	LUA->PushNil();
+	return 0;
 }
 LUA_FUNCTION(SetURL) {
 	uint8_t id = LUA->GetNumber(1);
@@ -250,8 +268,6 @@ GMOD_MODULE_OPEN()
 
 	ul_o_rpc = new Shm{ "ul_o_rpc", 128 };
 	ul_o_rpc->Create();
-	ul_o_rpc->Data()[0] = 0;
-	ul_o_rpc->Data()[1] = 0;
 	ul_i_rpc = new Shm{ "ul_i_rpc", 128 };
 
 	ul_o_createview = new Shm{ "ul_o_createview", 200 };
