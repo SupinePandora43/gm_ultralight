@@ -6,7 +6,7 @@ on:
     branches: [ master ]
 jobs:
   build:
-    name: ${{ matrix.os }}-${{ matrix.architecture }}-${{ matrix.link }}-${{ matrix.buildtype }}
+    name: ${{ matrix.os }}-${{ matrix.link }}-${{ matrix.buildtype }}
     runs-on: ${{ matrix.os }}-latest
     strategy:
       fail-fast: false
@@ -14,7 +14,6 @@ jobs:
         name: [windows, linux, macosx]
         buildtype: [Release, Debug]
         link: [compatibility, performance]
-        architecture: [x32, x64]
         include:
           - name: windows
             os: windows
@@ -70,21 +69,8 @@ jobs:
       if: "contains(matrix.link, 'performance')"
     - run: "msbuild.exe ${{ github.workspace }}/projects/windows/vs2019/ultralight.sln -p:Configuration=${{ matrix.buildtype }} -p:Platform=x64"
       if: "contains(matrix.name, 'windows')&&contains(matrix.link, 'performance')"
-    - if: "contains(matrix.architecture, 'x32')"
-      run: |
-        set X32BIT=1
-        set CXXFLAGS=\"-m32\"
-    - name: 'CMake x32'
-      uses: lukka/run-cmake@v2
-      if: "contains(matrix.link, 'compatibility')&&contains(matrix.architecture, 'x32')"
-      with:
-        cmakeListsOrSettingsJson: ${{ matrix.cmake }}
-        useVcpkgToolchainFile: true
-        cmakeBuildType: ${{ matrix.buildtype }}
-        buildDirectory: '${{ github.workspace }}/out'
-        #cmakeAppendedArgs: -DCMAKE_CXX_FLAGS=\"-m32\"
     - name: Upload artifacts
       uses: actions/upload-artifact@v2
       with:
-        name: ${{ matrix.os }}-${{ matrix.architecture }}-${{ matrix.link }}-${{ matrix.buildtype }}
+        name: ${{ matrix.os }}-${{ matrix.link }}-${{ matrix.buildtype }}
         path: out/**/*
