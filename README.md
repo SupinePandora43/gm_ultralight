@@ -19,7 +19,20 @@ create fork, edit `.github/workflows/ccpp.yml`, if linux/osx build work, make PR
 @GlebChili я надеюсь что ты поймешь написанный мною код
 
 это то как оно задумывалось в действии
-
+```
+GarrysMod
+|- hl2.exe
+|- ultralight_renderer.exe
+|- AppCore.dll
+|- UltralightCore.dll
+|- Ultralight.dll
+|- WebCore.dll
+|-garrysmod
+  |-lua
+    |-bin
+	  |-gmcl_ultralight_win64.dll
+```
+// наверное придется переместить `ultralight_renderer` в lua/bin, чтобы Lua (file.Read) мог проверить хеш (SHA256)
 ```lua
 require("ultralight")
 ul_Start() -- запустить ultralight_renderer.exe
