@@ -5,6 +5,7 @@
 #include <iostream> // std::cout
 #include <cstring>  // memcpy
 #include <vector>   // std::vector
+#include <iostream>
 #include "shoom/shm.h"
 
 using namespace ultralight;
@@ -63,6 +64,8 @@ public:
 			view->LoadURL(url);
 		}
 		if (loaded && view->is_bitmap_dirty()) {
+			view->bitmap()->WritePNG((std::to_string(1 + rand() % 100) + "lolax.png").c_str());
+			std::cout << "image changed, writing to memory" << std::endl;
 			memcpy(image->Data(), view->bitmap()->LockPixels(), width * height * 4);
 			view->bitmap()->UnlockPixels();
 			SHMisloaded->Data()[0] = 1;
@@ -79,6 +82,7 @@ public:
 		delete image;
 	}
 	void OnFinishLoading(View* caller) {
+		std::cout << "loaded" << std::endl;
 		loaded = true;
 	}
 };
@@ -99,28 +103,30 @@ int main() {
 	while (true) {
 		std::cout << "this_thread::sleep_for" << std::endl;
 		std::this_thread::sleep_for(std::chrono::milliseconds(1000));
-		std::cout << "cout" << std::endl;
-		std::cout << "opening rpc" << std::endl;
 		ul_o_rpc.Open();
 		if (ul_o_rpc.Data() == nullptr) continue;
 		if (ul_o_rpc.Data()[0] != 0) { std::cout << "ul_o_rpc.Data()[0]!=0" << std::endl; break; }
 		ul_o_createview.Open();
+		std::cout << views.size() << std::endl;
 		if (ul_o_createview.Data() != nullptr) {
 			for (uint8_t i = 0; i < 200; i++) // sizeof(ul_o_createview.Data()) / sizeof(uint8_t)
 			{
 				uint8_t id = ul_o_createview.Data()[i];
 				if (id == 1 && i > views.size()) {
+					std::cout << "creating view" << std::endl;
 					IView* view = new IView(id);
 					views.push_back(view);
+					std::cout << views.size() << std::endl;
 				}
 			}
 		}
-		for (uint32_t i = 0;i < 1000;i++) {
+		for (uint32_t i = 0;i < 1000000;i++) {
 			renderer->Update();
 		}
 		renderer->Render();
 		for (size_t i = 0; i < views.size(); i++)
 		{
+			std::cout << "thonk" << std::endl;
 			views.at(i)->thonk();
 		}
 	}

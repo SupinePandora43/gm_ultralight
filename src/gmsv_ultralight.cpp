@@ -97,11 +97,8 @@ public:
 		memcpy(SHMurl->Data(), url, std::string(url).length());
 	}
 	bool IsLoaded() {
-		if (isSynced()) {
-			SHMisloaded->Open();
-			return SHMisloaded->Data() != nullptr ? SHMisloaded->Data()[0] : false;
-		}
-		else return false;
+		SHMisloaded->Open();
+		return SHMisloaded->Data() != nullptr ? SHMisloaded->Data()[0] : false;
 	}
 	bool IsReady() {
 		if (isSynced()) {
@@ -174,34 +171,25 @@ LUA_FUNCTION(CreateView) {
 LUA_FUNCTION(SetURL) {
 	uint8_t id = LUA->GetNumber(1);
 	char* url = (char*)LUA->GetString(2);
-	if (id < views.size()) {
-		views.at(id)->SetURL(url);
-	}
-	else {
-		Msg("c++: not exists\n");
-	}
+	views.at(id)->SetURL(url);
 	return 0;
 }
 // view->is_bitmap_dirty()
 LUA_FUNCTION(IsReady) {
 	uint8_t id = LUA->GetNumber(1);
-	if (id < views.size()) {
-		LUA->PushBool(views.at(id)->IsReady());
-		return 1;
-	}
-	return 0;
+	LUA->PushBool(views.at(id)->IsReady());
+	return 1;
 }
 // OnFinishLoading
 LUA_FUNCTION(IsLoaded) {
 	uint8_t id = LUA->GetNumber(1);
-	if (id < views.size()) {
-		LUA->PushBool(views.at(id)->IsLoaded());
-		return 1;
-	}
-	else {
-		Msg("c++: not exists\n");
-		return 0;
-	}
+	LUA->PushBool(views.at(id)->IsLoaded());
+	return 1;
+}
+LUA_FUNCTION(viewsSize) {
+	Msg(std::to_string(views.size()).c_str());
+	LUA->PushNumber(views.size());
+	return 1;
 }
 /*LUA_FUNCTION(Render) {
 	ul_o_rpc->Data()[1] = 1;
@@ -218,42 +206,36 @@ LUA_FUNCTION(RenderView) {
 	LUA->PushSpecial(GarrysMod::Lua::SPECIAL_GLOB);
 	LUA->GetField(-1, "surface");
 #endif
-	if (id < views.size()) {
-		uint32_t i = 0;
-		uint8_t* address = views.at(id)->Get();
-		for (uint32_t y = 0; y < views.at(id)->height; y++)
+	uint32_t i = 0;
+	uint8_t* address = views.at(id)->Get();
+	for (uint32_t y = 0; y < views.at(id)->height; y++)
+	{
+		for (uint32_t x = 0; x < views.at(id)->width; x++)
 		{
-			for (uint32_t x = 0; x < views.at(id)->width; x++)
-			{
 #ifdef PERFORMANCE
-				surface->DrawSetColor(address[0], address[1], address[2], address[3]);
-				surface->DrawFilledRect(x, y, 1, 1);
+			surface->DrawSetColor(address[0], address[1], address[2], address[3]);
+			surface->DrawFilledRect(x, y, 1, 1);
 #else
-				LUA->GetField(-1, "SetDrawColor");
-				LUA->PushNumber(address[i]); //     R
-				LUA->PushNumber(address[i + 1]); // G
-				LUA->PushNumber(address[i + 2]); // B
-				LUA->PushNumber(address[i + 3]); // A
-				LUA->Call(4, 0);
-				LUA->GetField(-1, "DrawRect");
-				LUA->PushNumber(x);
-				LUA->PushNumber(y);
-				LUA->PushNumber(1);
-				LUA->PushNumber(1);
-				LUA->Call(4, 0);
+			LUA->GetField(-1, "SetDrawColor");
+			LUA->PushNumber(address[i]); //     R
+			LUA->PushNumber(address[i + 1]); // G
+			LUA->PushNumber(address[i + 2]); // B
+			LUA->PushNumber(address[i + 3]); // A
+			LUA->Call(4, 0);
+			LUA->GetField(-1, "DrawRect");
+			LUA->PushNumber(x);
+			LUA->PushNumber(y);
+			LUA->PushNumber(1);
+			LUA->PushNumber(1);
+			LUA->Call(4, 0);
 #endif
-				i = i + 4;
-			}
+			i = i + 4;
 		}
-		address = nullptr;
-		Msg("c++: Render end\n");
-	}
-	else {
-		Msg("c++: id > views.size()");
-		LOG("id > views.size()");
-	}
+		}
+	address = nullptr;
+	Msg("c++: Render end\n");
 	return 0;
-}
+	}
 
 GMOD_MODULE_OPEN()
 {
@@ -295,6 +277,9 @@ GMOD_MODULE_OPEN()
 
 	LUA->PushCFunction(RenderView);
 	LUA->SetField(-2, "ul_RenderView");
+
+	LUA->PushCFunction(viewsSize);
+	LUA->SetField(-2, "ul_size");
 
 	LUA->GetField(-1, "SERVER");
 	if (LUA->GetBool(-1)) {
