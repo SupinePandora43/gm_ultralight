@@ -16,13 +16,14 @@ create fork, edit `.github/workflows/ccpp.yml`, if linux/osx build work, make PR
 [SupinePandora43](https://github.com/SupinePandora43) - offline
 [GlebChili](https://github.com/GlebChili) - online
 
-@GlebChili я надеюсь ты сможешь разобраться в коде который я написал
-это так как оно задумывалось:
-айайайа
+@GlebChili СЏ РЅР°РґРµСЋСЃСЊ С‡С‚Рѕ С‚С‹ РїРѕР№РјРµС€СЊ РЅР°РїРёСЃР°РЅРЅС‹Р№ РјРЅРѕСЋ РєРѕРґ
+
+СЌС‚Рѕ С‚Рѕ РєР°Рє РѕРЅРѕ Р·Р°РґСѓРјС‹РІР°Р»РѕСЃСЊ РІ РґРµР№СЃС‚РІРёРё
+
 ```lua
 require("ultralight")
-ul_Start() -- Start renderer thread
-if not ulid then -- check is view already exists
+ul_Start() -- Р·Р°РїСѓСЃС‚РёС‚СЊ ultralight_renderer.exe
+if not ulid then -- РїСЂРѕРІРµСЂРёС‚СЊ РµСЃР»Рё СѓР¶Рµ СЃСѓС‰РµСЃС‚РІСѓРµС‚
 	ulid=ul_CreateView(512, 512) -- Create View 512x512
 end
 ul_SetURL(ulid, "https://thispersondoesnotexist.com") -- load url
@@ -33,11 +34,11 @@ local mat = CreateMaterial("ExampleRTwithAlpha_Mat", "UnlitGeneric", {
 	["$translucent"] = "1"
 })
 local function renderu()
-	if not ul_IsLoaded(ulid) then -- подождать пока загрузится
+	if not ul_IsLoaded(ulid) then -- РїСЂРѕРІРµСЂРёС‚СЊ РµСЃР»Рё СЃС‚СЂР°РЅРёС†Р° Р·Р°РіСЂСѓР¶РµРЅР°
 		print("waiting until loads")
 		return
 	end
-	-- нужна какая-то имплементация view->is_bitmap_dirty()
+	-- РЅРµРѕР±С…РѕРґРёРјРѕ СЂРµР°Р»РёР·РѕРІР°С‚СЊ Р°РЅР°Р»РѕРі (РїРѕС„РёРєСЃРёС‚СЊ СЂР°Р±РѕС‚Сѓ SHMsync, РїРµСЂРµРёРјРµРЅРѕРІР°С‚СЊ РІ SHMdirty) view->is_bitmap_dirty()
 	render.PushRenderTarget(textureRT)
 	cam.Start2D()
 	render.Clear(0, 0, 0, 0)
@@ -45,7 +46,7 @@ local function renderu()
 	cam.End2D()
 	render.PopRenderTarget()
 end
--- перерисовывать картинку каждые 2 секунды
+-- РѕР±РЅРѕРІР»СЏС‚СЊ РєР°СЂС‚РёРЅРєСѓ СЂР°Р· 2 СЃРµРєСѓРЅРґС‹
 timer.Create("ul_updater", 2, 0, function()
 	renderu()
 end)
