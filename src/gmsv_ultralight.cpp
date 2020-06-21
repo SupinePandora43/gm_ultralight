@@ -124,7 +124,7 @@ public:
 		delete SHMisloaded;
 	}
 };
-std::vector<IView> views;
+std::vector<IView*> views;
 uint8_t viewcount = 0;
 
 #ifdef PERFORMANCE
@@ -160,6 +160,8 @@ LUA_FUNCTION(CreateView) {
 		ul_o_createview->Data()[viewcount] = 1;
 		LOG("viewcount++");
 		viewcount++;
+		LOG("push_back");
+		views.push_back(view);
 	}
 	else {
 		LOG("ul_o_createview->Data() == nullptr");
@@ -173,7 +175,7 @@ LUA_FUNCTION(SetURL) {
 	uint8_t id = LUA->GetNumber(1);
 	char* url = (char*)LUA->GetString(2);
 	if (id < views.size()) {
-		views.at(id).SetURL(url);
+		views.at(id)->SetURL(url);
 	}
 	else {
 		Msg("c++: not exists\n");
@@ -184,7 +186,7 @@ LUA_FUNCTION(SetURL) {
 LUA_FUNCTION(IsReady) {
 	uint8_t id = LUA->GetNumber(1);
 	if (id < views.size()) {
-		LUA->PushBool(views.at(id).IsReady());
+		LUA->PushBool(views.at(id)->IsReady());
 		return 1;
 	}
 	return 0;
@@ -193,7 +195,7 @@ LUA_FUNCTION(IsReady) {
 LUA_FUNCTION(IsLoaded) {
 	uint8_t id = LUA->GetNumber(1);
 	if (id < views.size()) {
-		LUA->PushBool(views.at(id).IsLoaded());
+		LUA->PushBool(views.at(id)->IsLoaded());
 		return 1;
 	}
 	else {
@@ -218,10 +220,10 @@ LUA_FUNCTION(RenderView) {
 #endif
 	if (id < views.size()) {
 		uint32_t i = 0;
-		uint8_t* address = views.at(id).Get();
-		for (uint32_t y = 0; y < views.at(id).height; y++)
+		uint8_t* address = views.at(id)->Get();
+		for (uint32_t y = 0; y < views.at(id)->height; y++)
 		{
-			for (uint32_t x = 0; x < views.at(id).width; x++)
+			for (uint32_t x = 0; x < views.at(id)->width; x++)
 			{
 #ifdef PERFORMANCE
 				surface->DrawSetColor(address[0], address[1], address[2], address[3]);

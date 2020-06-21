@@ -2,7 +2,7 @@
 #include <iostream>
 #include <thread>
 #include <cstring> // memcpy
-
+#include <vector>
 
 #include "shoom/shm.h"
 
@@ -60,6 +60,7 @@ public:
 		delete SHMisloaded;
 	}
 };
+std::vector<IView*> views;
 int main() {
 	LOG("c++: Starting IPC");
 
@@ -67,9 +68,10 @@ int main() {
 	ul_o_rpc.Create();
 	Shm ul_o_createview{ "ul_o_createview", 255 };
 	ul_o_createview.Create();
-	IView view(1, 2048, 2048);
-	view.SetURL("https://github.com");
+	IView* view= new IView(1, 2048, 2048);
+	view->SetURL("https://github.com");
 	ul_o_createview.Data()[1] = 1;
+	views.push_back(view);
 	const char* url = "https://youtube.com";
 
 	//std::memcpy(ul_o_url->Data(), url, std::string(url).length()); // put url
