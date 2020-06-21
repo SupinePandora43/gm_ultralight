@@ -78,6 +78,8 @@ hook.Add( "HUDPaint", "ExampleRTwithAlpha_Render", function()
 	surface.DrawTexturedRect( 50, 50, 512, 512 )
 end)
 ```
+первый созданный view, в моих локальных тестах никогда не был загружен
+(ulid=0)
 
 **`NULL`@`mijyuoon#6666`** - [`vgui::ISurface->DrawSetTextureRGBA`](https://discord.com/channels/565105920414318602/565108080300261398/723218859322114161)
 
