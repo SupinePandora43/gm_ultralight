@@ -26,7 +26,14 @@ ul_Start() -- запустить ultralight_renderer.exe
 if not ulid then -- проверить если уже существует
 	ulid=ul_CreateView(512, 512) -- Create View 512x512
 end
-ul_SetURL(ulid, "https://thispersondoesnotexist.com") -- load url
+-- Задать URL
+-- view->LoadURL()
+-- оно автоматически начнёт загрузку страницы
+-- чтобы картинка не была белой при окончании загрузки
+-- надо вызывать методы
+-- renderer->Update() // много раз, отвечает за загрузку страницы
+-- renderer->Render() // каждый кадр, только если view->is_bitmap_dirty(), отвечает за рендер страницы (иначе всё будет белым)
+ul_SetURL(ulid, "https://thispersondoesnotexist.com")
 hook.Remove("HUDPaint", "ExampleRTwithAlpha_Render")
 local textureRT = GetRenderTarget( "ExampleRTwithAlpha", 512, 512 )
 local mat = CreateMaterial("ExampleRTwithAlpha_Mat", "UnlitGeneric", {
