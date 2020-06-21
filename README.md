@@ -46,7 +46,7 @@ end
 -- Я ВАМ ЗАПРЕЩАЮ renderer-Render() в OnFinishLoading, тк будут рендериться ВСЕ view
 
 -- renderer->Render() // отрисовывает ВСЕ view, лучше использовать только если у какогото view, view->is_bitmap_dirty() = true. отвечает за рендер страницы (иначе всё будет белым)
--- renderer->Update() // считай что это OnThink HTML страницы. // если не будет вызываться, OnFinishLoading НИКОГДА не будет вызван! тк рендерер не загрузит страницу
+-- renderer->Update() // считай что это OnThink HTML страницы. // если не будет вызываться, OnFinishLoading НИКОГДА не будет вызван! тк рендерер не загрузит страницу // этот метод отвечает за загрузку HTML, CSS, JS, и за их обновление
 -- https://docs.ultralig.ht/docs/integrating-with-games#render-loop-integration
 -- ^^^ ОНИ ОБЩИЕ !!! НИКОГДА не вставляй эти методы в view.thonk(), тк это будет лишняя нагрузка, ведь рендерер ОДИН для ВСЕХ!!! - он обеспечивает загрузку / рендер ВСЕХ view помни это.
 ul_SetURL(ulid, "https://thispersondoesnotexist.com")
