@@ -8,6 +8,8 @@
 
 create fork, edit `.github/workflows/ccpp.yml`, if linux/osx build work, make PR.
 
+у меня меньше недели чтобы закончить этот проект
+
 # TODO
 
 * [security](https://github.com/okdshin/PicoSHA2)

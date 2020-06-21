@@ -62,67 +62,60 @@ public:
 	Shm* image;
 	uint32_t width = 0;
 	uint32_t height = 0;
-	uint8_t sync = 111;
-	IView(uint8_t id, uint32_t iwidth, uint32_t iheight) {
-		LOG("IView()");
+	uint8_t sync = 0;
+	IView(uint16_t id, uint32_t iwidth, uint32_t iheight) {
 		width = iwidth;
-		LOG("SHMwidth");
-		SHMwidth = new Shm{ std::string("ul_o_width_").append(std::to_string(id)), 64 };
-		SHMwidth->Create();
-		memcpy(SHMwidth->Data(), std::to_string(iwidth).c_str(), std::to_string(iwidth).length());
 		height = iheight;
-		LOG("SHMheight");
+
+		SHMwidth = new Shm{ std::string("ul_o_width_").append(std::to_string(id)), 64 };
 		SHMheight = new Shm{ std::string("ul_o_height_").append(std::to_string(id)), 64 };
+
+		SHMwidth->Create();
 		SHMheight->Create();
-		memcpy(SHMheight->Data(), std::to_string(iheight).c_str(), std::to_string(iheight).length());
-		LOG("SHMurl");
+
+		memcpy(SHMwidth->Data(), std::to_string(width).c_str(), std::to_string(width).length());
+		memcpy(SHMheight->Data(), std::to_string(height).c_str(), std::to_string(height).length());
+
 		SHMurl = new Shm{ std::string("ul_o_url_").append(std::to_string(id)), URLLEN };
 		SHMurl->Create();
-		LOG("image");
-		image = new Shm{ std::string("ul_i_image_").append(std::to_string(id)), 1 + (iwidth * iheight * 4) };
-		LOG("SHMisloaded");
+
+		image = new Shm{ std::string("ul_i_image_").append(std::to_string(id)), 1 + (width * height * 4) };
+
 		SHMisloaded = new Shm{ std::string("ul_i_isloaded_").append(std::to_string(id)), 16 };
-		LOG("SHMsync");
 		SHMsync = new Shm{ std::string("ul_i_sync_").append(std::to_string(id)), 16 };
 	}
-	bool isSynced() {
+	bool HasNewFrame() {
 		SHMsync->Open();
 		if (SHMsync->Data() != nullptr && SHMsync->Data()[0] != sync) {
 			sync = SHMsync->Data()[0];
 			return true;
 		}
-		else return false;
+		return false;
 	}
-	void SetURL(char* url) {
-		memcpy(SHMurl->Data(), url, std::string(url).length());
+	void SetURL(std::string url) {
+		memcpy(SHMurl->Data(), url.c_str(), url.length());
 	}
 	bool IsLoaded() {
 		SHMisloaded->Open();
 		return SHMisloaded->Data() != nullptr ? SHMisloaded->Data()[0] : false;
 	}
-	bool IsReady() {
-		if (isSynced()) {
-			return true;
-		}
-		return false;
-	}
-	uint8_t* Get() {
+	uint8_t* GetImageResult() {
 		SHMupdate->Data()[0] = 0;
 		image->Open();
 		return image->Data();
 	}
 	~IView() {
-		LOG("~IView");
 		delete SHMwidth;
 		delete SHMheight;
 		delete SHMurl;
-		delete image;
 		delete SHMupdate;
 		delete SHMisloaded;
+		delete SHMsync;
+		delete image;
 	}
 };
 std::vector<IView*> views;
-uint8_t viewcount = 0;
+uint16_t viewcount = 0;
 
 #ifdef PERFORMANCE
 vgui::ISurface* surface;
@@ -174,12 +167,6 @@ LUA_FUNCTION(SetURL) {
 	views.at(id)->SetURL(url);
 	return 0;
 }
-// view->is_bitmap_dirty()
-LUA_FUNCTION(IsReady) {
-	uint8_t id = LUA->GetNumber(1);
-	LUA->PushBool(views.at(id)->IsReady());
-	return 1;
-}
 // OnFinishLoading
 LUA_FUNCTION(IsLoaded) {
 	uint8_t id = LUA->GetNumber(1);
@@ -197,43 +184,50 @@ LUA_FUNCTION(viewsSize) {
 }*/
 LUA_FUNCTION(RenderView) {
 	uint8_t id = LUA->GetNumber(1);
+	// view->is_bitmap_dirty()
+	if (views.at(id)->HasNewFrame()) {
+
 #ifdef PERFORMANCE
-	if (surface == nullptr) {
-		Msg("c++: surface==nullptr");
-		LOG("surface==nullptr");
-	}
-#else
-	LUA->PushSpecial(GarrysMod::Lua::SPECIAL_GLOB);
-	LUA->GetField(-1, "surface");
-#endif
-	uint32_t i = 0;
-	uint8_t* address = views.at(id)->Get();
-	for (uint32_t y = 0; y < views.at(id)->height; y++)
-	{
-		for (uint32_t x = 0; x < views.at(id)->width; x++)
-		{
-#ifdef PERFORMANCE
-			surface->DrawSetColor(address[0], address[1], address[2], address[3]);
-			surface->DrawFilledRect(x, y, 1, 1);
-#else
-			LUA->GetField(-1, "SetDrawColor");
-			LUA->PushNumber(address[i]); //     R
-			LUA->PushNumber(address[i + 1]); // G
-			LUA->PushNumber(address[i + 2]); // B
-			LUA->PushNumber(address[i + 3]); // A
-			LUA->Call(4, 0);
-			LUA->GetField(-1, "DrawRect");
-			LUA->PushNumber(x);
-			LUA->PushNumber(y);
-			LUA->PushNumber(1);
-			LUA->PushNumber(1);
-			LUA->Call(4, 0);
-#endif
-			i = i + 4;
+		if (surface == nullptr) {
+			Msg("c++: surface==nullptr");
+			LOG("surface==nullptr");
 		}
+#else
+		LUA->PushSpecial(GarrysMod::Lua::SPECIAL_GLOB);
+		LUA->GetField(-1, "surface");
+#endif
+		uint32_t i = 0;
+		uint8_t* address = views.at(id)->GetImageResult();
+		for (uint32_t y = 0; y < views.at(id)->height; y++)
+		{
+			for (uint32_t x = 0; x < views.at(id)->width; x++)
+			{
+#ifdef PERFORMANCE
+				surface->DrawSetColor(address[0], address[1], address[2], address[3]);
+				surface->DrawFilledRect(x, y, 1, 1);
+#else
+				LUA->GetField(-1, "SetDrawColor");
+				LUA->PushNumber(address[i]); //     R
+				LUA->PushNumber(address[i + 1]); // G
+				LUA->PushNumber(address[i + 2]); // B
+				LUA->PushNumber(address[i + 3]); // A
+				LUA->Call(4, 0);
+				LUA->GetField(-1, "DrawRect");
+				LUA->PushNumber(x);
+				LUA->PushNumber(y);
+				LUA->PushNumber(1);
+				LUA->PushNumber(1);
+				LUA->Call(4, 0);
+#endif
+				i = i + 4;
+			}
+		}
+#ifndef PERFORMANCE
+		LUA->Pop();
+#endif
+		address = nullptr;
+		Msg("c++: Render end\n");
 	}
-	address = nullptr;
-	Msg("c++: Render end\n");
 	return 0;
 }
 
@@ -268,9 +262,6 @@ GMOD_MODULE_OPEN()
 
 	LUA->PushCFunction(SetURL);
 	LUA->SetField(-2, "ul_SetURL");
-
-	LUA->PushCFunction(IsReady);
-	LUA->SetField(-2, "ul_IsReady");
 
 	LUA->PushCFunction(IsLoaded);
 	LUA->SetField(-2, "ul_IsLoaded");

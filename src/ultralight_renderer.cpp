@@ -27,16 +27,17 @@ public:
 	char* url;
 	RefPtr<View> view;
 	bool loaded = false;
-	uint8_t vid;
+	uint16_t id;
 
-	IView(uint8_t id) {
-		vid = id;
+	IView(uint16_t vid) {
+		id = vid;
 		SHMwidth = new Shm{ std::string("ul_o_width_").append(std::to_string(id)), 64 };
-		SHMwidth->Open();
-		width = std::stoi((char*)SHMwidth->Data());
-
 		SHMheight = new Shm{ std::string("ul_o_height_").append(std::to_string(id)), 64 };
+
+		SHMwidth->Open();
 		SHMheight->Open();
+
+		width = std::stoi((char*)SHMwidth->Data());
 		height = std::stoi((char*)SHMheight->Data());
 
 		SHMurl = new Shm{ std::string("ul_o_url_").append(std::to_string(id)), URLLEN };
@@ -52,24 +53,37 @@ public:
 		SHMsync->Create();
 
 		view = renderer->CreateView(width * 4, height * 4, false); // https://github.com/ultralight-ux/Ultralight/issues/257#issuecomment-636330995
+
 		view->Resize(width, height);
 		view->set_load_listener(this);
 	}
 	void thonk() {
 		SHMurl->Open();
+		// Check url (it is changed ?)
 		if (std::string((char*)SHMurl->Data()) != "" && std::string((char*)SHMurl->Data()) != url) {
 			loaded = false;
 			SHMisloaded->Data()[0] = 0;
 			url = (char*)SHMurl->Data();
 			view->LoadURL(url);
 		}
+		// Send Image
 		if (loaded && view->is_bitmap_dirty()) {
-			view->bitmap()->WritePNG((std::to_string(1 + rand() % 100) + "lolax.png").c_str());
-			std::cout << "image changed, writing to memory" << std::endl;
+			view->bitmap()->WritePNG((
+				std::string("result_") +
+				std::to_string(id) +
+				std::to_string(
+					1 + rand() % 100
+				) +
+				".png"
+				).c_str());
+			std::cout << "image changed, writing to memory: " << id << std::endl;
 			memcpy(image->Data(), view->bitmap()->LockPixels(), width * height * 4);
 			view->bitmap()->UnlockPixels();
 			SHMisloaded->Data()[0] = 1;
-			SHMsync->Data()[0] = SHMsync->Data()[0] > 100 ? 0 : SHMsync->Data()[0] + 1;
+			if (SHMsync->Data()[0] > 100) {
+				SHMsync->Data()[0] = 0;
+			}
+			SHMsync->Data()[0] = SHMsync->Data()[0] + 1;
 		}
 	}
 	~IView() {
@@ -82,7 +96,7 @@ public:
 		delete image;
 	}
 	void OnFinishLoading(View* caller) {
-		std::cout << "loaded" << std::endl;
+		std::cout << "loaded " << id << std::endl;
 		loaded = true;
 	}
 };
@@ -111,7 +125,7 @@ int main() {
 		if (ul_o_createview.Data() != nullptr) {
 			for (uint8_t i = 0; i < 200; i++) // sizeof(ul_o_createview.Data()) / sizeof(uint8_t)
 			{
-				uint8_t id = ul_o_createview.Data()[i];
+				uint16_t id = ul_o_createview.Data()[i];
 				if (id == 1 && i > views.size()) {
 					std::cout << "creating view" << std::endl;
 					IView* view = new IView(id);
@@ -120,7 +134,7 @@ int main() {
 				}
 			}
 		}
-		for (uint32_t i = 0;i < 1000000;i++) {
+		for (uint32_t i = 0;i < 100000;i++) {
 			renderer->Update();
 		}
 		renderer->Render();
