@@ -30,7 +30,7 @@ GarrysMod
 |-garrysmod
   |-lua
     |-bin
-	  |-gmcl_ultralight_win64.dll
+      |-gmcl_ultralight_win64.dll
 ```
 // наверное придется переместить `ultralight_renderer` в lua/bin, чтобы Lua (file.Read) мог проверить хеш (SHA256)
 ```lua
