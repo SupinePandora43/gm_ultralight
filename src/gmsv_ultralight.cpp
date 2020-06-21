@@ -231,11 +231,11 @@ LUA_FUNCTION(RenderView) {
 #endif
 			i = i + 4;
 		}
-		}
+	}
 	address = nullptr;
 	Msg("c++: Render end\n");
 	return 0;
-	}
+}
 
 GMOD_MODULE_OPEN()
 {
