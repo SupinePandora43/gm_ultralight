@@ -33,6 +33,7 @@ end
 -- надо вызывать методы
 -- renderer->Update() // много раз, отвечает за загрузку страницы
 -- renderer->Render() // каждый кадр, только если view->is_bitmap_dirty(), отвечает за рендер страницы (иначе всё будет белым)
+-- ^^^ ОНИ ОБЩИЕ !!! НИКОГДА не вставляй эти методы в view.thonk(), тк это будет лишняя нагрузка, ведь рендерер ОДИН для ВСЕХ!!! - он обеспечивает загрузку / рендер ВСЕХ для view помни это.
 ul_SetURL(ulid, "https://thispersondoesnotexist.com")
 hook.Remove("HUDPaint", "ExampleRTwithAlpha_Render")
 local textureRT = GetRenderTarget( "ExampleRTwithAlpha", 512, 512 )
