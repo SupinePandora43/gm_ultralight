@@ -42,11 +42,13 @@ end
 -- Задать URL
 -- view->LoadURL()
 -- оно автоматически начнёт загрузку страницы
--- чтобы картинка не была белой при окончании загрузки
--- надо вызывать методы
--- renderer->Update() // много раз, отвечает за загрузку страниц (ВСЕХ view)
+-- при окончании загрузки (OnFinishLoading) картинка будет (view->bitmap()->LockPixels()) белой, тк не была отрендерена (renderer->Render())
+-- Я ВАМ ЗАПРЕЩАЮ renderer-Render() в OnFinishLoading, тк будут рендериться ВСЕ view
+
 -- renderer->Render() // отрисовывает ВСЕ view, лучше использовать только если у какогото view, view->is_bitmap_dirty() = true. отвечает за рендер страницы (иначе всё будет белым)
--- ^^^ ОНИ ОБЩИЕ !!! НИКОГДА не вставляй эти методы в view.thonk(), тк это будет лишняя нагрузка, ведь рендерер ОДИН для ВСЕХ!!! - он обеспечивает загрузку / рендер ВСЕХ для view помни это.
+-- renderer->Update() // считай что это OnThink страницы view.
+-- https://docs.ultralig.ht/docs/integrating-with-games#render-loop-integration
+-- ^^^ ОНИ ОБЩИЕ !!! НИКОГДА не вставляй эти методы в view.thonk(), тк это будет лишняя нагрузка, ведь рендерер ОДИН для ВСЕХ!!! - он обеспечивает загрузку / рендер ВСЕХ view помни это.
 ul_SetURL(ulid, "https://thispersondoesnotexist.com")
 hook.Remove("HUDPaint", "ExampleRTwithAlpha_Render")
 local textureRT = GetRenderTarget( "ExampleRTwithAlpha", 512, 512 )
