@@ -115,6 +115,7 @@ public:
 		return image->Data();
 	}
 	~IView() {
+		LOG("~IView");
 		delete SHMwidth;
 		delete SHMheight;
 		delete SHMurl;
@@ -152,19 +153,21 @@ LUA_FUNCTION(CreateView) {
 	uint32_t height = LUA->GetNumber(2);
 	if (ul_o_createview->Data() != nullptr) {
 		LOG("creating view");
-		IView view(viewcount, width, height);
+		IView* view = new IView(viewcount, width, height);
 		LOG("returning id of view");
-		LUA->PushNumber(viewcount);
+		LUA->PushNumber((double)viewcount);
 		LOG("setting ul_o_createview->Data()");
 		ul_o_createview->Data()[viewcount] = 1;
 		LOG("viewcount++");
 		viewcount++;
-		return 1; // crashes here
 	}
-	LOG("ul_o_createview->Data() == nullptr");
-	Msg("c++: ul_o_createview->Data() == nullptr");
-	LUA->PushNil();
-	return 0;
+	else {
+		LOG("ul_o_createview->Data() == nullptr");
+		Msg("c++: ul_o_createview->Data() == nullptr");
+		LUA->PushNil();
+	}
+	LOG("return 1");
+	return 1;
 }
 LUA_FUNCTION(SetURL) {
 	uint8_t id = LUA->GetNumber(1);
