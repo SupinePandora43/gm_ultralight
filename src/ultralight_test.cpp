@@ -18,37 +18,61 @@ const char* ulpath = "ultralight_renderer.exe";
 void threadStarter() {
 	LOG(std::to_string(std::system(ulpath)).c_str());
 }
+#define URLLEN 512
+
 class IView {
 	Shm* SHMwidth;
 	Shm* SHMheight;
 	Shm* SHMurl;
+	Shm* SHMupdate;
 	Shm* SHMisloaded;
+	Shm* SHMsync;
 public:
 	Shm* image;
 	uint32_t width = 0;
 	uint32_t height = 0;
-	IView(uint8_t id, uint32_t iwidth, uint32_t iheight) {
+	uint8_t sync = 0;
+	IView(uint16_t id, uint32_t iwidth, uint32_t iheight) {
 		width = iwidth;
-		SHMwidth = new Shm{ std::string("ul_o_width_").append(std::to_string(id)), 64 };
-		SHMwidth->Create();
-		memcpy(SHMwidth->Data(), std::to_string(iwidth).c_str(), std::to_string(iwidth).length());
 		height = iheight;
+
+		SHMwidth = new Shm{ std::string("ul_o_width_").append(std::to_string(id)), 64 };
 		SHMheight = new Shm{ std::string("ul_o_height_").append(std::to_string(id)), 64 };
+
+		SHMwidth->Create();
 		SHMheight->Create();
-		memcpy(SHMheight->Data(), std::to_string(iheight).c_str(), std::to_string(iheight).length());
+
+		memcpy(SHMwidth->Data(), std::to_string(width).c_str(), std::to_string(width).length());
+		memcpy(SHMheight->Data(), std::to_string(height).c_str(), std::to_string(height).length());
+
 		SHMurl = new Shm{ std::string("ul_o_url_").append(std::to_string(id)), URLLEN };
 		SHMurl->Create();
-		image = new Shm{ std::string("ul_i_image_").append(std::to_string(id)), 1 + (iwidth * iheight * 4) };
+
+		image = new Shm{ std::string("ul_i_image_").append(std::to_string(id)), 1 + (width * height * 4) };
+
 		SHMisloaded = new Shm{ std::string("ul_i_isloaded_").append(std::to_string(id)), 16 };
+		SHMsync = new Shm{ std::string("ul_i_sync_").append(std::to_string(id)), 16 };
 	}
-	void SetURL(char* url) {
-		memcpy(SHMurl->Data(), url, std::string(url).length());
+	bool HasNewFrame() {
+		SHMsync->Open();
+		if (SHMsync->Data() != nullptr && SHMsync->Data()[0] != sync) {
+			sync = SHMsync->Data()[0];
+			return true;
+		}
+		return false;
+	}
+	void SetURL(std::string url) {
+		for (int i = 0;i < URLLEN;i++) {
+			SHMurl->Data()[i] = 0;
+		}
+		memcpy(SHMurl->Data(), url.c_str(), url.length());
 	}
 	bool IsLoaded() {
 		SHMisloaded->Open();
-		return SHMisloaded->Data()[0];
+		return SHMisloaded->Data() != nullptr ? SHMisloaded->Data()[0] : false;
 	}
-	uint8_t* Get() {
+	uint8_t* GetImageResult() {
+		SHMupdate->Data()[0] = 0;
 		image->Open();
 		return image->Data();
 	}
@@ -56,8 +80,10 @@ public:
 		delete SHMwidth;
 		delete SHMheight;
 		delete SHMurl;
-		delete image;
+		delete SHMupdate;
 		delete SHMisloaded;
+		delete SHMsync;
+		delete image;
 	}
 };
 std::vector<IView*> views;
@@ -68,11 +94,12 @@ int main() {
 	ul_o_rpc.Create();
 	Shm ul_o_createview{ "ul_o_createview", 255 };
 	ul_o_createview.Create();
-	IView* view= new IView(1, 2048, 2048);
+
+	std::cout << "creating view" << std::endl;
+	IView* view = new IView(1, 2048, 2048);
 	view->SetURL("https://github.com");
-	ul_o_createview.Data()[1] = 1;
+	ul_o_createview.Data()[0] = 1;
 	views.push_back(view);
-	const char* url = "https://youtube.com";
 
 	//std::memcpy(ul_o_url->Data(), url, std::string(url).length()); // put url
 
@@ -83,10 +110,14 @@ int main() {
 
 	uint16_t shutdown = 0;
 	while (true) {
-		std::cin >> shutdown;
-		std::cout << shutdown;
-		ul_o_rpc.Data()[0] = shutdown;
-		//if (shutdown != 0) break;
+		std::cout << "IsLoaded: " << views.at(0)->IsLoaded();
+		std::cout << "HasNewFrame: " << views.at(0)->HasNewFrame();
+		std::string url;
+		std::cin >> url;
+		std::cout << url;
+		if (std::string(url) != std::string("")) {
+			views.at(0)->SetURL(url);
+		}
 	}
 	LOG("shutting down, joining thread");
 	//launchyer.detach();

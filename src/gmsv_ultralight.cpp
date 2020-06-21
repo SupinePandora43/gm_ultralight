@@ -93,6 +93,9 @@ public:
 		return false;
 	}
 	void SetURL(std::string url) {
+		for (int i = 0;i < URLLEN;i++) {
+			SHMurl->Data()[i] = 0;
+		}
 		memcpy(SHMurl->Data(), url.c_str(), url.length());
 	}
 	bool IsLoaded() {

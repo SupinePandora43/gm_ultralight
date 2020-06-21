@@ -24,7 +24,7 @@ public:
 	Shm* image;
 	uint32_t width = 0;
 	uint32_t height = 0;
-	char* url;
+	std::string url;
 	RefPtr<View> view;
 	bool loaded = false;
 	uint16_t id;
@@ -63,8 +63,8 @@ public:
 		if (std::string((char*)SHMurl->Data()) != "" && std::string((char*)SHMurl->Data()) != url) {
 			loaded = false;
 			SHMisloaded->Data()[0] = 0;
-			url = (char*)SHMurl->Data();
-			view->LoadURL(url);
+			url = std::string((char*)SHMurl->Data());
+			view->LoadURL(url.c_str());
 		}
 		// Send Image
 		if (loaded && view->is_bitmap_dirty()) {
@@ -126,7 +126,7 @@ int main() {
 			for (uint8_t i = 0; i < 200; i++) // sizeof(ul_o_createview.Data()) / sizeof(uint8_t)
 			{
 				uint16_t id = ul_o_createview.Data()[i];
-				if (id == 1 && i > views.size()) {
+				if (id == 1 && i+1 > views.size()) {
 					std::cout << "creating view" << std::endl;
 					IView* view = new IView(id);
 					views.push_back(view);
