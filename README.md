@@ -59,10 +59,11 @@ local function renderu()
 		print("waiting until loads")
 		return
 	end
-	-- необходимо реализовать аналог (пофиксить работу SHMsync, переименовать в SHMdirty) view->is_bitmap_dirty()
+	-- необходимо реализовать аналог view->is_bitmap_dirty(), точнее пофиксить работу SHMsync, переименовать в SHMdirty
 	render.PushRenderTarget(textureRT)
 	cam.Start2D()
 	render.Clear(0, 0, 0, 0)
+	-- отрендерить картинку из буфера
 	ul_RenderView(ulid)
 	cam.End2D()
 	render.PopRenderTarget()
