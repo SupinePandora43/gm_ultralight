@@ -121,7 +121,7 @@ int main() {
 				uint16_t id = ul_o_createview.Data()[i];
 				if (id == 1 && i + 1 > views.size()) {
 					std::cout << "creating view" << std::endl;
-					IView* view = new IView(id);
+					IView* view = new IView(i);
 					views.push_back(view);
 					std::cout << views.size() << std::endl;
 				}

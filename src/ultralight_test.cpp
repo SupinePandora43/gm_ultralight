@@ -96,8 +96,8 @@ int main() {
 	ul_o_createview.Create();
 
 	std::cout << "creating view" << std::endl;
-	IView* view = new IView(1, 2048, 2048);
-	view->SetURL("https://github.com");
+	IView* view = new IView(0, 2048, 2048);
+	//view->SetURL("https://github.com");
 	ul_o_createview.Data()[0] = 1;
 	views.push_back(view);
 

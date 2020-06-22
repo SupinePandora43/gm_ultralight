@@ -59,7 +59,6 @@ class IView {
 	Shm* SHMwidth;
 	Shm* SHMheight;
 	Shm* SHMurl;
-	Shm* SHMupdate;
 	Shm* SHMisloaded;
 	Shm* SHMsync;
 public:
@@ -107,7 +106,6 @@ public:
 		return SHMisloaded->Data() != nullptr ? SHMisloaded->Data()[0] : false;
 	}
 	uint8_t* GetImageResult() {
-		SHMupdate->Data()[0] = 0;
 		image->Open();
 		return image->Data();
 	}
@@ -115,7 +113,6 @@ public:
 		delete SHMwidth;
 		delete SHMheight;
 		delete SHMurl;
-		delete SHMupdate;
 		delete SHMisloaded;
 		delete SHMsync;
 		delete image;
