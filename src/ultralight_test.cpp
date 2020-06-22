@@ -110,11 +110,10 @@ int main() {
 
 	uint16_t shutdown = 0;
 	while (true) {
-		std::cout << "IsLoaded: " << views.at(0)->IsLoaded();
-		std::cout << "HasNewFrame: " << views.at(0)->HasNewFrame();
+		std::cout << "IsLoaded: " << views.at(0)->IsLoaded() <<std::endl;
+		std::cout << "HasNewFrame: " << views.at(0)->HasNewFrame() << std::endl;
 		std::string url;
 		std::cin >> url;
-		std::cout << url;
 		if (std::string(url) != std::string("")) {
 			views.at(0)->SetURL(url);
 		}

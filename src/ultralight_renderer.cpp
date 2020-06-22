@@ -13,7 +13,7 @@ using namespace ultralight;
 #define URLLEN 512
 
 RefPtr<Renderer> renderer;
-
+uint32_t numxd = 0;
 class IView :public LoadListener {
 	Shm* SHMwidth;
 	Shm* SHMheight;
@@ -68,14 +68,6 @@ public:
 		}
 		// Send Image
 		if (loaded && view->is_bitmap_dirty()) {
-			view->bitmap()->WritePNG((
-				std::string("result_") +
-				std::to_string(id) +
-				std::to_string(
-					1 + rand() % 100
-				) +
-				".png"
-				).c_str());
 			std::cout << "image changed, writing to memory: " << id << std::endl;
 			memcpy(image->Data(), view->bitmap()->LockPixels(), width * height * 4);
 			view->bitmap()->UnlockPixels();
@@ -113,10 +105,11 @@ int main() {
 	config.font_family_standard = "Arial";
 	Platform::instance().set_config(config);
 	renderer = Renderer::Create();
+	std::cout << &renderer << std::endl;
 	std::cout << "while" << std::endl;
 	while (true) {
 		std::cout << "this_thread::sleep_for" << std::endl;
-		std::this_thread::sleep_for(std::chrono::milliseconds(1000));
+		std::this_thread::sleep_for(std::chrono::milliseconds(100));
 		ul_o_rpc.Open();
 		if (ul_o_rpc.Data() == nullptr) continue;
 		if (ul_o_rpc.Data()[0] != 0) { std::cout << "ul_o_rpc.Data()[0]!=0" << std::endl; break; }
@@ -126,7 +119,7 @@ int main() {
 			for (uint8_t i = 0; i < 200; i++) // sizeof(ul_o_createview.Data()) / sizeof(uint8_t)
 			{
 				uint16_t id = ul_o_createview.Data()[i];
-				if (id == 1 && i+1 > views.size()) {
+				if (id == 1 && i + 1 > views.size()) {
 					std::cout << "creating view" << std::endl;
 					IView* view = new IView(id);
 					views.push_back(view);

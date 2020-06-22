@@ -1,13 +1,17 @@
-﻿#include "GarrysMod/Lua/Interface.h"
+﻿// PERFORMANCE
+// ^^^^^^^^^^^ mean linking tier1 / premake
+// !PERFORMANCE = not link / cmake
 #include <string>
 #include <thread>
 #include <vector>
 #include <cstring>
+#include "GarrysMod/Lua/Interface.h"
+#include "shoom/shm.h"
+
 #ifdef PERFORMANCE
 #include <interface.h>
 #include <vgui/ISurface.h>
 #endif
-#include "shoom/shm.h"
 
 #define FSLOG_PREFIX "gm: "
 #include "log/fslog.h"
@@ -181,19 +185,16 @@ LUA_FUNCTION(viewsSize) {
 	LUA->PushNumber(views.size());
 	return 1;
 }
-/*LUA_FUNCTION(Render) {
-	ul_o_rpc->Data()[1] = 1;
-	return 0;
-}*/
+
 LUA_FUNCTION(RenderView) {
 	uint8_t id = LUA->GetNumber(1);
 	// view->is_bitmap_dirty()
 	if (views.at(id)->HasNewFrame()) {
-
 #ifdef PERFORMANCE
 		if (surface == nullptr) {
 			Msg("c++: surface==nullptr");
 			LOG("surface==nullptr");
+			return 0;
 		}
 #else
 		LUA->PushSpecial(GarrysMod::Lua::SPECIAL_GLOB);
@@ -201,6 +202,7 @@ LUA_FUNCTION(RenderView) {
 #endif
 		uint32_t i = 0;
 		uint8_t* address = views.at(id)->GetImageResult();
+		if (address == nullptr)return 0;
 		for (uint32_t y = 0; y < views.at(id)->height; y++)
 		{
 			for (uint32_t x = 0; x < views.at(id)->width; x++)
@@ -209,6 +211,7 @@ LUA_FUNCTION(RenderView) {
 				surface->DrawSetColor(address[0], address[1], address[2], address[3]);
 				surface->DrawFilledRect(x, y, 1, 1);
 #else
+				// https://www.youtube.com/watch?v=WDiB4rtp1qw
 				LUA->GetField(-1, "SetDrawColor");
 				LUA->PushNumber(address[i]); //     R
 				LUA->PushNumber(address[i + 1]); // G
