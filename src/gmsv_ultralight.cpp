@@ -247,32 +247,40 @@ LUA_FUNCTION(CreateView) {
 	LOG("return 1");
 	return 1;
 }
+bool nullpointerexception(int id) {
+	if (views.size() <= id || id >= 255) {
+		return true;
+	}
+	Msg("c++: whoops, view not exists :O\n");
+	return false;
+}
 LUA_FUNCTION(SetURL) {
-	uint8_t id = LUA->GetNumber(1);
-	char* url = (char*)LUA->GetString(2);
-	views.at(id)->SetURL(url);
+	int id = LUA->CheckNumber(1);
+	const char* url = LUA->CheckString(2);
+	if (nullpointerexception(id)) views.at(id)->SetURL(url);
 	return 0;
 }
 // OnFinishLoading
 LUA_FUNCTION(IsLoaded) {
-	uint8_t id = LUA->GetNumber(1);
-	LUA->PushBool(views.at(id)->IsLoaded());
+	int id = LUA->CheckNumber(1);
+	LUA->PushBool(nullpointerexception(id) ? views.at(id)->IsLoaded() : false);
 	return 1;
 }
 LUA_FUNCTION(viewsSize) {
-	Msg(std::to_string(views.size()).c_str());
 	LUA->PushNumber(views.size());
 	return 1;
 }
 
 LUA_FUNCTION(DrawAtOnce) {
 	int id = LUA->CheckNumber(1); // View ID
-	views.at(id)->DrawAtOnce(LUA);
+	if (nullpointerexception(id))
+		views.at(id)->DrawAtOnce(LUA);
 	return 0;
 }
 LUA_FUNCTION(DrawLine) {
 	int id = LUA->CheckNumber(1);
-	views.at(id)->DrawLine(LUA);
+	if (nullpointerexception(id))
+		views.at(id)->DrawLine(LUA);
 	return 0;
 }
 GMOD_MODULE_OPEN()

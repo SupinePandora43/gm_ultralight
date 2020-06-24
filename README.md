@@ -33,6 +33,20 @@ GarrysMod
       |-gmcl_ultralight_win64.dll
 ```
 // наверное придется переместить `ultralight_renderer` в lua/bin, чтобы Lua (file.Read) мог проверить хеш (SHA256)
+
+# API
+
+`id` = View id, you can get it from `ul_CreateView`
+
+* `ul_Start()` - start's renderer thread
+* `ul_CreateView(int width, int height) = int` - creates view
+* `ul_SetURL(int id, string url)` - set url
+* `ul_DrawAtOnce(int id)` - draw whole picture to renderer context (`render.PushRenderTarget() + cam.Start2D()`)
+* `ul_DrawLine(int id)` - draw line of picture to renderer context, pretty good at performance ! but need to be called many times, i hope you will call it each frame
+* `ul_IsLoaded(int id) = bool` - is page loaded or not?
+* `ul_size() = int` - return count of views... idk why you should use this
+
+
 # USAGE
 - *static* - renders picture only at once
 ```lua
