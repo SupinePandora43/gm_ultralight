@@ -1,18 +1,21 @@
 ﻿// PERFORMANCE
-// ^^^^^^^^^^^ mean linking tier1 / premake
-// !PERFORMANCE = not link / cmake
+// ^^^^^^^^^^^ = linking tier1 = premake
+// !PERFORMANCE = not link = LUA = cmake
 #include <string>
 #include <thread>
 #include <vector>
 #include <cstring>
 #include "GarrysMod/Lua/Interface.h"
+// shared memory
+// simpliest library i found
 #include "shoom/shm.h"
 #ifdef PERFORMANCE
 #include <interface.h>
 #include <vgui/ISurface.h>
 #include <materialsystem/itexture.h>
 #endif
-
+// My own logger
+// helps when you can't catch errors
 #define FSLOG_PREFIX "gm: "
 #include "log/fslog.h"
 
@@ -46,6 +49,7 @@ void* getFunction(std::string library, const char* funcName) {
 }
 
 #ifdef PERFORMANCE
+// нужно понять как заставить это работать >:C
 IMaterialSystem* imaterialsystem;
 vgui::ISurface* surface;
 #else
@@ -208,14 +212,15 @@ uint16_t viewcount = 0;
 void rendererThread() {
 	std::system("ultralight_renderer.exe");
 }
+// ~force~ useful when thread crashed etc...
 LUA_FUNCTION(Start) {
-	//bool force = LUA->GetBool(1);
-	//if (renderer != nullptr && !force) {
-	//	Msg("c++: already started\n");
-	//}
-	//else {
-	renderer = new std::thread(rendererThread);
-	//}
+	bool force = LUA->GetBool(1);
+	if (renderer != nullptr && !force) {
+		Msg("c++: already started\n");
+	}
+	else {
+		renderer = new std::thread(rendererThread);
+	}
 	return 0;
 }
 LUA_FUNCTION(CreateView) {
@@ -328,7 +333,7 @@ GMOD_MODULE_OPEN()
 	}
 	LUA->Pop();
 	return 0;
-	}
+}
 GMOD_MODULE_CLOSE()
 {
 #ifdef PERFORMANCE

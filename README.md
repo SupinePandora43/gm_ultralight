@@ -14,9 +14,7 @@ create fork, edit `.github/workflows/ccpp.yml`, if linux/osx build work, make PR
 
 * [security](https://github.com/okdshin/PicoSHA2)
 
-# Contributors
-[SupinePandora43](https://github.com/SupinePandora43) - offline
-[GlebChili](https://github.com/GlebChili) - online
+# HOW TO USE
 
 @GlebChili я надеюсь что ты поймешь написанный мною код
 
@@ -35,6 +33,8 @@ GarrysMod
       |-gmcl_ultralight_win64.dll
 ```
 // наверное придется переместить `ultralight_renderer` в lua/bin, чтобы Lua (file.Read) мог проверить хеш (SHA256)
+# USAGE
+- *static* - renders picture only at once
 ```lua
 require("ultralight")
 ul_Start() -- запустить ultralight_renderer.exe
@@ -58,33 +58,75 @@ local mat = CreateMaterial("ExampleRTwithAlpha_Mat", "UnlitGeneric", {
 	['$basetexture'] = textureRT:GetName(),
 	["$translucent"] = "1"
 })
+local rendered = false
 local function renderu()
 	if not ul_IsLoaded(ulid) then -- проверить если страница загружена
 		print("waiting until loads")
 		return
 	end
-	-- необходимо реализовать аналог view->is_bitmap_dirty(), точнее пофиксить работу SHMsync, переименовать в SHMdirty
 	render.PushRenderTarget(textureRT)
 	cam.Start2D()
 	render.Clear(0, 0, 0, 0)
-	-- отрендерить картинку из буфера
+	-- отрендерить картинку
+	-- draw whole picture at once
 	ul_DrawAtOnce(ulid)
 	cam.End2D()
 	render.PopRenderTarget()
+	rendered = true
 end
--- обновлять картинку раз 2 секунды
-timer.Create("ul_updater", 2, 0, function()
-	renderu()
-end)
 hook.Add( "HUDPaint", "ExampleRTwithAlpha_Render", function()
+	if rendered then
+		surface.SetDrawColor( color_white )
+		surface.SetMaterial( mat )
+		surface.DrawTexturedRect( 50, 50, 512, 512 )
+	else
+		renderu()
+	end
+end)
+```
+
+- *dynamic* - renders line by line each frame
+
+```lua
+require("ultralight")
+-- pls don't call ul_Start() more than one time
+ul_Start() -- Start renderer thread
+if not ulid then -- check is view already exists
+	ulid=ul_CreateView(512,512) -- Create View 512x512
+end
+ul_SetURL(ulid, "https://thispersondoesnotexist.com") -- load url
+
+hook.Remove("HUDPaint", "ExampleRTwithAlpha_Render")
+local textureRT = GetRenderTarget( "ExampleRTwithAlpha", 512, 512 )
+local mat = CreateMaterial("ExampleRTwithAlpha_Mat", "UnlitGeneric", {
+	['$basetexture'] = textureRT:GetName(),
+	["$translucent"] = "1"
+})
+local function renderu()
+	if not ul_IsLoaded(ulid) then -- is page loaded ?
+		print("waiting until loads")
+		return
+	end
+	render.PushRenderTarget(textureRT)
+	cam.Start2D()
+	ul_DrawLine(ulid)
+	cam.End2D()
+	render.PopRenderTarget()
+end
+hook.Add( "HUDPaint", "ExampleRTwithAlpha_Render", function()
+	renderu()
 	surface.SetDrawColor( color_white )
 	surface.SetMaterial( mat )
 	surface.DrawTexturedRect( 50, 50, 512, 512 )
 end)
 ```
 
-**`NULL`@`mijyuoon#6666`** - [`vgui::ISurface->DrawSetTextureRGBA`](https://discord.com/channels/565105920414318602/565108080300261398/723218859322114161)
+# Contributors
+[SupinePandora43](https://github.com/SupinePandora43) - offline
 
+[GlebChili](https://github.com/GlebChili) - online
+
+**`NULL`@`mijyuoon#6666`** - [`vgui::ISurface->DrawSetTextureRGBA`](https://discord.com/channels/565105920414318602/565108080300261398/723218859322114161)
 
 **`Eclipse`@`Eclipse#2437`** - [`Sys_LoadInterface("vguimatsurface", "VGUI_Surface030", NULL, (void**)&surface)`](https://discord.com/channels/565105920414318602/567672652714475530/723205466838270024)
 
