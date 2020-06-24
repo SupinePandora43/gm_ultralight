@@ -7,7 +7,6 @@
 #include <cstring>
 #include "GarrysMod/Lua/Interface.h"
 #include "shoom/shm.h"
-#include "drawing/drawutls.h"
 #ifdef PERFORMANCE
 #include <interface.h>
 #include <vgui/ISurface.h>
