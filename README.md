@@ -68,7 +68,7 @@ local function renderu()
 	cam.Start2D()
 	render.Clear(0, 0, 0, 0)
 	-- отрендерить картинку из буфера
-	ul_RenderView(ulid)
+	ul_DrawAtOnce(ulid)
 	cam.End2D()
 	render.PopRenderTarget()
 end
@@ -82,8 +82,6 @@ hook.Add( "HUDPaint", "ExampleRTwithAlpha_Render", function()
 	surface.DrawTexturedRect( 50, 50, 512, 512 )
 end)
 ```
-первый созданный view, в моих локальных тестах никогда не был загружен
-(ulid=0)
 
 **`NULL`@`mijyuoon#6666`** - [`vgui::ISurface->DrawSetTextureRGBA`](https://discord.com/channels/565105920414318602/565108080300261398/723218859322114161)
 
