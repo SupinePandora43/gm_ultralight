@@ -136,9 +136,9 @@ end)
 ```
 
 # Contributors
-[SupinePandora43](https://github.com/SupinePandora43) - offline
+[SupinePandora43](https://github.com/SupinePandora43)
 
-[GlebChili](https://github.com/GlebChili) - online
+[GlebChili](https://github.com/GlebChili)
 
 **`NULL`@`mijyuoon#6666`** - [`vgui::ISurface->DrawSetTextureRGBA`](https://discord.com/channels/565105920414318602/565108080300261398/723218859322114161)
 
