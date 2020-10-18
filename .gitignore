@@ -1,8 +1,6 @@
 include
 /.vs
 /out
-/bin
-/lib
 **/cookies.dat
 /projects
 /premake5.exe

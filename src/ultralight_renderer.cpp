@@ -1,4 +1,5 @@
 #include <Ultralight/Ultralight.h>
+#include <AppCore/Platform.h>
 #include <chrono>   // std::chrono::milliseconds
 #include <thread>   // std::this_thread::sleep_for
 #include <string>   // std::string
@@ -41,7 +42,7 @@ public:
 		height = std::stoi((char*)SHMheight->Data());
 
 		SHMurl = new Shm{ std::string("ul_o_url_").append(std::to_string(id)), URLLEN };
-		url = "placeholder";
+		//url = "";
 
 		image = new Shm{ std::string("ul_i_image_").append(std::to_string(id)), 1 + (width * height * 4) };
 		image->Create();
@@ -52,25 +53,31 @@ public:
 		SHMsync = new Shm{ std::string("ul_i_sync_").append(std::to_string(id)), 16 };
 		SHMsync->Create();
 
-		view = renderer->CreateView(width * 4, height * 4, false); // https://github.com/ultralight-ux/Ultralight/issues/257#issuecomment-636330995
+		view = renderer->CreateView(width, height, false, nullptr); // https://github.com/ultralight-ux/Ultralight/issues/257#issuecomment-636330995
 
-		view->Resize(width, height);
+		//view->Resize(width, height);
 		view->set_load_listener(this);
 	}
 	void thonk() {
 		SHMurl->Open();
 		// Check url (it is changed ?)
 		if (std::string((char*)SHMurl->Data()) != "" && std::string((char*)SHMurl->Data()) != url) {
+			std::cout << "url changed, realoading" << std::endl;
 			loaded = false;
 			SHMisloaded->Data()[0] = 0;
 			url = std::string((char*)SHMurl->Data());
 			view->LoadURL(url.c_str());
 		}
 		// Send Image
-		if (loaded && view->is_bitmap_dirty()) {
+		if (loaded && !view->surface()->dirty_bounds().IsEmpty()) {
 			std::cout << "image changed, writing to memory: " << id << std::endl;
-			memcpy(image->Data(), view->bitmap()->LockPixels(), width * height * 4);
-			view->bitmap()->UnlockPixels();
+			Surface* surface = view->surface();
+			BitmapSurface* bitmap_surface = (BitmapSurface*)surface;
+			RefPtr<Bitmap> bitmap = bitmap_surface->bitmap();
+			uint8_t* data = (uint8_t*)bitmap->LockPixels();
+			memcpy(image->Data(), data, width * height * 4);
+			bitmap->UnlockPixels();
+			bitmap->WritePNG("result.png");
 			SHMisloaded->Data()[0] = 1;
 			if (SHMsync->Data()[0] > 100) {
 				SHMsync->Data()[0] = 0;
@@ -87,9 +94,29 @@ public:
 		delete SHMsync;
 		delete image;
 	}
+	virtual void OnFinishLoading(ultralight::View* caller,
+		uint64_t frame_id, bool is_main_frame, const String& url) override {
+		///
+		/// Our page is done when the main frame finishes loading.
+		///
+		if (is_main_frame) {
+			std::cout << "Our page has loaded!" << std::endl;
+			loaded = true;
+		}
+	}
 	void OnFinishLoading(View* caller) {
 		std::cout << "loaded " << id << std::endl;
 		loaded = true;
+	}
+};
+
+class mylogger: public Logger {
+public:
+	mylogger() {
+
+	}
+	virtual void LogMessage(LogLevel log_level, const String16& message) override {
+		std::cout << String(message).utf8().data() << std::endl << std::endl;
 	}
 };
 
@@ -101,11 +128,15 @@ int main() {
 	Shm ul_o_createview{ "ul_o_createview", 200 };
 	ul_i_rpc.Create();
 	Config config;
-	config.device_scale_hint = 1.0;
-	config.font_family_standard = "Arial";
+	config.resource_path = "./resources/";
+	config.use_gpu_renderer = false;
+	config.device_scale = 1.0;
 	Platform::instance().set_config(config);
+	// this is required? seems to be...
+	Platform::instance().set_font_loader(GetPlatformFontLoader());
+	Platform::instance().set_file_system(GetPlatformFileSystem("."));
+	Platform::instance().set_logger(new mylogger());
 	renderer = Renderer::Create();
-	std::cout << &renderer << std::endl;
 	std::cout << "while" << std::endl;
 	while (true) {
 		std::cout << "this_thread::sleep_for" << std::endl;
@@ -114,7 +145,6 @@ int main() {
 		if (ul_o_rpc.Data() == nullptr) continue;
 		if (ul_o_rpc.Data()[0] != 0) { std::cout << "ul_o_rpc.Data()[0]!=0" << std::endl; break; }
 		ul_o_createview.Open();
-		std::cout << views.size() << std::endl;
 		if (ul_o_createview.Data() != nullptr) {
 			for (uint8_t i = 0; i < 200; i++) // sizeof(ul_o_createview.Data()) / sizeof(uint8_t)
 			{
@@ -127,7 +157,7 @@ int main() {
 				}
 			}
 		}
-		for (uint32_t i = 0;i < 100000;i++) {
+		for (uint32_t i = 0;i < 10000;i++) {
 			renderer->Update();
 		}
 		renderer->Render();

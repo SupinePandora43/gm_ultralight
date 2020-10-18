@@ -29,7 +29,7 @@ vpaths({
 })
 includedirs({"thirdparty/Ultralight-API"})
 libdirs ({ "libs", "lib" })
-links({"UltralightCore",  "Ultralight", "WebCore"})
+links({"UltralightCore",  "Ultralight", "WebCore", "AppCore"})
 
 project("ultralight_test")
 kind("ConsoleApp")
