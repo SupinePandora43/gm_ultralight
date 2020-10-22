@@ -4,3 +4,4 @@ include
 **/cookies.dat
 /projects
 /premake5.exe
+/obj
