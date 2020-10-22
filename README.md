@@ -1,4 +1,4 @@
-# gm_ultralight ![C/C++ CI](https://github.com/SupinePandora43/gm_ultralight/workflows/C/C++%20CI/badge.svg)
+# gm_ultralight ![.NET Core](https://github.com/SupinePandora43/gm_ultralight/workflows/.NET%20Core/badge.svg)
 
 [Ultralight](https://github.com/ultralight-ux/Ultralight) gmod integration
 
