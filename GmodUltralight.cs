@@ -14,7 +14,7 @@ namespace GmodUltralight
     {
         public string ModuleName => "GmodUltralight";
 
-        public string ModuleVersion => "0.1.0";
+        public string ModuleVersion => "0.1.1";
         Renderer renderer;
         Dictionary<string, View> views;
         CFuncManagedDelegate Ultralight_createView;
@@ -27,21 +27,22 @@ namespace GmodUltralight
             {
                 return NativeLibrary.Load(Path.GetFullPath("./garrysmod/lua/bin/Modules/GmodUltralight/runtimes/win-x64/native/" + name));
             });*/
-            Ultralight.SetLogger(new Logger { LogMessage = (logLevel, msg) => Console.WriteLine($"{logLevel.ToString()}: {msg}") });
+            //Ultralight.SetLogger(new Logger { LogMessage = (logLevel, msg) => Console.WriteLine($"{logLevel.ToString()}: {msg}") });
             Config cfg = new Config();
             AppCore.EnableDefaultLogger("./");
             AppCore.EnablePlatformFileSystem("./");
             AppCore.EnablePlatformFontLoader();
             renderer = new Renderer(cfg);
             views = new Dictionary<string, View>();
+
             Ultralight_createView = (lua_state) =>
             {
                 ILua lua = GmodInterop.GetLuaFromState(lua_state);
                 uint width = (uint)lua.GetNumber(1);
                 uint height = (uint)lua.GetNumber(2);
                 bool transparent = lua.GetBool(3);
-                View view = new View(renderer, width, height, transparent, (Session)null);
-                string viewID = System.Guid.NewGuid().ToString();
+                string viewID = Guid.NewGuid().ToString();
+                View view = new View(renderer, width, height, transparent, renderer.GetDefaultSession());
                 views.Add(viewID, view);
                 lua.PushString(viewID);
                 return 1;
@@ -106,8 +107,9 @@ namespace GmodUltralight
         }
         public void Unload(ILua lua)
         {
-            //views = null;
+            views = null;
             renderer.Dispose();
+            renderer = null;
         }
     }
 }
