@@ -23,13 +23,12 @@ namespace GmodUltralight
         CFuncManagedDelegate UltralightView_IsValid;
         public void Load(ILua lua, bool is_serverside, ModuleAssemblyLoadContext assembly_context)
         {
-            assembly_context.SetCustomNativeLibraryResolver((context, name) =>
+            /*assembly_context.SetCustomNativeLibraryResolver((context, name) =>
             {
                 return NativeLibrary.Load(Path.GetFullPath("./garrysmod/lua/bin/Modules/GmodUltralight/runtimes/win-x64/native/" + name));
-            });
-
+            });*/
+            Ultralight.SetLogger(new Logger { LogMessage = (logLevel, msg) => Console.WriteLine($"{logLevel.ToString()}: {msg}") });
             Config cfg = new Config();
-
             AppCore.EnableDefaultLogger("./");
             AppCore.EnablePlatformFileSystem("./");
             AppCore.EnablePlatformFontLoader();
@@ -48,14 +47,14 @@ namespace GmodUltralight
                 return 1;
             };
             UltralightView_LoadURL = (lua_state) =>
-            {
-                ILua lua = GmodInterop.GetLuaFromState(lua_state);
-                string viewID = lua.GetString(1);
-                View view = views[viewID];
-                string url = lua.GetString(1);
-                view.LoadUrl(url);
-                return 0;
-            };
+                    {
+                        ILua lua = GmodInterop.GetLuaFromState(lua_state);
+                        string viewID = lua.GetString(1);
+                        View view = views[viewID];
+                        string url = lua.GetString(1);
+                        view.LoadUrl(url);
+                        return 0;
+                    };
             UltralightView_UpdateUntilLoads = (lua_state) =>
             {
                 ILua lua = GmodInterop.GetLuaFromState(lua_state);
