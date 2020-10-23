@@ -23,6 +23,11 @@ namespace GmodUltralight
         CFuncManagedDelegate UltralightView_IsValid;
         public void Load(ILua lua, bool is_serverside, ModuleAssemblyLoadContext assembly_context)
         {
+            assembly_context.SetCustomNativeLibraryResolver((context, name) =>
+            {
+                return NativeLibrary.Load(Path.GetFullPath("./garrysmod/lua/bin/Modules/GmodUltralight/runtimes/win-x64/native/" + name));
+            });
+
             Config cfg = new Config();
 
             AppCore.EnableDefaultLogger("./");
