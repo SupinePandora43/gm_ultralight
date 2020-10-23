@@ -17,9 +17,10 @@ namespace gm_ultralight
         public string ModuleVersion => "0.1.0";
         Renderer renderer;
         Dictionary<string, View> views;
+        CFuncManagedDelegate Ultralight_createView;
         CFuncManagedDelegate UltralightView_LoadURL;
         CFuncManagedDelegate UltralightView_UpdateUntilLoads;
-        CFuncManagedDelegate Ultralight_createView;
+        CFuncManagedDelegate UltralightView_IsValid;
         public void Load(ILua lua, bool is_serverside, ModuleAssemblyLoadContext assembly_context)
         {
             Config cfg = new Config();
@@ -66,8 +67,33 @@ namespace gm_ultralight
                     renderer.Update();
                     timeout++;
                 }
+                renderer.Render();
+                Bitmap bitmap = view.GetSurface().GetBitmap();
+                bitmap.WritePng("csresult.png");
                 return 0;
             };
+            UltralightView_IsValid = (lua_state) =>
+            {
+                ILua lua = GmodInterop.GetLuaFromState(lua_state);
+                string viewID = lua.GetString(1);
+                lua.PushBool(views.ContainsKey(viewID));
+                return 1;
+            };
+
+            lua.PushSpecial(SPECIAL_TABLES.SPECIAL_GLOB);
+            lua.PushCFunction(Ultralight_createView);
+            lua.SetField(-2, "Ultralight_createView");
+            lua.Pop(1);
+
+            lua.PushSpecial(SPECIAL_TABLES.SPECIAL_GLOB);
+            lua.PushCFunction(UltralightView_LoadURL);
+            lua.SetField(-2, "UltralightView_LoadURL");
+            lua.Pop(1);
+
+            lua.PushSpecial(SPECIAL_TABLES.SPECIAL_GLOB);
+            lua.PushCFunction(UltralightView_UpdateUntilLoads);
+            lua.SetField(-2, "UltralightView_UpdateUntilLoads");
+            lua.Pop(1);
         }
         public void Unload(ILua lua)
         {
