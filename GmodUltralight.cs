@@ -8,7 +8,7 @@ using ImpromptuNinjas.UltralightSharp.Safe;
 using String = ImpromptuNinjas.UltralightSharp.String;
 using System.Collections.Generic;
 
-namespace gm_ultralight
+namespace GmodUltralight
 {
     public class GmodUltralight : GmodNET.API.IModule
     {
@@ -93,6 +93,11 @@ namespace gm_ultralight
             lua.PushSpecial(SPECIAL_TABLES.SPECIAL_GLOB);
             lua.PushCFunction(UltralightView_UpdateUntilLoads);
             lua.SetField(-2, "UltralightView_UpdateUntilLoads");
+            lua.Pop(1);
+
+            lua.PushSpecial(SPECIAL_TABLES.SPECIAL_GLOB);
+            lua.PushCFunction(UltralightView_IsValid);
+            lua.SetField(-2, "UltralightView_IsValid");
             lua.Pop(1);
         }
         public void Unload(ILua lua)
