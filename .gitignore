@@ -1,5 +1,5 @@
 include
-/.vs
+.vs
 **/cookies.dat
-/obj
-/bin
+obj
+bin
