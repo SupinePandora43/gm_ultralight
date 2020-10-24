@@ -23,6 +23,6 @@ jobs:
     - name: Install dependencies
       run: dotnet restore
     - name: Build
-      run: dotnet build GmodUltralight/GmodUltralight.sln --configuration Release --framework net5.0
+      run: dotnet build --configuration Release --framework net5.0 GmodUltralight/GmodUltralight.sln
     - name: Test
       run: dotnet test --no-restore --verbosity normal
