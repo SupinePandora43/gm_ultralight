@@ -5,7 +5,7 @@ VisualStudioVersion = 16.0.30608.117
 MinimumVisualStudioVersion = 10.0.40219.1
 Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "GmodUltralight", "GmodUltralight.csproj", "{6D9F0300-381E-478C-875D-B54FE75181AF}"
 EndProject
-Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "UltralightSharp", "..\Users\Дом\source\repos\UltralightSharp\UltralightSharp\UltralightSharp.csproj", "{C8800A20-AB51-4D6F-9DAB-AD5F7C6A2ECD}"
+Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "UltralightSharp", ".\UltralightSharp\UltralightSharp\UltralightSharp.csproj", "{C8800A20-AB51-4D6F-9DAB-AD5F7C6A2ECD}"
 EndProject
 Global
 	GlobalSection(SolutionConfigurationPlatforms) = preSolution
