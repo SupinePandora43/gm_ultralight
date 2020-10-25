@@ -38,34 +38,48 @@ namespace GmodUltralight
             Ultralight_createView = (lua_state) =>
             {
                 ILua lua = GmodInterop.GetLuaFromState(lua_state);
+
                 uint width = (uint)lua.GetNumber(1);
                 uint height = (uint)lua.GetNumber(2);
                 bool transparent = lua.GetBool(3);
-                string viewID = Guid.NewGuid().ToString();
-                View view = new View(renderer, width, height, transparent, renderer.GetDefaultSession());
-                views.Add(viewID, view);
-                lua.PushString(viewID);
+                string viewID = "guildsucks";
+                if (!views.ContainsKey(viewID))
+                {
+                    // TODO: transparency
+                    View view = new View(renderer, width, height, false, renderer.GetDefaultSession());
+                    views.Add(viewID, view);
+                    lua.PushString(viewID);
+                }
+                else
+                {
+                    lua.PushString("Sorry lul");
+                }
+
                 return 1;
             };
             UltralightView_LoadURL = (lua_state) =>
                     {
                         ILua lua = GmodInterop.GetLuaFromState(lua_state);
+
                         string viewID = lua.GetString(1);
                         View view = views[viewID];
-                        string url = lua.GetString(1);
+                        string url = lua.GetString(2);
                         view.LoadUrl(url);
+
                         return 0;
                     };
             UltralightView_UpdateUntilLoads = (lua_state) =>
             {
                 ILua lua = GmodInterop.GetLuaFromState(lua_state);
+
                 string viewID = lua.GetString(1);
                 View view = views[viewID];
                 bool loaded = false;
-                view.SetFinishLoadingCallback((data, caller, frameId, isMainFrame, url) =>
+                FinishLoadingCallback finishcallback = (data, caller, frameId, isMainFrame, url) =>
                 {
                     loaded = true;
-                }, default);
+                };
+                view.SetFinishLoadingCallback(finishcallback, default);
                 uint timeout = 0;
                 while (!loaded && timeout < 100000)
                 {
@@ -75,6 +89,7 @@ namespace GmodUltralight
                 renderer.Render();
                 Bitmap bitmap = view.GetSurface().GetBitmap();
                 bitmap.WritePng("csresult.png");
+
                 return 0;
             };
             UltralightView_IsValid = (lua_state) =>
