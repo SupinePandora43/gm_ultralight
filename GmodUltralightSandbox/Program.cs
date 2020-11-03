@@ -28,14 +28,16 @@ namespace GmodUltralightSandbox
             Renderer renderer = new Renderer(cfg);
 
 
-            View view = new View(renderer, 1024, 1024, false, renderer.GetDefaultSession());
+            View view = new View(renderer, 1024, 2048, false, renderer.GetDefaultSession());
             view.LoadUrl("https://github.com");
             bool loaded = false;
             view.SetFinishLoadingCallback((data, caller, frameId, isMainFrame, url) =>
             {
                 loaded = true;
                 renderer.Render();
-                view.GetSurface().GetBitmap().WritePng("test_01.png");
+                view.GetSurface().GetBitmap().SwapRedBlueChannels();
+                view.GetSurface().GetBitmap().WritePng("test_1.png");
+                view.GetSurface().GetBitmap().SwapRedBlueChannels();
             }, default);
             while (!loaded)
             {
@@ -48,6 +50,8 @@ namespace GmodUltralightSandbox
             {
                 while (true)
                 {
+                    renderer.Update();
+                    renderer.Render();
                     ImpromptuNinjas.UltralightSharp.IntRect dirtyBounds = surface.GetDirtyBounds();
                     if (!dirtyBounds.IsEmpty())
                     {
@@ -64,9 +68,9 @@ namespace GmodUltralightSandbox
                                     if (x >= dirtyBounds.Left && x < dirtyBounds.Right)
                                     {
                                         int a = ((byte)pixels[index + 3]);
-                                        int r = ((byte)pixels[index]);
+                                        int r = ((byte)pixels[index + 2]);
                                         int g = ((byte)pixels[index + 1]);
-                                        int b = ((byte)pixels[index + 2]);
+                                        int b = ((byte)pixels[index]);
                                         sBitmap.SetPixel(
                                             x - dirtyBounds.Top,
                                             y - dirtyBounds.Left,
@@ -86,8 +90,8 @@ namespace GmodUltralightSandbox
                         surface.ClearDirtyBounds();
                         i++;
                     }
-                    else
-                        Thread.Sleep(100);
+                    //else
+                    //    Thread.Sleep(100);
                 }
             }
         }
