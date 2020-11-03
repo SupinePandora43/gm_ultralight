@@ -9,10 +9,11 @@ using String = ImpromptuNinjas.UltralightSharp.String;
 using System.Collections.Generic;
 using ImpromptuNinjas.UltralightSharp.Enums;
 using System.Diagnostics;
+using System.Linq;
+using Newtonsoft.Json;
 
 namespace GmodUltralight
 {
-
     public class GmodUltralight : GmodNET.API.IModule
     {
         // GmodDotNet
@@ -25,10 +26,14 @@ namespace GmodUltralight
         Dictionary<string, View> views;
         // LUA
         CFuncManagedDelegate Ultralight_createView;
+        CFuncManagedDelegate Ultralight_Update;
+        CFuncManagedDelegate Ultralight_Render;
+        CFuncManagedDelegate UltralightView_CL_DrawDirty;
+        CFuncManagedDelegate UltralightView_SV_DrawDirty;
         CFuncManagedDelegate UltralightView_LoadURL;
+        CFuncManagedDelegate UltralightView_LoadHTML;
         CFuncManagedDelegate UltralightView_UpdateUntilLoads;
         CFuncManagedDelegate UltralightView_IsValid;
-        CFuncManagedDelegate UltralightView_CL_DrawDirty;
 
         private static void LOG(string msg)
         {
@@ -85,8 +90,7 @@ namespace GmodUltralight
 
                 if (!views.ContainsKey(viewID))
                 {
-                    // TODO: transparency
-                    View view = new View(renderer, width, height, false, renderer.GetDefaultSession());
+                    View view = new View(renderer, width, height, transparent, renderer.GetDefaultSession());
                     views.Add(viewID, view);
                     PrintToConsole(lua, "UL: Created View");
                     lua.PushString(viewID);
@@ -109,6 +113,15 @@ namespace GmodUltralight
 
                         return 0;
                     };
+            UltralightView_LoadHTML = (lua_state) =>
+            {
+                ILua lua = GmodInterop.GetLuaFromState(lua_state);
+                string viewID = lua.GetString(1);
+                View view = views[viewID];
+                string html = lua.GetString(2);
+                view.LoadHtml(html);
+                return 0;
+            };
             UltralightView_UpdateUntilLoads = (lua_state) =>
             {
                 ILua lua = GmodInterop.GetLuaFromState(lua_state);
@@ -193,31 +206,128 @@ namespace GmodUltralight
                     }
                 return 0;
             };
+            UltralightView_SV_DrawDirty = (lua_state) =>
+            {
+                ILua lua = GmodInterop.GetLuaFromState(lua_state);
+                string viewID = lua.GetString(1);
+                View view = views[viewID];
+                Surface surface = view.GetSurface();
+                Bitmap bitmap = surface.GetBitmap();
+                ImpromptuNinjas.UltralightSharp.IntRect bounds = surface.GetDirtyBounds();
+                if (!bounds.IsEmpty())
+                    unsafe
+                    {
+                        lua.PushSpecial(SPECIAL_TABLES.SPECIAL_GLOB);
+                        lua.GetField(-1, "net");
+                        lua.GetField(-1, "Start");
+                        lua.PushString("Ultralight_DrawDirty");
+                        lua.MCall(1, 0);
+                        lua.Pop(1);
+                        // lua.GetField(-1, "WriteString");
+                        byte* pixels = (byte*)bitmap.LockPixels();
 
+                        List<Dictionary<string, byte>> pixelDictionary = new List<Dictionary<string, byte>>();
+
+                        long index = 0;
+                        for (int y = 0; y < bounds.Bottom; y++)
+                        {
+                            for (int x = 0; x < bounds.Right; x++)
+                            {
+                                if (y >= bounds.Top && y < bounds.Bottom)
+                                {
+                                    if (x >= bounds.Left && x < bounds.Right)
+                                    {
+                                        Dictionary<string, byte> pixel = new Dictionary<string, byte>();
+                                        byte a = pixels[index + 3];
+                                        byte r = pixels[index + 2];
+                                        byte g = pixels[index + 1];
+                                        byte b = pixels[index];
+
+                                        pixel["a"] = a;
+                                        pixel["r"] = r;
+                                        pixel["g"] = g;
+                                        pixel["b"] = b;
+
+                                        pixelDictionary.Add(pixel);
+                                    }
+                                }
+                                index += 4;
+                            }
+                            index = y * bitmap.GetRowBytes();
+                        }
+
+                        lua.PushSpecial(SPECIAL_TABLES.SPECIAL_GLOB);
+                        lua.GetField(-1, "util");
+                        lua.GetField(-1, "Compress");
+                        lua.PushString(JsonConvert.SerializeObject(pixelDictionary));
+                        lua.MCall(1, 1);
+
+                        pixelDictionary = null; // TODO: free memory?
+
+                        string compressedString = lua.GetString(-1);
+                        lua.Pop();
+
+                        lua.PushSpecial(SPECIAL_TABLES.SPECIAL_GLOB);
+                        lua.GetField(-1, "net");
+                        lua.GetField(-1, "WriteString"); // DOESN't WORK
+                        lua.PushString(compressedString);
+                        lua.MCall(1, 0);
+
+                        lua.GetField(-1, "Broadcast");
+                        lua.MCall(0, 0);
+                        lua.Pop();
+
+                        pixels = null; // TODO: free memory?
+                        bitmap.UnlockPixels();
+                        surface.ClearDirtyBounds();
+                    }
+                return 0;
+            };
+            Ultralight_Update = (lua_state) =>
+            {
+                ILua lua = GmodInterop.GetLuaFromState(lua_state);
+                renderer.Update();
+                return 0;
+            };
+            Ultralight_Render = (lua_state) =>
+            {
+                ILua lua = GmodInterop.GetLuaFromState(lua_state);
+                renderer.Render();
+                return 0;
+            };
             lua.PushSpecial(SPECIAL_TABLES.SPECIAL_GLOB);
+            lua.CreateTable();
+
             lua.PushCFunction(Ultralight_createView);
-            lua.SetField(-2, "Ultralight_createView");
-            lua.Pop(1);
+            lua.SetField(-2, "CreateView");
 
-            lua.PushSpecial(SPECIAL_TABLES.SPECIAL_GLOB);
+            lua.PushCFunction(Ultralight_Update);
+            lua.SetField(-2, "Update");
+
+            lua.PushCFunction(Ultralight_Render);
+            lua.SetField(-2, "Render");
+
             lua.PushCFunction(UltralightView_LoadURL);
-            lua.SetField(-2, "UltralightView_LoadURL");
-            lua.Pop(1);
+            lua.SetField(-2, "View_LoadURL");
 
-            lua.PushSpecial(SPECIAL_TABLES.SPECIAL_GLOB);
+            lua.PushCFunction(UltralightView_LoadHTML);
+            lua.SetField(-2, "View_LoadHTML");
+
             lua.PushCFunction(UltralightView_UpdateUntilLoads);
-            lua.SetField(-2, "UltralightView_UpdateUntilLoads");
-            lua.Pop(1);
+            lua.SetField(-2, "View_UpdateUntilLoads");
 
-            lua.PushSpecial(SPECIAL_TABLES.SPECIAL_GLOB);
             lua.PushCFunction(UltralightView_IsValid);
-            lua.SetField(-2, "UltralightView_IsValid");
-            lua.Pop(1);
+            lua.SetField(-2, "View_IsValid");
 
-            lua.PushSpecial(SPECIAL_TABLES.SPECIAL_GLOB);
             lua.PushCFunction(UltralightView_CL_DrawDirty);
-            lua.SetField(-2, "UltralightView_CL_DrawDirty");
-            lua.Pop(1);
+            lua.SetField(-2, "View_CL_DrawDirty");
+
+            lua.PushCFunction(UltralightView_SV_DrawDirty);
+            lua.SetField(-2, "View_SV_DrawDirty");
+
+            lua.SetField(-2, "Ultralight");
+
+            lua.Pop();
         }
         public void Unload(ILua lua)
         {

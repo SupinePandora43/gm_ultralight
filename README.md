@@ -7,43 +7,25 @@
 * Crashes on 2nd load - FIX in ultralight 1.3 (IPC)
 * use ISurface - help,help,help,help,help,help,help,help,help,help,help,help,help,help,help,help,help - GmodDotNet 2.0
 
-# HOW TO USE
-**THAT's ONLY MY CODE CONCEPT, what i want to achieve**
-**IT's NOT IMPLEMENTED YET**
+# Api
 
-```lua
-local textureRT = GetRenderTarget( "ExampleRTwithAlpha", 1024, 1024 )
-local mat = CreateMaterial( "ExampleRTwithAlpha_Mat", "UnlitGeneric", {
-  ['$basetexture'] = textureRT:GetName(),
-  ["$translucent"] = "1"
-});
-local view = Ultralight.CreateView(1024,1024,true)
-view.LoadURL("https://github.com")
-local viewLoaded = false
-view.SetLoadingCallback(function()
-  viewLoaded = true
-end)
-while(!viewLoaded) do
-  Ultralight.Update()
-end
-Ultralight.Render()
-local rendered = false
-function renderView()
-  render.PushRenderTarget( textureRT )
-  cam.Start2D()
-  render.Clear(0,0,0,0)
-  view.DrawWhole()
-  cam.End2D()
-  render.PopRenderTarget()
-  rendered = true
-end
-hook.Add( "HUDPaint", "ExampleRTwithAlpha_Render", function()
-  if(!rendered) then renderView() end
-  surface.SetDrawColor(color_white)
-  surface.SetMaterial(mat)
-  surface.DrawTexturedRect(50,50,512,512)
-end)
-```
+## Ultralight
+
+### Render()
+renders all views (required to drawing them)
+### Update()
+updates network, scripts etc, run much as you can!
+### CreateView(width, height, transparent)
+uint width
+uint height
+bool transparent
+
+# Examples
+
+## test.lua
+
+`test.lua`
+
 # Contributors
 [SupinePandora43](https://github.com/SupinePandora43)
 
