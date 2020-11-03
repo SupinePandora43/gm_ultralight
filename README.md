@@ -8,15 +8,42 @@
 * use ISurface - help,help,help,help,help,help,help,help,help,help,help,help,help,help,help,help,help - GmodDotNet 2.0
 
 # HOW TO USE
+**THAT's ONLY MY CODE CONCEPT, what i want to achieve**
+**IT's NOT IMPLEMENTED YET**
 
-###### TODO: userdata - GmodDotNet wait sample...
-
-1. create view with `myview = Ultralight_createView(`width, height, transparent???`)`
-2. load url `UltralightView_LoadURL(`myview, URL`)`
-3. update renderer, until view is loaded `UltralightView_UpdateUntilLoads(`myview`)`
-4. image is saved in `csresult.png` // what??? yep, i work on it OwO
-
-
+```lua
+local textureRT = GetRenderTarget( "ExampleRTwithAlpha", 1024, 1024 )
+local mat = CreateMaterial( "ExampleRTwithAlpha_Mat", "UnlitGeneric", {
+  ['$basetexture'] = textureRT:GetName(),
+  ["$translucent"] = "1"
+});
+local view = Ultralight.CreateView(1024,1024,true)
+view.LoadURL("https://github.com")
+local viewLoaded = false
+view.SetLoadingCallback(function()
+  viewLoaded = true
+end)
+while(!viewLoaded) do
+  Ultralight.Update()
+end
+Ultralight.Render()
+local rendered = false
+function renderView()
+  render.PushRenderTarget( textureRT )
+  cam.Start2D()
+  render.Clear(0,0,0,0)
+  view.DrawWhole()
+  cam.End2D()
+  render.PopRenderTarget()
+  rendered = true
+end
+hook.Add( "HUDPaint", "ExampleRTwithAlpha_Render", function()
+  if(!rendered) then renderView() end
+  surface.SetDrawColor(color_white)
+  surface.SetMaterial(mat)
+  surface.DrawTexturedRect(50,50,512,512)
+end)
+```
 # Contributors
 [SupinePandora43](https://github.com/SupinePandora43)
 
