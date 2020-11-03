@@ -29,7 +29,7 @@ namespace GmodUltralightSandbox
 
 
             View view = new View(renderer, 1024, 2048, false, renderer.GetDefaultSession());
-            view.LoadUrl("https://github.com");
+            view.LoadUrl("https://codepen.io/crasty01/pen/EdXoVN");
             bool loaded = false;
             view.SetFinishLoadingCallback((data, caller, frameId, isMainFrame, url) =>
             {
@@ -38,6 +38,7 @@ namespace GmodUltralightSandbox
                 view.GetSurface().GetBitmap().SwapRedBlueChannels();
                 view.GetSurface().GetBitmap().WritePng("test_1.png");
                 view.GetSurface().GetBitmap().SwapRedBlueChannels();
+                view.GetSurface().ClearDirtyBounds();
             }, default);
             while (!loaded)
             {
@@ -57,9 +58,9 @@ namespace GmodUltralightSandbox
                     {
                         Bitmap bitmap = surface.GetBitmap();
                         byte* pixels = (byte*)bitmap.LockPixels();
-                        System.Drawing.Bitmap sBitmap = new System.Drawing.Bitmap(dirtyBounds.Right - dirtyBounds.Left, dirtyBounds.Bottom - dirtyBounds.Top);
-                        int index = 0;
-                        for (int y = 0; y < dirtyBounds.Bottom; y++)
+                        System.Drawing.Bitmap sBitmap = new System.Drawing.Bitmap(1024, 2048); //dirtyBounds.Right - dirtyBounds.Left, dirtyBounds.Bottom - dirtyBounds.Top
+                        long index = 0;
+                        for (int y = 0; y < dirtyBounds.Bottom; y++) 
                         {
                             for (int x = 0; x < dirtyBounds.Right; x++)
                             {
@@ -72,8 +73,8 @@ namespace GmodUltralightSandbox
                                         int g = ((byte)pixels[index + 1]);
                                         int b = ((byte)pixels[index]);
                                         sBitmap.SetPixel(
-                                            x - dirtyBounds.Top,
-                                            y - dirtyBounds.Left,
+                                            x ,//- dirtyBounds.Left,
+                                            y ,//- dirtyBounds.Top,
                                             System.Drawing.Color.FromArgb(
                                                 a,
                                                 r,
@@ -84,8 +85,11 @@ namespace GmodUltralightSandbox
                                 }
                                 index += 4;
                             }
+                            index = y * bitmap.GetRowBytes();
                         }
                         sBitmap.Save($"test_{i}.bmp");
+                        sBitmap.Dispose();
+                        //pixels = null;
                         bitmap.UnlockPixels();
                         surface.ClearDirtyBounds();
                         i++;
