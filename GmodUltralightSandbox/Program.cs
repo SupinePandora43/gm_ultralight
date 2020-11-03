@@ -59,17 +59,17 @@ namespace GmodUltralightSandbox
                         {
                             for (int x = 0; x < dirtyBounds.Right; x++)
                             {
-                                if (y > dirtyBounds.Top && y < dirtyBounds.Bottom)
+                                if (y >= dirtyBounds.Top && y < dirtyBounds.Bottom)
                                 {
-                                    if (x > dirtyBounds.Left && x < dirtyBounds.Right)
+                                    if (x >= dirtyBounds.Left && x < dirtyBounds.Right)
                                     {
                                         int a = ((byte)pixels[index + 3]);
                                         int r = ((byte)pixels[index]);
                                         int g = ((byte)pixels[index + 1]);
                                         int b = ((byte)pixels[index + 2]);
                                         sBitmap.SetPixel(
-                                            y - dirtyBounds.Top,
-                                            x - dirtyBounds.Left,
+                                            x - dirtyBounds.Top,
+                                            y - dirtyBounds.Left,
                                             System.Drawing.Color.FromArgb(
                                                 a,
                                                 r,
