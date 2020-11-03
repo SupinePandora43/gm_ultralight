@@ -27,7 +27,6 @@ namespace GmodUltralightSandbox
             Ultralight.SetLogger(logger);           // log ul's messages to file
             Renderer renderer = new Renderer(cfg);
 
-
             View view = new View(renderer, 1024, 2048, false, renderer.GetDefaultSession());
             view.LoadUrl("https://codepen.io/crasty01/pen/EdXoVN");
             bool loaded = false;
@@ -60,7 +59,7 @@ namespace GmodUltralightSandbox
                         byte* pixels = (byte*)bitmap.LockPixels();
                         System.Drawing.Bitmap sBitmap = new System.Drawing.Bitmap(1024, 2048); //dirtyBounds.Right - dirtyBounds.Left, dirtyBounds.Bottom - dirtyBounds.Top
                         long index = 0;
-                        for (int y = 0; y < dirtyBounds.Bottom; y++) 
+                        for (int y = 0; y < dirtyBounds.Bottom; y++)
                         {
                             for (int x = 0; x < dirtyBounds.Right; x++)
                             {
@@ -73,8 +72,8 @@ namespace GmodUltralightSandbox
                                         int g = ((byte)pixels[index + 1]);
                                         int b = ((byte)pixels[index]);
                                         sBitmap.SetPixel(
-                                            x ,//- dirtyBounds.Left,
-                                            y ,//- dirtyBounds.Top,
+                                            x,//- dirtyBounds.Left,
+                                            y,//- dirtyBounds.Top,
                                             System.Drawing.Color.FromArgb(
                                                 a,
                                                 r,

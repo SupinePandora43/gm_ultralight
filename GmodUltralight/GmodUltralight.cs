@@ -28,6 +28,7 @@ namespace GmodUltralight
         CFuncManagedDelegate UltralightView_LoadURL;
         CFuncManagedDelegate UltralightView_UpdateUntilLoads;
         CFuncManagedDelegate UltralightView_IsValid;
+        CFuncManagedDelegate UltralightView_CL_DrawDirty;
 
         private static void LOG(string msg)
         {
@@ -128,7 +129,7 @@ namespace GmodUltralight
                 }
                 renderer.Render();
                 Bitmap bitmap = view.GetSurface().GetBitmap();
-                
+
                 bitmap.WritePng("csresult.png");
 
                 return 0;
@@ -139,6 +140,58 @@ namespace GmodUltralight
                 string viewID = lua.GetString(1);
                 lua.PushBool(views.ContainsKey(viewID));
                 return 1;
+            };
+            UltralightView_CL_DrawDirty = (lua_state) =>
+            {
+                ILua lua = GmodInterop.GetLuaFromState(lua_state);
+                string viewID = lua.GetString(1);
+                View view = views[viewID];
+                Surface surface = view.GetSurface();
+                Bitmap bitmap = surface.GetBitmap();
+                ImpromptuNinjas.UltralightSharp.IntRect bounds = surface.GetDirtyBounds();
+                if (!bounds.IsEmpty())
+                    unsafe
+                    {
+                        lua.PushSpecial(SPECIAL_TABLES.SPECIAL_GLOB);
+                        lua.GetField(-1, "surface");
+                        byte* pixels = (byte*)bitmap.LockPixels();
+                        long index = 0;
+                        // TODO: start from bounds.Top
+                        for (int y = 0; y < bounds.Bottom; y++)
+                        {
+                            for (int x = 0; x < bounds.Right; x++)
+                            {
+                                if (y >= bounds.Top && y < bounds.Bottom)
+                                {
+                                    if (x >= bounds.Left && x < bounds.Right)
+                                    {
+                                        int a = ((byte)pixels[index + 3]);
+                                        int r = ((byte)pixels[index + 2]);
+                                        int g = ((byte)pixels[index + 1]);
+                                        int b = ((byte)pixels[index]);
+                                        lua.GetField(-1, "SetDrawColor");
+                                        lua.PushNumber(r);
+                                        lua.PushNumber(g);
+                                        lua.PushNumber(b);
+                                        lua.PushNumber(a);
+                                        lua.MCall(4, 0);
+                                        lua.GetField(-1, "DrawRect");
+                                        lua.PushNumber(x);
+                                        lua.PushNumber(y);
+                                        lua.PushNumber(1);
+                                        lua.PushNumber(1);
+                                        lua.MCall(4, 0);
+                                    }
+                                }
+                                index += 4;
+                            }
+                            index = y * bitmap.GetRowBytes();
+                        }
+                        pixels = null; // TODO: free memory?
+                        bitmap.UnlockPixels();
+                        surface.ClearDirtyBounds();
+                    }
+                return 0;
             };
 
             lua.PushSpecial(SPECIAL_TABLES.SPECIAL_GLOB);
@@ -159,6 +212,11 @@ namespace GmodUltralight
             lua.PushSpecial(SPECIAL_TABLES.SPECIAL_GLOB);
             lua.PushCFunction(UltralightView_IsValid);
             lua.SetField(-2, "UltralightView_IsValid");
+            lua.Pop(1);
+
+            lua.PushSpecial(SPECIAL_TABLES.SPECIAL_GLOB);
+            lua.PushCFunction(UltralightView_CL_DrawDirty);
+            lua.SetField(-2, "UltralightView_CL_DrawDirty");
             lua.Pop(1);
         }
         public void Unload(ILua lua)
