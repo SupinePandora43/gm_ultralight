@@ -26,6 +26,21 @@ bool transparent
 
 `test.lua`
 
+# Covered API
+
+- [x] - done
+- @ - internal use
+- x - almost done
+- [ ] - not done
+
+* [x] `view.EvaluateScript`
+* x `SetFinishLoadingCallback`
+* [x] `view.LoadUrl`
+* [x] `view.LoadHtml`
+
+* @ `surface.GetDirtyBounds`
+* @ `bitmap.LockPixels` in GetPixel
+
 # Contributors
 [SupinePandora43](https://github.com/SupinePandora43)
 
