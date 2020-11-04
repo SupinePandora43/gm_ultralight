@@ -14,7 +14,7 @@ using Newtonsoft.Json;
 
 namespace GmodUltralight
 {
-    public class GmodUltralight : GmodNET.API.IModule
+    public partial class GmodUltralight : GmodNET.API.IModule
     {
         // GmodDotNet
         public string ModuleName => "GmodUltralight";
@@ -29,7 +29,7 @@ namespace GmodUltralight
         CFuncManagedDelegate Ultralight_Update;
         CFuncManagedDelegate Ultralight_Render;
         CFuncManagedDelegate UltralightView_CL_DrawDirty;
-        CFuncManagedDelegate UltralightView_SV_DrawDirty;
+        CFuncManagedDelegate UltralightView_SV_DrawSingle;
         CFuncManagedDelegate UltralightView_LoadURL;
         CFuncManagedDelegate UltralightView_LoadHTML;
         CFuncManagedDelegate UltralightView_UpdateUntilLoads;
@@ -250,7 +250,7 @@ namespace GmodUltralight
                     }
                 return 0;
             };
-            UltralightView_SV_DrawDirty = (lua_state) =>
+            UltralightView_SV_DrawSingle = (lua_state) =>
             {
                 ILua lua = GmodInterop.GetLuaFromState(lua_state);
                 string viewID = lua.GetString(1);
@@ -259,36 +259,44 @@ namespace GmodUltralight
                 Bitmap bitmap = surface.GetBitmap();
                 ImpromptuNinjas.UltralightSharp.IntRect bounds = surface.GetDirtyBounds();
                 if (!bounds.IsEmpty())
-                    unsafe
+                    try
                     {
-                        byte* pixels = (byte*)bitmap.LockPixels();
-                        long index = 0;
-                        for (int y = 0; y < bounds.Bottom; y++)
+                        unsafe
                         {
-                            for (int x = 0; x < bounds.Right; x++)
+                            byte* pixels = (byte*)bitmap.LockPixels();
+                            long index = 0;
+                            for (int y = 0; y < bounds.Bottom; y++)
                             {
-                                if (y >= bounds.Top && y < bounds.Bottom)
+                                for (int x = 0; x < bounds.Right; x++)
                                 {
-                                    if (x >= bounds.Left && x < bounds.Right)
+                                    if (y >= bounds.Top && y < bounds.Bottom)
                                     {
-                                        byte a = pixels[index + 3];
-                                        byte r = pixels[index + 2];
-                                        byte g = pixels[index + 1];
-                                        byte b = pixels[index];
+                                        if (x >= bounds.Left && x < bounds.Right)
+                                        {
+                                            byte a = pixels[index + 3];
+                                            byte r = pixels[index + 2];
+                                            byte g = pixels[index + 1];
+                                            byte b = pixels[index];
 
-                                        SendPixel(lua, a, r, g, b, x, y);
+                                            SendPixel(lua, a, r, g, b, x, y);
+                                        }
                                     }
+                                    index += 4;
                                 }
-                                index += 4;
+                                index = y * bitmap.GetRowBytes();
                             }
-                            index = y * bitmap.GetRowBytes();
+                            pixels = null; // TODO: free memory?
+                            bitmap.UnlockPixels();
+                            surface.ClearDirtyBounds();
                         }
-                        pixels = null; // TODO: free memory?
+                    }
+                    finally
+                    {
                         bitmap.UnlockPixels();
-                        surface.ClearDirtyBounds();
                     }
                 return 0;
             };
+            
             Ultralight_Update = (lua_state) =>
             {
                 ILua lua = GmodInterop.GetLuaFromState(lua_state);
@@ -328,8 +336,11 @@ namespace GmodUltralight
             lua.PushCFunction(UltralightView_CL_DrawDirty);
             lua.SetField(-2, "View_CL_DrawDirty");
 
-            lua.PushCFunction(UltralightView_SV_DrawDirty);
-            lua.SetField(-2, "View_SV_DrawDirty");
+            lua.PushCFunction(UltralightView_SV_DrawSingle);
+            lua.SetField(-2, "View_SV_DrawSingle");
+
+            // shared.cs
+            LoadShared(lua);
 
             lua.SetField(-2, "Ultralight");
 
