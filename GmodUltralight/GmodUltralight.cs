@@ -55,7 +55,51 @@ namespace GmodUltralight
             Debug.WriteLine($"{logLevel}: {msg}");
             LOG(msg);
         }
+        /// <summary>
+        /// Sends single pixel to clients
+        /// </summary>
+        private static void SendPixel(ILua lua, byte a, byte r, byte g, byte b, int x, int y)
+        {
+            lua.PushSpecial(SPECIAL_TABLES.SPECIAL_GLOB);
+            lua.GetField(-1, "net");
+            lua.GetField(-1, "Start");
+            lua.PushString("Ultralight_DrawSingle");
+            lua.MCall(1, 0);
 
+            lua.GetField(-1, "WriteUInt");
+            lua.PushNumber(r);
+            lua.PushNumber(8);
+            lua.MCall(2, 0);
+
+            lua.GetField(-1, "WriteUInt");
+            lua.PushNumber(g);
+            lua.PushNumber(8);
+            lua.MCall(2, 0);
+
+            lua.GetField(-1, "WriteUInt");
+            lua.PushNumber(b);
+            lua.PushNumber(8);
+            lua.MCall(2, 0);
+
+            lua.GetField(-1, "WriteUInt");
+            lua.PushNumber(a);
+            lua.PushNumber(8);
+            lua.MCall(2, 0);
+
+            lua.GetField(-1, "WriteUInt");
+            lua.PushNumber(x);
+            lua.PushNumber(32);
+            lua.MCall(2, 0);
+
+            lua.GetField(-1, "WriteUInt");
+            lua.PushNumber(y);
+            lua.PushNumber(32);
+            lua.MCall(2, 0);
+
+            lua.GetField(-1, "Broadcast");
+            lua.MCall(0, 0);
+            lua.Pop();
+        }
         public void Load(ILua lua, bool is_serverside, ModuleAssemblyLoadContext assembly_context)
         {
             /*assembly_context.SetCustomNativeLibraryResolver((context, name) =>
@@ -217,17 +261,7 @@ namespace GmodUltralight
                 if (!bounds.IsEmpty())
                     unsafe
                     {
-                        lua.PushSpecial(SPECIAL_TABLES.SPECIAL_GLOB);
-                        lua.GetField(-1, "net");
-                        lua.GetField(-1, "Start");
-                        lua.PushString("Ultralight_DrawDirty");
-                        lua.MCall(1, 0);
-                        lua.Pop(1);
-                        // lua.GetField(-1, "WriteString");
                         byte* pixels = (byte*)bitmap.LockPixels();
-
-                        List<Dictionary<string, byte>> pixelDictionary = new List<Dictionary<string, byte>>();
-
                         long index = 0;
                         for (int y = 0; y < bounds.Bottom; y++)
                         {
@@ -237,46 +271,18 @@ namespace GmodUltralight
                                 {
                                     if (x >= bounds.Left && x < bounds.Right)
                                     {
-                                        Dictionary<string, byte> pixel = new Dictionary<string, byte>();
                                         byte a = pixels[index + 3];
                                         byte r = pixels[index + 2];
                                         byte g = pixels[index + 1];
                                         byte b = pixels[index];
 
-                                        pixel["a"] = a;
-                                        pixel["r"] = r;
-                                        pixel["g"] = g;
-                                        pixel["b"] = b;
-
-                                        pixelDictionary.Add(pixel);
+                                        SendPixel(lua, a, r, g, b, x, y);
                                     }
                                 }
                                 index += 4;
                             }
                             index = y * bitmap.GetRowBytes();
                         }
-
-                        lua.PushSpecial(SPECIAL_TABLES.SPECIAL_GLOB);
-                        lua.GetField(-1, "util");
-                        lua.GetField(-1, "Compress");
-                        lua.PushString(JsonConvert.SerializeObject(pixelDictionary));
-                        lua.MCall(1, 1);
-
-                        pixelDictionary = null; // TODO: free memory?
-
-                        string compressedString = lua.GetString(-1);
-                        lua.Pop();
-
-                        lua.PushSpecial(SPECIAL_TABLES.SPECIAL_GLOB);
-                        lua.GetField(-1, "net");
-                        lua.GetField(-1, "WriteString"); // DOESN't WORK
-                        lua.PushString(compressedString);
-                        lua.MCall(1, 0);
-
-                        lua.GetField(-1, "Broadcast");
-                        lua.MCall(0, 0);
-                        lua.Pop();
-
                         pixels = null; // TODO: free memory?
                         bitmap.UnlockPixels();
                         surface.ClearDirtyBounds();

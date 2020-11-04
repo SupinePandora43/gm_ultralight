@@ -1,5 +1,5 @@
 ﻿dotnet_load("GmodUltralight")
-util.AddNetworkString("Ultralight_DrawDirty")
+util.AddNetworkString("Ultralight_DrawSingle")
 local view = Ultralight.CreateView(512,512,true)
 print(view)
 Ultralight.View_LoadURL(view, "https://github.com")
@@ -16,18 +16,26 @@ local mat = CreateMaterial( "UltralightView_mat", "UnlitGeneric", {
   ["$translucent"] = "1"
 });
 
-net.Receive("Ultralight_DrawDirty", function()
+net.Receive("Ultralight_DrawAll", function(len)
 	render.PushRenderTarget( textureRT )
 	cam.Start2D()
-	local pixels = util.JSONToTable(util.Decompress(net.ReadString())) -- DOESN't WORK
-	for k,v in pairs(pixels) do
-		surface.SetDrawColor(v.r,v.g,v.b,v.a)
-		surface.DrawRect(v.x,v.y)
+	local readedlen = 0
+	while readlen < len do
+		surface.SetDrawColor(net.ReadUInt(8),net.ReadUInt(8),net.ReadUInt(8),net.ReadUInt(8))
+		surface.DrawRect(net.ReadUInt(32),net.ReadUInt(32),1,1)
+		readedlen = readedlen+96
 	end
 	cam.End2D()
 	render.PopRenderTarget()
 end)
-
+net.Receive("Ultralight_DrawSingle", function()
+	render.PushRenderTarget( textureRT )
+	cam.Start2D()
+	surface.SetDrawColor(net.ReadUInt(8),net.ReadUInt(8),net.ReadUInt(8),net.ReadUInt(8))
+	surface.DrawRect(net.ReadUInt(32),net.ReadUInt(32),1,1)
+	cam.End2D()
+	render.PopRenderTarget()
+end)
 hook.Add( "HUDPaint", "Ultralight_draw_view", function()
   surface.SetDrawColor(color_white)
   surface.SetMaterial(mat)
