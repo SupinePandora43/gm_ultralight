@@ -11,6 +11,7 @@ using ImpromptuNinjas.UltralightSharp.Enums;
 using System.Diagnostics;
 using System.Linq;
 using Newtonsoft.Json;
+using GmodNET.Extras;
 
 namespace GmodUltralight
 {
@@ -345,6 +346,10 @@ namespace GmodUltralight
             lua.SetField(-2, "Ultralight");
 
             lua.Pop();
+
+            Tier0.Msg("Hello lol it works :DDD".ToCharArray());
+            Extras.Init();
+            Console.Out.WriteLine("wasup?");
         }
         public void Unload(ILua lua)
         {

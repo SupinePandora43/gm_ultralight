@@ -49,7 +49,7 @@ namespace GmodUltralight
                        return 4;
                    };
             lua.PushCFunction(UltralightView_SH_GetPixel);
-            lua.SetField(-1, "View_SH_GetPixel");
+            lua.SetField(-2, "View_SH_GetPixel");
 
             UltralightView_SH_EvaluateScript = (lua_state) =>
             {
@@ -64,7 +64,7 @@ namespace GmodUltralight
             };
 
             lua.PushCFunction(UltralightView_SH_EvaluateScript);
-            lua.SetField(-1, "View_SH_EvaluateScript");
+            lua.SetField(-2, "View_SH_EvaluateScript");
         }
     }
 }
