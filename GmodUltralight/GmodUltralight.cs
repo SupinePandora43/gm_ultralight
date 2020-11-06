@@ -348,7 +348,7 @@ namespace GmodUltralight
             lua.Pop();
 
             Tier0.Msg("Hello lol it works :DDD".ToCharArray());
-            Extras.Init();
+            Extras.Load();
             Console.Out.WriteLine("wasup?");
         }
         public void Unload(ILua lua)

@@ -30,10 +30,14 @@ namespace GmodNET.Extras
             }
         }
         static ConsoleWriter msgWriter;
-        public static void Init()
+        public static void Load()
         {
             msgWriter = new ConsoleWriter();
             Console.SetOut(msgWriter);
+        }
+        public static void Unload()
+        {
+            msgWriter = null;
         }
     }
 }
