@@ -3,3 +3,4 @@ include
 **/cookies.dat
 obj
 bin
+**/*.csproj.user

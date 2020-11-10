@@ -297,7 +297,6 @@ namespace GmodUltralight
                     }
                 return 0;
             };
-            
             Ultralight_Update = (lua_state) =>
             {
                 ILua lua = GmodInterop.GetLuaFromState(lua_state);
@@ -346,10 +345,6 @@ namespace GmodUltralight
             lua.SetField(-2, "Ultralight");
 
             lua.Pop();
-
-            Tier0.Msg("Hello lol it works :DDD".ToCharArray());
-            Extras.Load();
-            Console.Out.WriteLine("wasup?");
         }
         public void Unload(ILua lua)
         {
