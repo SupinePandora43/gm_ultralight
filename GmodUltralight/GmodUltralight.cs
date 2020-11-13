@@ -11,7 +11,7 @@ using ImpromptuNinjas.UltralightSharp.Enums;
 using System.Diagnostics;
 using System.Linq;
 using Newtonsoft.Json;
-using GmodNET.Extras;
+using Microsoft.VisualBasic.CompilerServices;
 
 namespace GmodUltralight
 {
@@ -25,16 +25,6 @@ namespace GmodUltralight
         Logger logger;
         Renderer renderer;
         Dictionary<string, View> views;
-        // LUA
-        CFuncManagedDelegate Ultralight_createView;
-        CFuncManagedDelegate Ultralight_Update;
-        CFuncManagedDelegate Ultralight_Render;
-        CFuncManagedDelegate UltralightView_CL_DrawDirty;
-        CFuncManagedDelegate UltralightView_SV_DrawSingle;
-        CFuncManagedDelegate UltralightView_LoadURL;
-        CFuncManagedDelegate UltralightView_LoadHTML;
-        CFuncManagedDelegate UltralightView_UpdateUntilLoads;
-        CFuncManagedDelegate UltralightView_IsValid;
 
         private static void LOG(string msg)
         {
@@ -51,7 +41,7 @@ namespace GmodUltralight
             lua.MCall(1, 0);
             lua.Pop(1);
         }
-        private static void LoggerCallback(LogLevel logLevel, string? msg)
+        private static void LoggerCallback(LogLevel logLevel, string msg)
         {
             Debug.WriteLine($"{logLevel}: {msg}");
             LOG(msg);
@@ -59,7 +49,7 @@ namespace GmodUltralight
         /// <summary>
         /// Sends single pixel to clients
         /// </summary>
-        private static void SendPixel(ILua lua, byte a, byte r, byte g, byte b, int x, int y)
+        private static void SendPixel(ILua lua, byte a, byte r, byte g, byte b, uint x, uint y)
         {
             lua.PushSpecial(SPECIAL_TABLES.SPECIAL_GLOB);
             lua.GetField(-1, "net");
@@ -124,84 +114,8 @@ namespace GmodUltralight
             renderer = new Renderer(cfg);
             views = new Dictionary<string, View>();
 
-            Ultralight_createView = (lua_state) =>
+            int UltralightView_CL_DrawDirty(ILua lua)
             {
-                ILua lua = GmodInterop.GetLuaFromState(lua_state);
-
-                uint width = (uint)lua.GetNumber(1);
-                uint height = (uint)lua.GetNumber(2);
-                bool transparent = lua.GetBool(3);
-                string viewID = Guid.NewGuid().ToString();
-
-                if (!views.ContainsKey(viewID))
-                {
-                    View view = new View(renderer, width, height, transparent, renderer.GetDefaultSession());
-                    views.Add(viewID, view);
-                    PrintToConsole(lua, "UL: Created View");
-                    lua.PushString(viewID);
-                }
-                else
-                {
-                    lua.PushNil();
-                }
-
-                return 1;
-            };
-            UltralightView_LoadURL = (lua_state) =>
-                    {
-                        ILua lua = GmodInterop.GetLuaFromState(lua_state);
-
-                        string viewID = lua.GetString(1);
-                        View view = views[viewID];
-                        string url = lua.GetString(2);
-                        view.LoadUrl(url);
-
-                        return 0;
-                    };
-            UltralightView_LoadHTML = (lua_state) =>
-            {
-                ILua lua = GmodInterop.GetLuaFromState(lua_state);
-                string viewID = lua.GetString(1);
-                View view = views[viewID];
-                string html = lua.GetString(2);
-                view.LoadHtml(html);
-                return 0;
-            };
-            UltralightView_UpdateUntilLoads = (lua_state) =>
-            {
-                ILua lua = GmodInterop.GetLuaFromState(lua_state);
-
-                string viewID = lua.GetString(1);
-                View view = views[viewID];
-                bool loaded = false;
-                FinishLoadingCallback finishcallback = (data, caller, frameId, isMainFrame, url) =>
-                {
-                    loaded = true;
-                };
-                view.SetFinishLoadingCallback(finishcallback, default);
-                uint timeout = 0;
-                while (!loaded && timeout < 1000000)
-                {
-                    renderer.Update();
-                    timeout++;
-                }
-                renderer.Render();
-                Bitmap bitmap = view.GetSurface().GetBitmap();
-
-                bitmap.WritePng("csresult.png");
-
-                return 0;
-            };
-            UltralightView_IsValid = (lua_state) =>
-            {
-                ILua lua = GmodInterop.GetLuaFromState(lua_state);
-                string viewID = lua.GetString(1);
-                lua.PushBool(views.ContainsKey(viewID));
-                return 1;
-            };
-            UltralightView_CL_DrawDirty = (lua_state) =>
-            {
-                ILua lua = GmodInterop.GetLuaFromState(lua_state);
                 string viewID = lua.GetString(1);
                 View view = views[viewID];
                 Surface surface = view.GetSurface();
@@ -250,15 +164,32 @@ namespace GmodUltralight
                         surface.ClearDirtyBounds();
                     }
                 return 0;
-            };
-            UltralightView_SV_DrawSingle = (lua_state) =>
+            }
+            int UltralightView_SV_DrawSingle(ILua lua)
             {
-                ILua lua = GmodInterop.GetLuaFromState(lua_state);
                 string viewID = lua.GetString(1);
+                uint x = (uint)lua.GetNumber(2);
+                uint y = (uint)lua.GetNumber(3);
                 View view = views[viewID];
-                Surface surface = view.GetSurface();
-                Bitmap bitmap = surface.GetBitmap();
-                ImpromptuNinjas.UltralightSharp.IntRect bounds = surface.GetDirtyBounds();
+                Bitmap bitmap = view.GetSurface().GetBitmap();
+                try
+                {
+                    unsafe
+                    {
+                        long index = (y * bitmap.GetRowBytes()) + (x * 4);
+                        byte* pixels = (byte*)bitmap.LockPixels();
+                        byte a = pixels[index + 3];
+                        byte r = pixels[index + 2];
+                        byte g = pixels[index + 1];
+                        byte b = pixels[index];
+                        SendPixel(lua, a, r, g, b, x, y);
+                    }
+                }
+                finally
+                {
+                    bitmap.UnlockPixels();
+                }
+                /*ImpromptuNinjas.UltralightSharp.IntRect bounds = surface.GetDirtyBounds();
                 if (!bounds.IsEmpty())
                     try
                     {
@@ -294,56 +225,31 @@ namespace GmodUltralight
                     finally
                     {
                         bitmap.UnlockPixels();
-                    }
+                    }*/
                 return 0;
-            };
-            Ultralight_Update = (lua_state) =>
-            {
-                ILua lua = GmodInterop.GetLuaFromState(lua_state);
-                renderer.Update();
-                return 0;
-            };
-            Ultralight_Render = (lua_state) =>
-            {
-                ILua lua = GmodInterop.GetLuaFromState(lua_state);
-                renderer.Render();
-                return 0;
-            };
+            }
+
+            lua.PushSpecial(SPECIAL_TABLES.SPECIAL_GLOB);
+
+            lua.GetField(-1, "util");
+            lua.GetField(-1, "AddNetworkString");
+            lua.PushString("Ultralight_DrawSingle");
+            lua.MCall(1, 0);
+            lua.Pop();
+
             lua.PushSpecial(SPECIAL_TABLES.SPECIAL_GLOB);
             lua.CreateTable();
-
-            lua.PushCFunction(Ultralight_createView);
-            lua.SetField(-2, "CreateView");
-
-            lua.PushCFunction(Ultralight_Update);
-            lua.SetField(-2, "Update");
-
-            lua.PushCFunction(Ultralight_Render);
-            lua.SetField(-2, "Render");
-
-            lua.PushCFunction(UltralightView_LoadURL);
-            lua.SetField(-2, "View_LoadURL");
-
-            lua.PushCFunction(UltralightView_LoadHTML);
-            lua.SetField(-2, "View_LoadHTML");
-
-            lua.PushCFunction(UltralightView_UpdateUntilLoads);
-            lua.SetField(-2, "View_UpdateUntilLoads");
-
-            lua.PushCFunction(UltralightView_IsValid);
-            lua.SetField(-2, "View_IsValid");
-
-            lua.PushCFunction(UltralightView_CL_DrawDirty);
-            lua.SetField(-2, "View_CL_DrawDirty");
-
-            lua.PushCFunction(UltralightView_SV_DrawSingle);
-            lua.SetField(-2, "View_SV_DrawSingle");
 
             // shared.cs
             LoadShared(lua);
 
-            lua.SetField(-2, "Ultralight");
+            lua.PushManagedFunction(UltralightView_CL_DrawDirty);
+            lua.SetField(-2, "View_CL_DrawDirty");
 
+            lua.PushManagedFunction(UltralightView_SV_DrawSingle);
+            lua.SetField(-2, "View_SV_DrawSingle");
+
+            lua.SetField(-2, "Ultralight");
             lua.Pop();
         }
         public void Unload(ILua lua)

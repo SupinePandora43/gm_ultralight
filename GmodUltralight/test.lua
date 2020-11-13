@@ -6,7 +6,7 @@ Ultralight.View_LoadURL(view, "https://github.com")
 
 Ultralight.View_UpdateUntilLoads(view)
 
-Ultralight.View_SV_DrawDirty(view)
+--Ultralight.View_SV_DrawDirty(view)
 
 -- CLIENT
 
