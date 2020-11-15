@@ -38,4 +38,4 @@ jobs:
       uses: actions/upload-artifact@v2.2.1
       with:
         name: published build
-        path: "GmodUltralight/bin/x64/${{matrix.configuration}}/net5.0/${{platformIdentifier}}/publish"
+        path: "GmodUltralight/bin/x64/${{matrix.configuration}}/net5.0/${{matrix.platformIdentifier}}/publish"
