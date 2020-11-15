@@ -1,10 +1,6 @@
 ﻿using GmodNET.API;
 using ImpromptuNinjas.UltralightSharp.Safe;
 using System;
-using System.Collections.Generic;
-using System.Linq;
-using System.Text;
-using System.Threading.Tasks;
 
 namespace GmodUltralight
 {
@@ -32,7 +28,7 @@ namespace GmodUltralight
             {
                 View view = new View(renderer, width, height, transparent, renderer.GetDefaultSession());
                 views.Add(viewID, view);
-                PrintToConsole(lua, "UL: Created View");
+                Console.WriteLine("UL: Created View");
                 lua.PushString(viewID);
             }
             else

@@ -1,46 +1,32 @@
 ﻿using GmodNET.API;
 using System;
 using System.IO;
-using System.Runtime.CompilerServices;
-using System.Runtime.InteropServices;
-using System.Text;
 using ImpromptuNinjas.UltralightSharp.Safe;
-using String = ImpromptuNinjas.UltralightSharp.String;
 using System.Collections.Generic;
 using ImpromptuNinjas.UltralightSharp.Enums;
 using System.Diagnostics;
-using System.Linq;
-using Newtonsoft.Json;
-using Microsoft.VisualBasic.CompilerServices;
 
 namespace GmodUltralight
 {
     public partial class GmodUltralight : GmodNET.API.IModule
     {
-        // GmodDotNet
         public string ModuleName => "GmodUltralight";
         public string ModuleVersion => "0.1.1";
-        // Ultralight                      # =null them all!!! hahahhahahha
+
         LoggerLogMessageCallback cb;
         Logger logger;
         Renderer renderer;
         Dictionary<string, View> views;
+
 
         private static void LOG(string msg)
         {
             StreamWriter writer = new StreamWriter("./fslogcs.txt", true);
             writer.WriteLine(msg);
             writer.Close();
+            Console.WriteLine(msg);
         }
 
-        private static void PrintToConsole(ILua lua, string msg)
-        {
-            lua.PushSpecial(SPECIAL_TABLES.SPECIAL_GLOB);
-            lua.GetField(-1, "print");
-            lua.PushString(msg);
-            lua.MCall(1, 0);
-            lua.Pop(1);
-        }
         private static void LoggerCallback(LogLevel logLevel, string msg)
         {
             Debug.WriteLine($"{logLevel}: {msg}");
@@ -91,6 +77,122 @@ namespace GmodUltralight
             lua.MCall(0, 0);
             lua.Pop();
         }
+
+        int UltralightView_CL_DrawDirty(ILua lua)
+        {
+            string viewID = lua.GetString(1);
+            View view = views[viewID];
+            Surface surface = view.GetSurface();
+            Bitmap bitmap = surface.GetBitmap();
+            ImpromptuNinjas.UltralightSharp.IntRect bounds = surface.GetDirtyBounds();
+            if (!bounds.IsEmpty())
+                unsafe
+                {
+                    lua.PushSpecial(SPECIAL_TABLES.SPECIAL_GLOB);
+                    lua.GetField(-1, "surface");
+                    byte* pixels = (byte*)bitmap.LockPixels();
+                    long index = 0;
+                    // TODO: start from bounds.Top
+                    for (int y = 0; y < bounds.Bottom; y++)
+                    {
+                        for (int x = 0; x < bounds.Right; x++)
+                        {
+                            if (y >= bounds.Top && y < bounds.Bottom)
+                            {
+                                if (x >= bounds.Left && x < bounds.Right)
+                                {
+                                    int a = ((byte)pixels[index + 3]);
+                                    int r = ((byte)pixels[index + 2]);
+                                    int g = ((byte)pixels[index + 1]);
+                                    int b = ((byte)pixels[index]);
+                                    lua.GetField(-1, "SetDrawColor");
+                                    lua.PushNumber(r);
+                                    lua.PushNumber(g);
+                                    lua.PushNumber(b);
+                                    lua.PushNumber(a);
+                                    lua.MCall(4, 0);
+                                    lua.GetField(-1, "DrawRect");
+                                    lua.PushNumber(x);
+                                    lua.PushNumber(y);
+                                    lua.PushNumber(1);
+                                    lua.PushNumber(1);
+                                    lua.MCall(4, 0);
+                                }
+                            }
+                            index += 4;
+                        }
+                        index = y * bitmap.GetRowBytes();
+                    }
+                    pixels = null; // TODO: free memory?
+                    bitmap.UnlockPixels();
+                    surface.ClearDirtyBounds();
+                }
+            return 0;
+        }
+        int UltralightView_SV_DrawSingle(ILua lua)
+        {
+            string viewID = lua.GetString(1);
+            uint x = (uint)lua.GetNumber(2);
+            uint y = (uint)lua.GetNumber(3);
+            View view = views[viewID];
+            Bitmap bitmap = view.GetSurface().GetBitmap();
+            try
+            {
+                unsafe
+                {
+                    long index = (y * bitmap.GetRowBytes()) + (x * 4);
+                    byte* pixels = (byte*)bitmap.LockPixels();
+                    byte a = pixels[index + 3];
+                    byte r = pixels[index + 2];
+                    byte g = pixels[index + 1];
+                    byte b = pixels[index];
+                    SendPixel(lua, a, r, g, b, x, y);
+                }
+            }
+            finally
+            {
+                bitmap.UnlockPixels();
+            }
+            /*ImpromptuNinjas.UltralightSharp.IntRect bounds = surface.GetDirtyBounds();
+            if (!bounds.IsEmpty())
+                try
+                {
+                    unsafe
+                    {
+                        byte* pixels = (byte*)bitmap.LockPixels();
+                        long index = 0;
+                        for (int y = 0; y < bounds.Bottom; y++)
+                        {
+                            for (int x = 0; x < bounds.Right; x++)
+                            {
+                                if (y >= bounds.Top && y < bounds.Bottom)
+                                {
+                                    if (x >= bounds.Left && x < bounds.Right)
+                                    {
+                                        byte a = pixels[index + 3];
+                                        byte r = pixels[index + 2];
+                                        byte g = pixels[index + 1];
+                                        byte b = pixels[index];
+
+                                        SendPixel(lua, a, r, g, b, x, y);
+                                    }
+                                }
+                                index += 4;
+                            }
+                            index = y * bitmap.GetRowBytes();
+                        }
+                        pixels = null; // TODO: free memory?
+                        bitmap.UnlockPixels();
+                        surface.ClearDirtyBounds();
+                    }
+                }
+                finally
+                {
+                    bitmap.UnlockPixels();
+                }*/
+            return 0;
+        }
+
         public void Load(ILua lua, bool is_serverside, ModuleAssemblyLoadContext assembly_context)
         {
             /*assembly_context.SetCustomNativeLibraryResolver((context, name) =>
@@ -113,121 +215,6 @@ namespace GmodUltralight
             Ultralight.SetLogger(logger);           // log ul's messages to file
             renderer = new Renderer(cfg);
             views = new Dictionary<string, View>();
-
-            int UltralightView_CL_DrawDirty(ILua lua)
-            {
-                string viewID = lua.GetString(1);
-                View view = views[viewID];
-                Surface surface = view.GetSurface();
-                Bitmap bitmap = surface.GetBitmap();
-                ImpromptuNinjas.UltralightSharp.IntRect bounds = surface.GetDirtyBounds();
-                if (!bounds.IsEmpty())
-                    unsafe
-                    {
-                        lua.PushSpecial(SPECIAL_TABLES.SPECIAL_GLOB);
-                        lua.GetField(-1, "surface");
-                        byte* pixels = (byte*)bitmap.LockPixels();
-                        long index = 0;
-                        // TODO: start from bounds.Top
-                        for (int y = 0; y < bounds.Bottom; y++)
-                        {
-                            for (int x = 0; x < bounds.Right; x++)
-                            {
-                                if (y >= bounds.Top && y < bounds.Bottom)
-                                {
-                                    if (x >= bounds.Left && x < bounds.Right)
-                                    {
-                                        int a = ((byte)pixels[index + 3]);
-                                        int r = ((byte)pixels[index + 2]);
-                                        int g = ((byte)pixels[index + 1]);
-                                        int b = ((byte)pixels[index]);
-                                        lua.GetField(-1, "SetDrawColor");
-                                        lua.PushNumber(r);
-                                        lua.PushNumber(g);
-                                        lua.PushNumber(b);
-                                        lua.PushNumber(a);
-                                        lua.MCall(4, 0);
-                                        lua.GetField(-1, "DrawRect");
-                                        lua.PushNumber(x);
-                                        lua.PushNumber(y);
-                                        lua.PushNumber(1);
-                                        lua.PushNumber(1);
-                                        lua.MCall(4, 0);
-                                    }
-                                }
-                                index += 4;
-                            }
-                            index = y * bitmap.GetRowBytes();
-                        }
-                        pixels = null; // TODO: free memory?
-                        bitmap.UnlockPixels();
-                        surface.ClearDirtyBounds();
-                    }
-                return 0;
-            }
-            int UltralightView_SV_DrawSingle(ILua lua)
-            {
-                string viewID = lua.GetString(1);
-                uint x = (uint)lua.GetNumber(2);
-                uint y = (uint)lua.GetNumber(3);
-                View view = views[viewID];
-                Bitmap bitmap = view.GetSurface().GetBitmap();
-                try
-                {
-                    unsafe
-                    {
-                        long index = (y * bitmap.GetRowBytes()) + (x * 4);
-                        byte* pixels = (byte*)bitmap.LockPixels();
-                        byte a = pixels[index + 3];
-                        byte r = pixels[index + 2];
-                        byte g = pixels[index + 1];
-                        byte b = pixels[index];
-                        SendPixel(lua, a, r, g, b, x, y);
-                    }
-                }
-                finally
-                {
-                    bitmap.UnlockPixels();
-                }
-                /*ImpromptuNinjas.UltralightSharp.IntRect bounds = surface.GetDirtyBounds();
-                if (!bounds.IsEmpty())
-                    try
-                    {
-                        unsafe
-                        {
-                            byte* pixels = (byte*)bitmap.LockPixels();
-                            long index = 0;
-                            for (int y = 0; y < bounds.Bottom; y++)
-                            {
-                                for (int x = 0; x < bounds.Right; x++)
-                                {
-                                    if (y >= bounds.Top && y < bounds.Bottom)
-                                    {
-                                        if (x >= bounds.Left && x < bounds.Right)
-                                        {
-                                            byte a = pixels[index + 3];
-                                            byte r = pixels[index + 2];
-                                            byte g = pixels[index + 1];
-                                            byte b = pixels[index];
-
-                                            SendPixel(lua, a, r, g, b, x, y);
-                                        }
-                                    }
-                                    index += 4;
-                                }
-                                index = y * bitmap.GetRowBytes();
-                            }
-                            pixels = null; // TODO: free memory?
-                            bitmap.UnlockPixels();
-                            surface.ClearDirtyBounds();
-                        }
-                    }
-                    finally
-                    {
-                        bitmap.UnlockPixels();
-                    }*/
-                return 0;
-            }
 
             lua.PushSpecial(SPECIAL_TABLES.SPECIAL_GLOB);
 
