@@ -34,9 +34,8 @@ jobs:
       run: dotnet restore GmodUltralight/GmodUltralight.sln
     - name: Build
       run: dotnet publish GmodUltralight/GmodUltralight.sln --configuration ${{matrix.configuration}} --framework net5.0
-    - run: tree
     - name: Upload a Build Artifact
       uses: actions/upload-artifact@v2.2.1
       with:
         name: published build
-        path: "GmodUltralight/bin/x64/${{matrix.configuration}}/net5.0/${{matrix.platformIdentifier}}/publish/*"
+        path: "GmodUltralight/bin/${{matrix.configuration}}/net5.0/${{matrix.platformIdentifier}}/publish/*"
