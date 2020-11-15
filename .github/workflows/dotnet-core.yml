@@ -13,6 +13,14 @@ jobs:
     strategy:
       matrix:
         os: [ubuntu, windows, macos]
+        configuration: [Release, Debug]
+        include:
+          - os: ubuntu
+            platformIdentifier: linux-x64
+          - os: macos
+            platformIdentifier: osx-x64
+          - os: windows
+            platformIdentifier: win-x64
     steps:
     - uses: actions/checkout@v2
       with:
@@ -25,6 +33,9 @@ jobs:
     - name: Install dependencies
       run: dotnet restore GmodUltralight/GmodUltralight.sln
     - name: Build
-      run: dotnet build GmodUltralight/GmodUltralight.sln --configuration Release --framework net5.0
-    - name: Test
-      run: dotnet test GmodUltralight/GmodUltralight.sln --no-restore --verbosity normal
+      run: dotnet publish GmodUltralight/GmodUltralight.sln --configuration ${{matrix.configuration}} --framework net5.0
+    - name: Upload a Build Artifact
+      uses: actions/upload-artifact@v2.2.1
+      with:
+        name: published build
+        path: "GmodUltralight/bin/x64/${{matrix.configuration}}/net5.0/${{platformIdentifier}}/publish"
