@@ -1,16 +1,19 @@
-﻿dotnet_load("GmodUltralight")
-util.AddNetworkString("Ultralight_DrawSingle")
-local view = Ultralight.CreateView(512,512,true)
+﻿--load gmod.net
+require("dotnet")
+-- load module
+dotnet_load("GmodUltralight")
+-- create view
+view = view || Ultralight.CreateView(512,512,true)
 print(view)
-Ultralight.View_LoadURL(view, "https://github.com")
+view.LoadURL("https://github.com")
 
-Ultralight.View_UpdateUntilLoads(view)
+view.UpdateUntilLoads(view)
 
 --Ultralight.View_SV_DrawDirty(view)
 
 -- CLIENT
 
-local textureRT = GetRenderTarget( "UltralightView", 512, 512 )
+--[[local textureRT = GetRenderTarget( "UltralightView", 512, 512 )
 local mat = CreateMaterial( "UltralightView_mat", "UnlitGeneric", {
   ['$basetexture'] = textureRT:GetName(),
   ["$translucent"] = "1"
@@ -41,3 +44,4 @@ hook.Add( "HUDPaint", "Ultralight_draw_view", function()
   surface.SetMaterial(mat)
   surface.DrawTexturedRect(50,50,512,512)
 end)
+]]

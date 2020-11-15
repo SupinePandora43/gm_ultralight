@@ -4,12 +4,11 @@
 		<Platform>x64</Platform>
 		<PlatformTarget>x64</PlatformTarget>
 		<OutputType>Library</OutputType>
+		<AllowUnsafeBlocks>true</AllowUnsafeBlocks>
 	</PropertyGroup>
 	<PropertyGroup Condition="'$(Configuration)|$(Platform)'=='Release|AnyCPU'">
-		<AllowUnsafeBlocks>true</AllowUnsafeBlocks>
 	</PropertyGroup>
 	<PropertyGroup Condition="'$(Configuration)|$(Platform)'=='Debug|AnyCPU'">
-		<AllowUnsafeBlocks>true</AllowUnsafeBlocks>
 		<DefineConstants>DEBUG;TRACE</DefineConstants>
 	</PropertyGroup>
 	<Choose>
@@ -33,12 +32,15 @@
 	<Target Name="CheckRuntimeIdentifier" BeforeTargets="Build" Condition="'$(RuntimeIdentifier)'==''">
 		<Error Text="RuntimeIdentifier property not set." />
 	</Target>
+
 	<ItemGroup>
-		<PackageReference Include="GmodNET.API" Version="[0.7.0-alpha.2.27410666.new-load-model]" />
-		<PackageReference Include="Newtonsoft.Json" Version="12.0.3" />
-		<!--<PackageReference Include="ImpromptuNinjas.UltralightSharp" Version="1.2.0-beta-r11" />-->
+	  <Content Remove="C:\Users\Дом\.nuget\packages\impromptuninjas.ultralightsharp\1.2.0-beta-r11\contentFiles\any\net5.0\UltralightEula.txt" />
+	  <Content Remove="C:\Users\Дом\.nuget\packages\impromptuninjas.ultralightsharp\1.2.0-beta-r11\contentFiles\any\net5.0\UltralightLicense.txt" />
+	  <Content Remove="C:\Users\Дом\.nuget\packages\impromptuninjas.ultralightsharp\1.2.0-beta-r11\contentFiles\any\net5.0\UltralightNotices.txt" />
 	</ItemGroup>
 	<ItemGroup>
-		<ProjectReference Include="..\UltralightSharp\UltralightSharp\UltralightSharp.csproj" />
+		<PackageReference Include="GmodNET.API" Version="[0.7.0-alpha.2.27410666.new-load-model]" />
+		<PackageReference Include="ImpromptuNinjas.UltralightSharp" Version="1.2.0-beta-r11" />
+		<PackageReference Include="Newtonsoft.Json" Version="12.0.3" />
 	</ItemGroup>
 </Project>

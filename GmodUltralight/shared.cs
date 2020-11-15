@@ -1,6 +1,7 @@
 ﻿using GmodNET.API;
 using ImpromptuNinjas.UltralightSharp.Safe;
 using System;
+using System.Runtime.InteropServices;
 
 namespace GmodUltralight
 {
@@ -27,9 +28,12 @@ namespace GmodUltralight
             if (!views.ContainsKey(viewID))
             {
                 View view = new View(renderer, width, height, transparent, renderer.GetDefaultSession());
-                views.Add(viewID, view);
                 Console.WriteLine("UL: Created View");
-                lua.PushString(viewID);
+                views.Add(viewID, view);
+                View_Type result = new View_Type(viewID);
+                //IntPtr p = Marshal.AllocHGlobal(Marshal.SizeOf(result));
+                //Marshal.StructureToPtr(result, p, false);
+                lua.PushUserType(GCHandle.ToIntPtr(GCHandle.Alloc(result)), View_TypeId);
             }
             else
             {
@@ -38,13 +42,32 @@ namespace GmodUltralight
 
             return 1;
         }
+        int ulView_meta__tostring(ILua lua)
+        {
+            View_Type viewType = (View_Type)GCHandle.FromIntPtr(lua.GetUserType(1, View_TypeId)).Target;
+            string viewID = viewType.id;
+            lua.PushString(viewID);
+            return 1;
+        }
+        int ulView_meta__gc(ILua lua)
+        {
+            View_Type viewType = (View_Type)GCHandle.FromIntPtr(lua.GetUserType(1, View_TypeId)).Target;
+            lua.PushSpecial(SPECIAL_TABLES.SPECIAL_GLOB);
+            lua.GetField(-1, "print");
+            lua.PushString("wow, almost gotcha it");
+            lua.MCall(1, 0);
+            lua.Pop();
+            //views.Remove(viewType.id);
+            return 0;
+        }
         int UltralightView_GetPixel(ILua lua)
         {
-            string viewID = lua.GetString(1);
-            uint x = (uint)lua.GetNumber(2);
-            uint y = (uint)lua.GetNumber(3);
+            View_Type viewType = (View_Type)GCHandle.FromIntPtr(lua.GetUserType(1, View_TypeId)).Target;
+            string viewID = viewType.id;
             View view = views[viewID];
 
+            uint x = (uint)lua.GetNumber(2);
+            uint y = (uint)lua.GetNumber(3);
             // TODO: some basic checks
 
             Bitmap bitmap = view.GetSurface().GetBitmap();
@@ -73,17 +96,18 @@ namespace GmodUltralight
         }
         int UltralightView_EvaluateScript(ILua lua)
         {
-            string viewID = lua.GetString(1);
+            View_Type viewType = (View_Type)GCHandle.FromIntPtr(lua.GetUserType(1, View_TypeId)).Target;
+            string viewID = viewType.id;
             View view = views[viewID];
             string toevaluate = lua.GetString(2);
-
             string result = view.EvaluateScript(toevaluate);
             lua.PushString(result);
             return 1;
         }
         int UltralightView_LoadURL(ILua lua)
         {
-            string viewID = lua.GetString(1);
+            View_Type viewType = (View_Type)GCHandle.FromIntPtr(lua.GetUserType(1, View_TypeId)).Target;
+            string viewID = viewType.id;
             View view = views[viewID];
             string url = lua.GetString(2);
             view.LoadUrl(url);
@@ -92,7 +116,8 @@ namespace GmodUltralight
         }
         int UltralightView_LoadHTML(ILua lua)
         {
-            string viewID = lua.GetString(1);
+            View_Type viewType = (View_Type)GCHandle.FromIntPtr(lua.GetUserType(1, View_TypeId)).Target;
+            string viewID = viewType.id;
             View view = views[viewID];
             string html = lua.GetString(2);
             view.LoadHtml(html);
@@ -100,8 +125,10 @@ namespace GmodUltralight
         }
         int UltralightView_UpdateUntilLoads(ILua lua)
         {
-            string viewID = lua.GetString(1);
+            View_Type viewType = (View_Type)GCHandle.FromIntPtr(lua.GetUserType(1, View_TypeId)).Target;
+            string viewID = viewType.id;
             View view = views[viewID];
+
             bool loaded = false;
             void finishcallback(IntPtr data, View caller, ulong frameId, bool isMainFrame, string url)
             {
@@ -121,13 +148,29 @@ namespace GmodUltralight
 
             return 0;
         }
-        int UltralightView_IsValid(ILua lua)
+        public void Load_View_Shared(ILua lua)
         {
-            string viewID = lua.GetString(1);
-            lua.PushBool(views.ContainsKey(viewID));
-            return 1;
-        }
+            lua.PushManagedFunction(ulView_meta__tostring);
+            lua.SetField(-2, "__tostring");
 
+            lua.PushManagedFunction(ulView_meta__gc);
+            lua.SetField(-2, "__gc");
+
+            lua.PushManagedFunction(UltralightView_LoadURL);
+            lua.SetField(-2, "LoadURL");
+
+            lua.PushManagedFunction(UltralightView_LoadHTML);
+            lua.SetField(-2, "LoadHTML");
+
+            lua.PushManagedFunction(UltralightView_UpdateUntilLoads);
+            lua.SetField(-2, "UpdateUntilLoads");
+
+            lua.PushManagedFunction(UltralightView_EvaluateScript);
+            lua.SetField(-2, "EvaluateScript");
+
+            lua.PushManagedFunction(UltralightView_GetPixel);
+            lua.SetField(-2, "GetPixel");
+        }
         public void LoadShared(ILua lua)
         {
             lua.PushManagedFunction(Ultralight_Update);
@@ -138,24 +181,6 @@ namespace GmodUltralight
 
             lua.PushManagedFunction(Ultralight_createView);
             lua.SetField(-2, "CreateView");
-
-            lua.PushManagedFunction(UltralightView_GetPixel);
-            lua.SetField(-2, "View_GetPixel");
-
-            lua.PushManagedFunction(UltralightView_EvaluateScript);
-            lua.SetField(-2, "View_EvaluateScript");
-
-            lua.PushManagedFunction(UltralightView_LoadURL);
-            lua.SetField(-2, "View_LoadURL");
-
-            lua.PushManagedFunction(UltralightView_LoadHTML);
-            lua.SetField(-2, "View_LoadHTML");
-
-            lua.PushManagedFunction(UltralightView_UpdateUntilLoads);
-            lua.SetField(-2, "View_UpdateUntilLoads");
-
-            lua.PushManagedFunction(UltralightView_IsValid);
-            lua.SetField(-2, "View_IsValid");
         }
     }
 }

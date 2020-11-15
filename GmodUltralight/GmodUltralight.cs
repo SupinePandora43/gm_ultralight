@@ -5,6 +5,7 @@ using ImpromptuNinjas.UltralightSharp.Safe;
 using System.Collections.Generic;
 using ImpromptuNinjas.UltralightSharp.Enums;
 using System.Diagnostics;
+using System.Runtime.InteropServices;
 
 namespace GmodUltralight
 {
@@ -18,6 +19,15 @@ namespace GmodUltralight
         Renderer renderer;
         Dictionary<string, View> views;
 
+        static int View_TypeId;
+        readonly struct View_Type
+        {
+            public readonly string id;
+            public View_Type(string id)
+            {
+                this.id = id;
+            }
+        }
 
         private static void LOG(string msg)
         {
@@ -80,7 +90,8 @@ namespace GmodUltralight
 
         int UltralightView_CL_DrawDirty(ILua lua)
         {
-            string viewID = lua.GetString(1);
+            View_Type viewType = (View_Type)GCHandle.FromIntPtr(lua.GetUserType(1, View_TypeId)).Target;
+            string viewID = viewType.id;
             View view = views[viewID];
             Surface surface = view.GetSurface();
             Bitmap bitmap = surface.GetBitmap();
@@ -131,10 +142,11 @@ namespace GmodUltralight
         }
         int UltralightView_SV_DrawSingle(ILua lua)
         {
-            string viewID = lua.GetString(1);
+            View_Type viewType = (View_Type)GCHandle.FromIntPtr(lua.GetUserType(1, View_TypeId)).Target;
+            string viewID = viewType.id;
+            View view = views[viewID];
             uint x = (uint)lua.GetNumber(2);
             uint y = (uint)lua.GetNumber(3);
-            View view = views[viewID];
             Bitmap bitmap = view.GetSurface().GetBitmap();
             try
             {
@@ -216,8 +228,21 @@ namespace GmodUltralight
             renderer = new Renderer(cfg);
             views = new Dictionary<string, View>();
 
-            lua.PushSpecial(SPECIAL_TABLES.SPECIAL_GLOB);
+            View_TypeId = lua.CreateMetaTable("ulView");
 
+
+            Load_View_Shared(lua);
+
+            lua.PushManagedFunction(UltralightView_CL_DrawDirty);
+            lua.SetField(-2, "View_CL_DrawDirty");
+
+            lua.PushManagedFunction(UltralightView_SV_DrawSingle);
+            lua.SetField(-2, "View_SV_DrawSingle");
+
+            lua.Pop();
+
+
+            lua.PushSpecial(SPECIAL_TABLES.SPECIAL_GLOB);
             lua.GetField(-1, "util");
             lua.GetField(-1, "AddNetworkString");
             lua.PushString("Ultralight_DrawSingle");
@@ -229,12 +254,6 @@ namespace GmodUltralight
 
             // shared.cs
             LoadShared(lua);
-
-            lua.PushManagedFunction(UltralightView_CL_DrawDirty);
-            lua.SetField(-2, "View_CL_DrawDirty");
-
-            lua.PushManagedFunction(UltralightView_SV_DrawSingle);
-            lua.SetField(-2, "View_SV_DrawSingle");
 
             lua.SetField(-2, "Ultralight");
             lua.Pop();
