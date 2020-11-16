@@ -31,10 +31,9 @@ namespace GmodUltralight
                 View view = new View(renderer, width, height, transparent, renderer.GetDefaultSession());
                 Console.WriteLine("UL: Created View");
                 views.Add(viewID, view);
-                View_Type result = new View_Type(viewID);
                 //IntPtr p = Marshal.AllocHGlobal(Marshal.SizeOf(result));
                 //Marshal.StructureToPtr(result, p, false);
-                lua.PushUserType(GCHandle.ToIntPtr(GCHandle.Alloc(result, GCHandleType.Weak)), View_TypeId);
+                lua.PushUserType(GCHandle.ToIntPtr(GCHandle.Alloc(viewID, GCHandleType.Weak)), View_TypeId);
             }
             else
             {
@@ -46,8 +45,7 @@ namespace GmodUltralight
 
         int ulView_meta__tostring(ILua lua)
         {
-            View_Type viewType = (View_Type)GCHandle.FromIntPtr(lua.GetUserType(1, View_TypeId)).Target;
-            string viewID = viewType.id;
+            string viewID = (string)GCHandle.FromIntPtr(lua.GetUserType(1, View_TypeId)).Target;
             lua.PushString(viewID);
             return 1;
         }
@@ -59,19 +57,38 @@ namespace GmodUltralight
         int ulView_meta__gc(ILua lua)
         {
             GCHandle gchandle = GCHandle.FromIntPtr(lua.GetUserType(1, View_TypeId));
-            View_Type viewType = (View_Type)gchandle.Target;
+            string viewID = (string)gchandle.Target;
 
-            views.Remove(viewType.id);
-            Console.WriteLine($"UL: view {viewType.id} is garbage collected");
+            views.Remove(viewID);
+            Console.WriteLine($"UL: view {viewID} is garbage collected");
             gchandle.Free();
 
             return 0;
         }
         int ulView_meta__index(ILua lua)
         {
-            string func = lua.GetString(2);
-            Console.WriteLine(func);
-            if (func == "LoadURL")
+            string name = lua.GetString(2);
+            Console.WriteLine($"UL: trying to index {name}");
+            if (name == "Dispose")
+            {
+                lua.PushManagedFunction((lua) =>
+                {
+                    string id = (string)GCHandle.FromIntPtr(lua.GetUserType(1, View_TypeId)).Target;
+                    // it will call view's Dispose()
+                    views.Remove(id);
+                    return 0;
+                });
+            }
+            else if (name == "IsValid")
+            {
+                lua.PushManagedFunction((lua) =>
+                {
+                    string id = (string)GCHandle.FromIntPtr(lua.GetUserType(1, View_TypeId)).Target;
+                    lua.PushBool(views.ContainsKey(id));
+                    return 1;
+                });
+            }
+            else if (name == "LoadURL")
             {
                 lua.PushManagedFunction(UltralightView_LoadURL);
             }
@@ -83,8 +100,7 @@ namespace GmodUltralight
         }
         int UltralightView_GetPixel(ILua lua)
         {
-            View_Type viewType = (View_Type)GCHandle.FromIntPtr(lua.GetUserType(1, View_TypeId)).Target;
-            string viewID = viewType.id;
+            string viewID = (string)GCHandle.FromIntPtr(lua.GetUserType(1, View_TypeId)).Target;
             View view = views[viewID];
 
             uint x = (uint)lua.GetNumber(2);
@@ -117,8 +133,7 @@ namespace GmodUltralight
         }
         int UltralightView_EvaluateScript(ILua lua)
         {
-            View_Type viewType = (View_Type)GCHandle.FromIntPtr(lua.GetUserType(1, View_TypeId)).Target;
-            string viewID = viewType.id;
+            string viewID = (string)GCHandle.FromIntPtr(lua.GetUserType(1, View_TypeId)).Target;
             View view = views[viewID];
             string toevaluate = lua.GetString(2);
             string result = view.EvaluateScript(toevaluate);
@@ -129,14 +144,13 @@ namespace GmodUltralight
         {
             try
             {
-                View_Type viewType = (View_Type)GCHandle.FromIntPtr(lua.GetUserType(1, View_TypeId)).Target;
-                string viewID = viewType.id;
+                string viewID = (string)GCHandle.FromIntPtr(lua.GetUserType(1, View_TypeId)).Target;
                 View view = views[viewID];
                 string url = lua.GetString(2);
                 view.LoadUrl(url);
-                Console.WriteLine($"UL: ({viewType.id}).LoadURL({url})");
+                Console.WriteLine($"UL: ({viewID}).LoadURL({url})");
             }
-            catch(Exception e)
+            catch (Exception e)
             {
                 Console.WriteLine(e);
             }
@@ -144,8 +158,7 @@ namespace GmodUltralight
         }
         int UltralightView_LoadHTML(ILua lua)
         {
-            View_Type viewType = (View_Type)GCHandle.FromIntPtr(lua.GetUserType(1, View_TypeId)).Target;
-            string viewID = viewType.id;
+            string viewID = (string)GCHandle.FromIntPtr(lua.GetUserType(1, View_TypeId)).Target;
             View view = views[viewID];
             string html = lua.GetString(2);
             view.LoadHtml(html);
@@ -153,8 +166,7 @@ namespace GmodUltralight
         }
         int UltralightView_UpdateUntilLoads(ILua lua)
         {
-            View_Type viewType = (View_Type)GCHandle.FromIntPtr(lua.GetUserType(1, View_TypeId)).Target;
-            string viewID = viewType.id;
+            string viewID = (string)GCHandle.FromIntPtr(lua.GetUserType(1, View_TypeId)).Target;
             View view = views[viewID];
 
             bool loaded = false;
@@ -183,7 +195,7 @@ namespace GmodUltralight
 
             lua.PushManagedFunction(ulView_meta__tostring);
             lua.SetField(-2, "__tostring");
-            
+
             /*lua.PushManagedFunction(ulView_meta__gc);
             lua.SetField(-2, "__gc");
 

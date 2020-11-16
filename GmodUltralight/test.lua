@@ -19,6 +19,12 @@ view:LoadURL("https://github.com")
 csprint("Loading URL")
 view.UpdateUntilLoads(view)]]
 
+csprint("Dispose")
+view:Dispose()
+
+csprint("IsValid")
+csprint(tostring(view:IsValid()))
+
 csprint("Tests ended")
 
 csprint("Closing Server")

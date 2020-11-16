@@ -20,15 +20,6 @@ namespace GmodUltralight
         Dictionary<string, View> views;
 
         static int View_TypeId;
-        readonly struct View_Type
-        {
-            public readonly string id;
-            public View_Type(string id)
-            {
-                this.id = id;
-            }
-        }
-
         private static void LOG(string msg)
         {
             StreamWriter writer = new StreamWriter("./fslogcs.txt", true);
@@ -90,8 +81,7 @@ namespace GmodUltralight
 
         int UltralightView_CL_DrawDirty(ILua lua)
         {
-            View_Type viewType = (View_Type)GCHandle.FromIntPtr(lua.GetUserType(1, View_TypeId)).Target;
-            string viewID = viewType.id;
+            string viewID = (string)GCHandle.FromIntPtr(lua.GetUserType(1, View_TypeId)).Target;
             View view = views[viewID];
             Surface surface = view.GetSurface();
             Bitmap bitmap = surface.GetBitmap();
@@ -142,8 +132,7 @@ namespace GmodUltralight
         }
         int UltralightView_SV_DrawSingle(ILua lua)
         {
-            View_Type viewType = (View_Type)GCHandle.FromIntPtr(lua.GetUserType(1, View_TypeId)).Target;
-            string viewID = viewType.id;
+            string viewID = (string)GCHandle.FromIntPtr(lua.GetUserType(1, View_TypeId)).Target;
             View view = views[viewID];
             uint x = (uint)lua.GetNumber(2);
             uint y = (uint)lua.GetNumber(3);
