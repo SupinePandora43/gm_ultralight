@@ -4,7 +4,7 @@ require("dotnet")
 dotnet_load("GmodUltralight")
 -- create view
 
-csprint = csprint || print
+print = csprint
 
 csprint("Creating View")
 
@@ -22,6 +22,8 @@ csprint(tostring(loaded))
 
 csprint("Render")
 Ultralight.Render()
+
+PrintTable(Ultralight)
 
 csprint("GetPixel")
 local a,r,g,b = view:GetPixel(0,0,Ultralight.ImageFormat.RGBA8888)
