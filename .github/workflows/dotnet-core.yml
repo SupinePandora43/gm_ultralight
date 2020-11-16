@@ -55,6 +55,6 @@ jobs:
     - run: dotnet publish GmodUltralight/GmodUltralight.csproj --configuration Debug --framework net5.0 -o ./gmod/garrysmod/lua/bin/Modules/GmodUltralight
     - run: cp GmodUltralight/test.lua ./gmod/garrysmod/lua/autorun/server
     - name: Run Garry's Mod
-      run: "./srcds_run_x64 -systemtest -game garrysmod +sv_hibernate_think 1 +gamemode sandbox +maxplayers 16 +map gm_construct"
+      run: "./srcds_run_x64 -systemtest -autoupdate -game garrysmod +sv_hibernate_think 1 +gamemode sandbox +maxplayers 16 +map gm_construct"
       working-directory: ./gmod/
       timeout-minutes: 2
