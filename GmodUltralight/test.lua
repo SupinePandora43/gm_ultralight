@@ -15,9 +15,20 @@ csprint(tostring(view))
 
 csprint("set URL")
 view:LoadURL("https://github.com")
---[[
+
 csprint("Loading URL")
-view.UpdateUntilLoads(view)]]
+local loaded = view:UpdateUntilLoads(view)
+csprint(tostring(loaded))
+
+csprint("Render")
+Ultralight.Render()
+
+csprint("GetPixel")
+local a,r,g,b = view:GetPixel(0,0)
+csprint(tostring(a))
+csprint(tostring(r))
+csprint(tostring(g))
+csprint(tostring(b))
 
 csprint("Dispose")
 view:Dispose()

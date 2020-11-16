@@ -221,19 +221,9 @@ namespace GmodUltralight
             renderer = new Renderer(cfg);
             views = new Dictionary<string, View>();
 
-            View_TypeId = lua.CreateMetaTable("ulView");
 
 
             Load_View_Shared(lua);
-
-            lua.PushManagedFunction(UltralightView_CL_DrawDirty);
-            lua.SetField(-2, "View_CL_DrawDirty");
-
-            lua.PushManagedFunction(UltralightView_SV_DrawSingle);
-            lua.SetField(-2, "View_SV_DrawSingle");
-
-
-            lua.Pop();
 
 
 

@@ -3,6 +3,7 @@ using ImpromptuNinjas.UltralightSharp.Safe;
 using System;
 using System.Runtime.CompilerServices;
 using System.Runtime.InteropServices;
+using System.Threading;
 
 namespace GmodUltralight
 {
@@ -69,13 +70,17 @@ namespace GmodUltralight
         {
             string name = lua.GetString(2);
             Console.WriteLine($"UL: trying to index {name}");
+
             if (name == "Dispose")
             {
                 lua.PushManagedFunction((lua) =>
                 {
-                    string id = (string)GCHandle.FromIntPtr(lua.GetUserType(1, View_TypeId)).Target;
+                    GCHandle gchandle = GCHandle.FromIntPtr(lua.GetUserType(1, View_TypeId));
+                    string id = (string)gchandle.Target;
                     // it will call view's Dispose()
                     views.Remove(id);
+                    gchandle.Free();
+                    //TODO: set self to nil
                     return 0;
                 });
             }
@@ -90,7 +95,94 @@ namespace GmodUltralight
             }
             else if (name == "LoadURL")
             {
-                lua.PushManagedFunction(UltralightView_LoadURL);
+                lua.PushManagedFunction((lua) =>
+                {
+                    string viewID = (string)GCHandle.FromIntPtr(lua.GetUserType(1, View_TypeId)).Target;
+                    View view = views[viewID];
+                    string url = lua.GetString(2);
+                    view.LoadUrl(url);
+                    Console.WriteLine($"UL: ({viewID}).LoadURL({url})");
+                    return 0;
+                });
+            }
+            else if (name == "LoadHTML")
+            {
+                lua.PushManagedFunction((lua) =>
+                {
+                    string viewID = (string)GCHandle.FromIntPtr(lua.GetUserType(1, View_TypeId)).Target;
+                    View view = views[viewID];
+                    string html = lua.GetString(2);
+                    view.LoadHtml(html);
+                    return 0;
+                });
+            }
+            else if (name == "UpdateUntilLoads")
+            {
+                lua.PushManagedFunction((lua) =>
+                {
+                    string viewID = (string)GCHandle.FromIntPtr(lua.GetUserType(1, View_TypeId)).Target;
+                    View view = views[viewID];
+
+                    bool loaded = false;
+                    void finishcallback(IntPtr data, View caller, ulong frameId, bool isMainFrame, string url)
+                    {
+                        loaded = true;
+                    }
+                    view.SetFinishLoadingCallback(finishcallback, default);
+                    uint timeout = 0;
+                    while (!loaded && timeout < 1000000)
+                    {
+                        renderer.Update();
+                        timeout++;
+                        Thread.Sleep(10);
+                    }
+                    lua.PushBool(loaded);
+                    return 1;
+                });
+            }
+            else if (name == "EvaluateScript")
+            {
+                lua.PushManagedFunction((lua) =>
+                {
+                    string viewID = (string)GCHandle.FromIntPtr(lua.GetUserType(1, View_TypeId)).Target;
+                    View view = views[viewID];
+                    lua.PushString(view.EvaluateScript(lua.GetString(2)));
+                    return 1;
+                });
+            }
+            else if (name == "GetPixel")
+            {
+                lua.PushManagedFunction((lua) =>
+                {
+                    string viewID = (string)GCHandle.FromIntPtr(lua.GetUserType(1, View_TypeId)).Target;
+                    View view = views[viewID];
+                    uint x = (uint)lua.GetNumber(2);
+                    uint y = (uint)lua.GetNumber(3);
+
+                    Bitmap bitmap = view.GetSurface().GetBitmap();
+                    try
+                    {
+                        unsafe
+                        {
+                            byte* pixels = (byte*)bitmap.LockPixels();
+                            long index = y * bitmap.GetRowBytes();
+                            index += x * 4;
+                            byte a = pixels[index + 3];
+                            byte r = pixels[index + 2];
+                            byte g = pixels[index + 1];
+                            byte b = pixels[index];
+                            lua.PushNumber(a);
+                            lua.PushNumber(r);
+                            lua.PushNumber(g);
+                            lua.PushNumber(b);
+                        }
+                    }
+                    finally
+                    {
+                        bitmap.UnlockPixels();
+                    }
+                    return 4;
+                });
             }
             else
             {
@@ -98,121 +190,17 @@ namespace GmodUltralight
             }
             return 1;
         }
-        int UltralightView_GetPixel(ILua lua)
-        {
-            string viewID = (string)GCHandle.FromIntPtr(lua.GetUserType(1, View_TypeId)).Target;
-            View view = views[viewID];
-
-            uint x = (uint)lua.GetNumber(2);
-            uint y = (uint)lua.GetNumber(3);
-            // TODO: some basic checks
-
-            Bitmap bitmap = view.GetSurface().GetBitmap();
-            try
-            {
-                unsafe
-                {
-                    byte* pixels = (byte*)bitmap.LockPixels();
-                    long index = y * bitmap.GetRowBytes();
-                    index += x * 4;
-                    byte a = pixels[index + 3];
-                    byte r = pixels[index + 2];
-                    byte g = pixels[index + 1];
-                    byte b = pixels[index];
-                    lua.PushNumber(a);
-                    lua.PushNumber(r);
-                    lua.PushNumber(g);
-                    lua.PushNumber(b);
-                }
-            }
-            finally
-            {
-                bitmap.UnlockPixels();
-            }
-            return 4;
-        }
-        int UltralightView_EvaluateScript(ILua lua)
-        {
-            string viewID = (string)GCHandle.FromIntPtr(lua.GetUserType(1, View_TypeId)).Target;
-            View view = views[viewID];
-            string toevaluate = lua.GetString(2);
-            string result = view.EvaluateScript(toevaluate);
-            lua.PushString(result);
-            return 1;
-        }
-        int UltralightView_LoadURL(ILua lua)
-        {
-            try
-            {
-                string viewID = (string)GCHandle.FromIntPtr(lua.GetUserType(1, View_TypeId)).Target;
-                View view = views[viewID];
-                string url = lua.GetString(2);
-                view.LoadUrl(url);
-                Console.WriteLine($"UL: ({viewID}).LoadURL({url})");
-            }
-            catch (Exception e)
-            {
-                Console.WriteLine(e);
-            }
-            return 0;
-        }
-        int UltralightView_LoadHTML(ILua lua)
-        {
-            string viewID = (string)GCHandle.FromIntPtr(lua.GetUserType(1, View_TypeId)).Target;
-            View view = views[viewID];
-            string html = lua.GetString(2);
-            view.LoadHtml(html);
-            return 0;
-        }
-        int UltralightView_UpdateUntilLoads(ILua lua)
-        {
-            string viewID = (string)GCHandle.FromIntPtr(lua.GetUserType(1, View_TypeId)).Target;
-            View view = views[viewID];
-
-            bool loaded = false;
-            void finishcallback(IntPtr data, View caller, ulong frameId, bool isMainFrame, string url)
-            {
-                loaded = true;
-            }
-            view.SetFinishLoadingCallback(finishcallback, default);
-            uint timeout = 0;
-            while (!loaded && timeout < 1000000)
-            {
-                renderer.Update();
-                timeout++;
-            }
-            renderer.Render();
-            Bitmap bitmap = view.GetSurface().GetBitmap();
-
-            bitmap.WritePng("csresult.png");
-
-            return 0;
-        }
         public void Load_View_Shared(ILua lua)
         {
+            View_TypeId = lua.CreateMetaTable("ulView");
+
             lua.PushManagedFunction(ulView_meta__index);
             lua.SetField(-2, "__index");
 
             lua.PushManagedFunction(ulView_meta__tostring);
             lua.SetField(-2, "__tostring");
 
-            /*lua.PushManagedFunction(ulView_meta__gc);
-            lua.SetField(-2, "__gc");
-
-            lua.PushManagedFunction(UltralightView_LoadURL);
-            lua.SetField(-2, "LoadURL");
-
-            lua.PushManagedFunction(UltralightView_LoadHTML);
-            lua.SetField(-2, "LoadHTML");
-
-            lua.PushManagedFunction(UltralightView_UpdateUntilLoads);
-            lua.SetField(-2, "UpdateUntilLoads");
-
-            lua.PushManagedFunction(UltralightView_EvaluateScript);
-            lua.SetField(-2, "EvaluateScript");
-
-            lua.PushManagedFunction(UltralightView_GetPixel);
-            lua.SetField(-2, "GetPixel");*/
+            lua.Pop();
         }
         [UnmanagedCallersOnly(CallConvs = new Type[] { typeof(CallConvCdecl) })]
         static int unloaded_ulView_meta__gc(IntPtr lua_state)
@@ -224,9 +212,9 @@ namespace GmodUltralight
                 GCHandle.FromIntPtr(handle).Free();
                 lua.Pop();
             }
-            catch
+            catch(Exception e)
             {
-
+                Console.WriteLine(e);
             }
             return 0;
         }
@@ -241,20 +229,9 @@ namespace GmodUltralight
             }
             lua.SetField(-2, "__gc");
 
+            // that's a genius thing!
             lua.PushNil();
-            lua.SetField(-2, "LoadURL");
-
-            lua.PushNil();
-            lua.SetField(-2, "LoadHTML");
-
-            lua.PushNil();
-            lua.SetField(-2, "UpdateUntilLoads");
-
-            lua.PushNil();
-            lua.SetField(-2, "EvaluateScript");
-
-            lua.PushNil();
-            lua.SetField(-2, "GetPixel");
+            lua.SetField(-2, "__index");
         }
         public void LoadShared(ILua lua)
         {
