@@ -34,7 +34,7 @@ namespace GmodUltralight
                 View_Type result = new View_Type(viewID);
                 //IntPtr p = Marshal.AllocHGlobal(Marshal.SizeOf(result));
                 //Marshal.StructureToPtr(result, p, false);
-                lua.PushUserType(GCHandle.ToIntPtr(GCHandle.Alloc(result)), View_TypeId);
+                lua.PushUserType(GCHandle.ToIntPtr(GCHandle.Alloc(result, GCHandleType.Weak)), View_TypeId);
             }
             else
             {
