@@ -9,6 +9,16 @@ namespace GmodUltralight
 {
     partial class GmodUltralight
     {
+        enum ImageFormat
+        {
+            RGBA8888 = 0,
+            BGRA8888 = 1,
+            ARGB8888 = 2,
+            ABGR8888 = 3,
+            RGB888 = 4,
+            BGR888 = 5
+        }
+
         int Ultralight_Update(ILua lua)
         {
             renderer.Update();
@@ -66,6 +76,30 @@ namespace GmodUltralight
 
             return 0;
         }
+        /// <summary>
+        /// after module unloaded it will fix crash after using __gc on view
+        /// </summary>
+        /// <param name="lua_state"></param>
+        /// <returns></returns>
+        [UnmanagedCallersOnly(CallConvs = new Type[] { typeof(CallConvCdecl) })]
+        static int unloaded_ulView_meta__gc(IntPtr lua_state)
+        {
+            ILua lua = GmodInterop.GetLuaFromState(lua_state);
+            try
+            {
+                IntPtr handle = lua.GetUserType(1, View_TypeId);
+                GCHandle.FromIntPtr(handle).Free();
+                lua.Pop();
+            }
+            catch (Exception e)
+            {
+                Console.WriteLine(e);
+            }
+            return 0;
+        }
+
+
+
         int ulView_meta__index(ILua lua)
         {
             string name = lua.GetString(2);
@@ -158,7 +192,7 @@ namespace GmodUltralight
                     View view = views[viewID];
                     uint x = (uint)lua.GetNumber(2);
                     uint y = (uint)lua.GetNumber(3);
-
+                    ImageFormat format = (ImageFormat)lua.GetNumber(4);
                     Bitmap bitmap = view.GetSurface().GetBitmap();
                     try
                     {
@@ -171,10 +205,25 @@ namespace GmodUltralight
                             byte r = pixels[index + 2];
                             byte g = pixels[index + 1];
                             byte b = pixels[index];
-                            lua.PushNumber(a);
-                            lua.PushNumber(r);
-                            lua.PushNumber(g);
-                            lua.PushNumber(b);
+
+                            // TODO: damn this is stupid
+                            if (format == ImageFormat.ABGR8888 || format == ImageFormat.ARGB8888)
+                                lua.PushNumber(a);
+                            if (format == ImageFormat.ARGB8888 || format == ImageFormat.RGB888 || format == ImageFormat.RGBA8888)
+                            {
+                                lua.PushNumber(r);
+                                lua.PushNumber(g);
+                                lua.PushNumber(b);
+                            }
+                            else
+                            {
+                                lua.PushNumber(b);
+                                lua.PushNumber(g);
+                                lua.PushNumber(r);
+                            }
+
+                            if (format == ImageFormat.BGRA8888 || format == ImageFormat.RGBA8888)
+                                lua.PushNumber(a);
                         }
                     }
                     finally
@@ -190,6 +239,9 @@ namespace GmodUltralight
             }
             return 1;
         }
+
+
+
         public void Load_View_Shared(ILua lua)
         {
             View_TypeId = lua.CreateMetaTable("ulView");
@@ -202,24 +254,10 @@ namespace GmodUltralight
 
             lua.Pop();
         }
-        [UnmanagedCallersOnly(CallConvs = new Type[] { typeof(CallConvCdecl) })]
-        static int unloaded_ulView_meta__gc(IntPtr lua_state)
-        {
-            ILua lua = GmodInterop.GetLuaFromState(lua_state);
-            try
-            {
-                IntPtr handle = lua.GetUserType(1, View_TypeId);
-                GCHandle.FromIntPtr(handle).Free();
-                lua.Pop();
-            }
-            catch(Exception e)
-            {
-                Console.WriteLine(e);
-            }
-            return 0;
-        }
         public void Unload_View_Shared(ILua lua)
         {
+            lua.PushMetaTable(View_TypeId);
+
             lua.PushNil();
             lua.SetField(-2, "__tostring");
 
@@ -232,6 +270,8 @@ namespace GmodUltralight
             // that's a genius thing!
             lua.PushNil();
             lua.SetField(-2, "__index");
+
+            lua.Pop();
         }
         public void LoadShared(ILua lua)
         {
@@ -243,6 +283,24 @@ namespace GmodUltralight
 
             lua.PushManagedFunction(Ultralight_createView);
             lua.SetField(-2, "CreateView");
+
+
+            lua.CreateTable();
+
+            lua.PushNumber(0);
+            lua.SetField(-3, "RGBA8888");
+            lua.PushNumber(1);
+            lua.SetField(-3, "BGRA8888");
+            lua.PushNumber(2);
+            lua.SetField(-3, "ARGB8888");
+            lua.PushNumber(3);
+            lua.SetField(-3, "ABGR8888");
+            lua.PushNumber(4);
+            lua.SetField(-3, "RGB888");
+            lua.PushNumber(5);
+            lua.SetField(-3, "BGR888");
+
+            lua.SetField(-3, "ImageFormat");
         }
     }
 }

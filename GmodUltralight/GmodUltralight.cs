@@ -251,16 +251,12 @@ namespace GmodUltralight
         }
         public void Unload(ILua lua)
         {
-            Console.WriteLine("UL: Unloading me");
+            Console.WriteLine("UL: Goodbye world!");
 
-
-            lua.PushMetaTable(View_TypeId);
-
+            // release all lua refereces
             Unload_View_Shared(lua);
 
-            lua.Pop();
-
-
+            // release all native references
             views = null;
             renderer.Dispose();
             renderer = null;

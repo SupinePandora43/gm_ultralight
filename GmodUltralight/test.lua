@@ -24,7 +24,7 @@ csprint("Render")
 Ultralight.Render()
 
 csprint("GetPixel")
-local a,r,g,b = view:GetPixel(0,0)
+local a,r,g,b = view:GetPixel(0,0,Ultralight.ImageFormat.RGBA8888)
 csprint(tostring(a))
 csprint(tostring(r))
 csprint(tostring(g))
