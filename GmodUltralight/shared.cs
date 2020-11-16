@@ -1,6 +1,7 @@
 ﻿using GmodNET.API;
 using ImpromptuNinjas.UltralightSharp.Safe;
 using System;
+using System.Runtime.CompilerServices;
 using System.Runtime.InteropServices;
 
 namespace GmodUltralight
@@ -169,6 +170,48 @@ namespace GmodUltralight
             lua.SetField(-2, "EvaluateScript");
 
             lua.PushManagedFunction(UltralightView_GetPixel);
+            lua.SetField(-2, "GetPixel");
+        }
+        [UnmanagedCallersOnly(CallConvs = new Type[] { typeof(CallConvCdecl) })]
+        static int unloaded_ulView_meta__gc(IntPtr lua_state)
+        {
+            ILua lua = GmodInterop.GetLuaFromState(lua_state);
+            try
+            {
+                IntPtr handle = lua.GetUserType(1, View_TypeId);
+                GCHandle.FromIntPtr(handle).Free();
+                lua.Pop();
+            }
+            catch
+            {
+
+            }
+            return 0;
+        }
+        public void Unload_View_Shared(ILua lua)
+        {
+            lua.PushNil();
+            lua.SetField(-2, "__tostring");
+
+            unsafe
+            {
+                lua.PushCFunction(&unloaded_ulView_meta__gc);
+            }
+            lua.SetField(-2, "__gc");
+
+            lua.PushNil();
+            lua.SetField(-2, "LoadURL");
+
+            lua.PushNil();
+            lua.SetField(-2, "LoadHTML");
+
+            lua.PushNil();
+            lua.SetField(-2, "UpdateUntilLoads");
+
+            lua.PushNil();
+            lua.SetField(-2, "EvaluateScript");
+
+            lua.PushNil();
             lua.SetField(-2, "GetPixel");
         }
         public void LoadShared(ILua lua)

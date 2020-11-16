@@ -274,6 +274,14 @@ namespace GmodUltralight
         {
             Console.WriteLine("UL: Unloading me");
 
+
+            lua.PushMetaTable(View_TypeId);
+
+            Unload_View_Shared(lua);
+
+            lua.Pop();
+
+
             views = null;
             renderer.Dispose();
             renderer = null;
