@@ -3,14 +3,24 @@ require("dotnet")
 -- load module
 dotnet_load("GmodUltralight")
 -- create view
+
+csprint = csprint || print
+
+csprint("Creating View")
+
 view = view || Ultralight.CreateView(512,512,true)
-print(view)
+
+csprint(view)
+
+csprint("set URL")
 view.LoadURL("https://github.com")
 
+csprint("Loading URL")
 view.UpdateUntilLoads(view)
 
-print("UL: Tests ended")
+csprint("Tests ended")
 
+csprint("Closing Server")
 engine.CloseServer()
 
 --Ultralight.View_SV_DrawDirty(view)

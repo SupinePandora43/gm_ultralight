@@ -204,7 +204,11 @@ namespace GmodUltralight
                 }*/
             return 0;
         }
-
+        int csprint(ILua lua)
+        {
+            Console.WriteLine(lua.GetString(1));
+            return 0;
+        }
         public void Load(ILua lua, bool is_serverside, ModuleAssemblyLoadContext assembly_context)
         {
             /*assembly_context.SetCustomNativeLibraryResolver((context, name) =>
@@ -239,7 +243,9 @@ namespace GmodUltralight
             lua.PushManagedFunction(UltralightView_SV_DrawSingle);
             lua.SetField(-2, "View_SV_DrawSingle");
 
+
             lua.Pop();
+
 
 
             lua.PushSpecial(SPECIAL_TABLES.SPECIAL_GLOB);
@@ -249,6 +255,8 @@ namespace GmodUltralight
             lua.MCall(1, 0);
             lua.Pop();
 
+
+
             lua.PushSpecial(SPECIAL_TABLES.SPECIAL_GLOB);
             lua.CreateTable();
 
@@ -256,10 +264,16 @@ namespace GmodUltralight
             LoadShared(lua);
 
             lua.SetField(-2, "Ultralight");
+
+            lua.PushManagedFunction(csprint);
+            lua.SetField(-2, "csprint");
+
             lua.Pop();
         }
         public void Unload(ILua lua)
         {
+            Console.WriteLine("UL: Unloading me");
+
             views = null;
             renderer.Dispose();
             renderer = null;

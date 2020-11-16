@@ -51,13 +51,13 @@ namespace GmodUltralight
         }
         int ulView_meta__gc(ILua lua)
         {
-            View_Type viewType = (View_Type)GCHandle.FromIntPtr(lua.GetUserType(1, View_TypeId)).Target;
-            lua.PushSpecial(SPECIAL_TABLES.SPECIAL_GLOB);
-            lua.GetField(-1, "print");
-            lua.PushString("wow, almost gotcha it");
-            lua.MCall(1, 0);
-            lua.Pop();
-            //views.Remove(viewType.id);
+            GCHandle gchandle = GCHandle.FromIntPtr(lua.GetUserType(1, View_TypeId));
+            View_Type viewType = (View_Type)gchandle.Target;
+
+            views.Remove(viewType.id);
+            Console.WriteLine($"UL: view {viewType.id} is garbage collected");
+            gchandle.Free();
+
             return 0;
         }
         int UltralightView_GetPixel(ILua lua)
@@ -111,7 +111,7 @@ namespace GmodUltralight
             View view = views[viewID];
             string url = lua.GetString(2);
             view.LoadUrl(url);
-
+            Console.WriteLine($"UL: ({viewType.id}).LoadURL({url})");
             return 0;
         }
         int UltralightView_LoadHTML(ILua lua)
