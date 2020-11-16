@@ -53,8 +53,8 @@ jobs:
        rm -rfv steamcmd_linux.tar.gz
        ./steamcmd.sh +login anonymous +force_install_dir gmod "+app_update 4020 -beta x86-64 validate" +quit
     - run: dotnet publish GmodUltralight/GmodUltralight.csproj --configuration Debug --framework net5.0 -o ./gmod/garrysmod/lua/bin/Modules/GmodUltralight
-    - run: cp GmodUltralight/test.lua gmod/garrysmod/lua/autorun/server
+    - run: cp GmodUltralight/test.lua ./gmod/garrysmod/lua/autorun/server
     - name: Run Garry's Mod
-      run: ./srcds_run_x64 -systemtest -game garrysmod +sv_hibernate_think 1 +exec server.cfg +gamemode sandbox +map gm_construct +maxplayers 16
+      run: ./srcds_run_x64 -systemtest -game garrysmod +sv_hibernate_think 1 +gamemode sandbox +maxplayers 16 +map gm_construct +echo hi
       working-directory: ./gmod/
-      timeout-minutes: 5
+      timeout-minutes: 2
