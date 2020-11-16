@@ -14,7 +14,7 @@ print(tostring(view))
 csprint(tostring(view))
 
 csprint("set URL")
-view.LoadURL("https://github.com")
+view:LoadURL("https://github.com")
 --[[
 csprint("Loading URL")
 view.UpdateUntilLoads(view)]]
