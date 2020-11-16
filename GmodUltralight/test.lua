@@ -10,13 +10,12 @@ csprint("Creating View")
 
 view = view || Ultralight.CreateView(512,512,true)
 
-print(view)
-
+print(tostring(view))
 csprint(tostring(view))
 
--[[csprint("set URL")
+csprint("set URL")
 view.LoadURL("https://github.com")
-
+--[[
 csprint("Loading URL")
 view.UpdateUntilLoads(view)]]
 

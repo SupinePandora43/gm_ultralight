@@ -43,6 +43,7 @@ namespace GmodUltralight
 
             return 1;
         }
+
         int ulView_meta__tostring(ILua lua)
         {
             View_Type viewType = (View_Type)GCHandle.FromIntPtr(lua.GetUserType(1, View_TypeId)).Target;
@@ -65,6 +66,20 @@ namespace GmodUltralight
             gchandle.Free();
 
             return 0;
+        }
+        int ulView_meta__index(ILua lua)
+        {
+            string func = lua.GetString(2);
+            Console.WriteLine(func);
+            if (func == "LoadURL")
+            {
+                lua.PushManagedFunction(UltralightView_LoadURL);
+            }
+            else
+            {
+                lua.PushNil();
+            }
+            return 1;
         }
         int UltralightView_GetPixel(ILua lua)
         {
@@ -163,10 +178,13 @@ namespace GmodUltralight
         }
         public void Load_View_Shared(ILua lua)
         {
+            lua.PushManagedFunction(ulView_meta__index);
+            lua.SetField(-2, "__index");
+
             lua.PushManagedFunction(ulView_meta__tostring);
             lua.SetField(-2, "__tostring");
             
-            lua.PushManagedFunction(ulView_meta__gc);
+            /*lua.PushManagedFunction(ulView_meta__gc);
             lua.SetField(-2, "__gc");
 
             lua.PushManagedFunction(UltralightView_LoadURL);
@@ -182,7 +200,7 @@ namespace GmodUltralight
             lua.SetField(-2, "EvaluateScript");
 
             lua.PushManagedFunction(UltralightView_GetPixel);
-            lua.SetField(-2, "GetPixel");
+            lua.SetField(-2, "GetPixel");*/
         }
         [UnmanagedCallersOnly(CallConvs = new Type[] { typeof(CallConvCdecl) })]
         static int unloaded_ulView_meta__gc(IntPtr lua_state)
