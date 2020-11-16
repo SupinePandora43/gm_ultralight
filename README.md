@@ -1,7 +1,7 @@
 # gm_ultralight ![.NET Core](https://github.com/SupinePandora43/gm_ultralight/workflows/.NET%20Core/badge.svg)
 
 [Ultralight](https://github.com/ultralight-ux/Ultralight) gmod integration
-
+uses [Gmod.Net](https://github.com/GmodNET/GmodDotNet/) (why? for easier development :D)
 # WIP
 
 * Crashes on 2nd load - FIX in ultralight 1.3 (IPC)
