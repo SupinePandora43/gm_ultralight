@@ -9,6 +9,10 @@ view.LoadURL("https://github.com")
 
 view.UpdateUntilLoads(view)
 
+print("UL: Tests ended")
+
+engine.CloseServer()
+
 --Ultralight.View_SV_DrawDirty(view)
 
 -- CLIENT
