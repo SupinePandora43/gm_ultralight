@@ -226,6 +226,10 @@ namespace GmodUltralight
                                 lua.PushNumber(a);
                         }
                     }
+                    catch(Exception e)
+                    {
+                        Console.WriteLine(e);
+                    }
                     finally
                     {
                         bitmap.UnlockPixels();
