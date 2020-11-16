@@ -50,6 +50,11 @@ namespace GmodUltralight
             lua.PushString(viewID);
             return 1;
         }
+        /// <summary>
+        /// Called after lua's "collectgarbage"
+        /// </summary>
+        /// <param name="lua"></param>
+        /// <returns></returns>
         int ulView_meta__gc(ILua lua)
         {
             GCHandle gchandle = GCHandle.FromIntPtr(lua.GetUserType(1, View_TypeId));
