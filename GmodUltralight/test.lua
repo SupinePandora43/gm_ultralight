@@ -4,7 +4,7 @@ require("dotnet")
 dotnet_load("GmodUltralight")
 -- create view
 
-print = csprint
+print = function(idk) csprint(tostring(idk)) end
 
 csprint("Creating View")
 
