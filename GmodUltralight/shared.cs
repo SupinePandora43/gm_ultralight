@@ -92,9 +92,12 @@ namespace GmodUltralight
 
         int ulView_meta__index(ILua lua)
         {
+            // lets see what throws an exception :D
+            GCHandle gchandle = GCHandle.FromIntPtr(lua.GetUserType(1, View_TypeId));
+            string id = (string)gchandle.Target;
             string name = lua.GetString(2);
-            Console.WriteLine($"UL: trying to index {name}");
-
+            Console.WriteLine($"UL ({id}): trying to index {name}");
+            // Q: maybe use __gc instead of Delete()? and then manually get it?
             if (name == "Dispose")
             {
                 lua.PushManagedFunction((lua) =>
@@ -104,7 +107,6 @@ namespace GmodUltralight
                     // it will call view's Dispose()
                     views.Remove(id);
                     gchandle.Free();
-                    //TODO: set self to nil
                     return 0;
                 });
             }
