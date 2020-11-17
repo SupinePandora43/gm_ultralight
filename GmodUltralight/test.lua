@@ -23,10 +23,8 @@ csprint(tostring(loaded))
 csprint("Render")
 Ultralight.Render()
 
-PrintTable(Ultralight)
-
 csprint("GetPixel")
-local a,r,g,b = view:GetPixel(0,0,Ultralight.ImageFormat.RGBA8888)
+local a,r,g,b = view:GetPixel(0,0)
 csprint(tostring(a))
 csprint(tostring(r))
 csprint(tostring(g))
