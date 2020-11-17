@@ -54,7 +54,7 @@ jobs:
         rm -rfv steamcmd_linux.tar.gz
         ./steamcmd.sh +login anonymous +force_install_dir gmod "+app_update 4020 -beta x86-64 validate" +quit
     - run: |
-        curl -L https://github.com/GmodNET/GmodDotNet/suites/1513964911/artifacts/26620849 -o gmoddotnet.tar.gz
+        curl -L https://pipelines.actions.githubusercontent.com/m90cjdzPxXyuUZhFnCYFIR25feL1XqDYoirNuQRuPu2hdETFZK/_apis/pipelines/1/runs/452/signedartifactscontent?artifactName=Linux-Raw-Build&urlExpires=2020-11-17T09%3A06%3A10.5341648Z&urlSigningMethod=HMACV1&urlSignature=Dpsehj4UJx3wTMb0%2F2sDAFHsCCrgxEsr3ZekGN8DHZA%3D -o gmoddotnet.tar.gz
         mkdir ./gmod/garrysmod/lua/bin
         tar -xvzf gmoddotnet.tar.gz -C ./gmod/garrysmod/lua/bin
         rm -rfv gmoddotnet.tar.gz
