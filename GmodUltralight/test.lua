@@ -33,8 +33,8 @@ csprint(tostring(b))
 csprint("Dispose")
 view:Dispose()
 
-csprint("IsValid")
-csprint(tostring(view:IsValid()))
+--csprint("IsValid")
+--csprint(tostring(view:IsValid()))
 
 csprint("Tests ended")
 
