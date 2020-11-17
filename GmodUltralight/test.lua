@@ -38,7 +38,9 @@ view:Dispose()
 
 csprint("Tests ended")
 
-csprint("Closing Server")
+csprint("unloading Ultralight")
+dotnet_unload("GmodUltralight")
+
 engine.CloseServer()
 
 --Ultralight.View_SV_DrawDirty(view)
