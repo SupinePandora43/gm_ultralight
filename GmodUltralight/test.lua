@@ -1,7 +1,7 @@
 ﻿--load gmod.net
 require("dotnet")
 -- load module
-dotnet_load("GmodUltralight")
+--[[dotnet_load("GmodUltralight")
 -- create view
 
 print = function(idk) csprint(tostring(idk)) end
@@ -41,7 +41,7 @@ collectgarbage()
 csprint("Tests ended")
 
 csprint("unloading Ultralight")
-dotnet_unload("GmodUltralight")
+dotnet_unload("GmodUltralight")]]
 
 engine.CloseServer()
 
