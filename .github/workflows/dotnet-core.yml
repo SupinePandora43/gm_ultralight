@@ -36,6 +36,7 @@ jobs:
       with:
         name: GmodUltralight ${{matrix.os}} ${{matrix.configuration}}
         path: "GmodUltralight/bin/${{matrix.configuration}}/net5.0/${{matrix.platformIdentifier}}/publish/*"
+        retention-days: 10
   test:
     runs-on: ubuntu-latest
     #needs: build
