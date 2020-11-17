@@ -31,7 +31,9 @@ csprint(tostring(g))
 csprint(tostring(b))
 
 csprint("Dispose")
-view:Dispose()
+--view:Dispose()
+view = null
+collectgarbage()
 
 --csprint("IsValid")
 --csprint(tostring(view:IsValid()))
