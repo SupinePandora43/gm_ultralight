@@ -213,7 +213,7 @@ namespace GmodUltralight
             };
             Config cfg = new Config();
             cfg.SetUseGpuRenderer(false);           // we're using cpu renderer, because idk how to write gpu driver with output to uint8_t*
-            cfg.SetResourcePath("./resources/");    // where cacert.pem is
+            cfg.SetResourcePath("./garrysmod/lua/bin/Modules/GmodUltralight/resources/"); // where cacert.pem is
             //AppCore.EnableDefaultLogger("./");
             AppCore.EnablePlatformFileSystem("./"); // AppCore's GetPlatformFileSystem()
             AppCore.EnablePlatformFontLoader();     // AppCore's GetPlatformFontLoader()
