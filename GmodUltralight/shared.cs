@@ -97,130 +97,145 @@ namespace GmodUltralight
             string id = (string)gchandle.Target;
             string name = lua.GetString(2);
             Console.WriteLine($"UL ({id}): trying to index {name}");
-            // Q: maybe use __gc instead of Delete()? and then manually get it?
-            if (name == "Dispose")
+            switch (name)
             {
-                lua.PushManagedFunction((lua) =>
-                {
-                    GCHandle gchandle = GCHandle.FromIntPtr(lua.GetUserType(1, View_TypeId));
-                    string id = (string)gchandle.Target;
+                case "Dispose":
+                    {
+                        lua.PushManagedFunction((lua) =>
+                        {
+                            GCHandle gchandle = GCHandle.FromIntPtr(lua.GetUserType(1, View_TypeId));
+                            string id = (string)gchandle.Target;
                     // it will call view's Dispose()
                     views.Remove(id);
-                    gchandle.Free();
-                    return 0;
-                });
-            }
-            else if (name == "IsValid")
-            {
-                lua.PushManagedFunction((lua) =>
-                {
-                    string id = (string)GCHandle.FromIntPtr(lua.GetUserType(1, View_TypeId)).Target;
-                    lua.PushBool(views.ContainsKey(id));
-                    return 1;
-                });
-            }
-            else if (name == "LoadURL")
-            {
-                lua.PushManagedFunction((lua) =>
-                {
-                    string viewID = (string)GCHandle.FromIntPtr(lua.GetUserType(1, View_TypeId)).Target;
-                    View view = views[viewID];
-                    string url = lua.GetString(2);
-                    view.LoadUrl(url);
-                    Console.WriteLine($"UL: ({viewID}).LoadURL({url})");
-                    return 0;
-                });
-            }
-            else if (name == "LoadHTML")
-            {
-                lua.PushManagedFunction((lua) =>
-                {
-                    string viewID = (string)GCHandle.FromIntPtr(lua.GetUserType(1, View_TypeId)).Target;
-                    View view = views[viewID];
-                    string html = lua.GetString(2);
-                    view.LoadHtml(html);
-                    return 0;
-                });
-            }
-            else if (name == "UpdateUntilLoads")
-            {
-                lua.PushManagedFunction((lua) =>
-                {
-                    string viewID = (string)GCHandle.FromIntPtr(lua.GetUserType(1, View_TypeId)).Target;
-                    View view = views[viewID];
+                            gchandle.Free();
+                            return 0;
+                        });
+                        break;
+                    }
 
-                    bool loaded = false;
-                    void finishcallback(IntPtr data, View caller, ulong frameId, bool isMainFrame, string url)
+                case "IsValid":
                     {
-                        loaded = true;
-                    }
-                    view.SetFinishLoadingCallback(finishcallback, default);
-                    uint timeout = 0;
-                    while (!loaded && timeout < 1000000)
-                    {
-                        renderer.Update();
-                        timeout++;
-                        Thread.Sleep(10);
-                    }
-                    lua.PushBool(loaded);
-                    return 1;
-                });
-            }
-            else if (name == "EvaluateScript")
-            {
-                lua.PushManagedFunction((lua) =>
-                {
-                    string viewID = (string)GCHandle.FromIntPtr(lua.GetUserType(1, View_TypeId)).Target;
-                    View view = views[viewID];
-                    lua.PushString(view.EvaluateScript(lua.GetString(2)));
-                    return 1;
-                });
-            }
-            else if (name == "GetPixel")
-            {
-                lua.PushManagedFunction((lua) =>
-                {
-                    string viewID = (string)GCHandle.FromIntPtr(lua.GetUserType(1, View_TypeId)).Target;
-                    View view = views[viewID];
-                    uint x = (uint)lua.GetNumber(2);
-                    uint y = (uint)lua.GetNumber(3);
-                    bool a_first = lua.GetBool(4);
-                    Bitmap bitmap = view.GetSurface().GetBitmap();
-                    try
-                    {
-                        unsafe
+                        lua.PushManagedFunction((lua) =>
                         {
-                            byte* pixels = (byte*)bitmap.LockPixels();
-                            long index = y * bitmap.GetRowBytes();
-                            index += x * 4;
-                            byte a = pixels[index + 3];
-                            byte r = pixels[index + 2];
-                            byte g = pixels[index + 1];
-                            byte b = pixels[index];
-
-                            if (a_first) lua.PushNumber(a);
-
-                            lua.PushNumber(r);
-                            lua.PushNumber(g);
-                            lua.PushNumber(b);
-
-                            if (!a_first) lua.PushNumber(a);
-                        }
+                            string id = (string)GCHandle.FromIntPtr(lua.GetUserType(1, View_TypeId)).Target;
+                            lua.PushBool(views.ContainsKey(id));
+                            return 1;
+                        });
+                        break;
                     }
-                    catch (Exception e)
+
+                case "LoadURL":
                     {
-                        Console.WriteLine(e);
+                        lua.PushManagedFunction((lua) =>
+                        {
+                            string viewID = (string)GCHandle.FromIntPtr(lua.GetUserType(1, View_TypeId)).Target;
+                            View view = views[viewID];
+                            string url = lua.GetString(2);
+                            view.LoadUrl(url);
+                            Console.WriteLine($"UL: ({viewID}).LoadURL({url})");
+                            return 0;
+                        });
+                        break;
                     }
-                    finally
+
+                case "LoadHTML":
                     {
-                        bitmap.UnlockPixels();
+                        lua.PushManagedFunction((lua) =>
+                        {
+                            string viewID = (string)GCHandle.FromIntPtr(lua.GetUserType(1, View_TypeId)).Target;
+                            View view = views[viewID];
+                            string html = lua.GetString(2);
+                            view.LoadHtml(html);
+                            return 0;
+                        });
+                        break;
                     }
-                    return 4;
-                });
-            }
-            else
-            {
-                lua.PushNil();
+
+                case "UpdateUntilLoads":
+                    {
+                        lua.PushManagedFunction((lua) =>
+                        {
+                            string viewID = (string)GCHandle.FromIntPtr(lua.GetUserType(1, View_TypeId)).Target;
+                            View view = views[viewID];
+
+                            bool loaded = false;
+                            void finishcallback(IntPtr data, View caller, ulong frameId, bool isMainFrame, string url)
+                            {
+                                loaded = true;
+                            }
+                            view.SetFinishLoadingCallback(finishcallback, default);
+                            uint timeout = 0;
+                            while (!loaded && timeout < 1000000)
+                            {
+                                renderer.Update();
+                                timeout++;
+                                Thread.Sleep(10);
+                            }
+                            lua.PushBool(loaded);
+                            return 1;
+                        });
+                        break;
+                    }
+
+                case "EvaluateScript":
+                    {
+                        lua.PushManagedFunction((lua) =>
+                        {
+                            string viewID = (string)GCHandle.FromIntPtr(lua.GetUserType(1, View_TypeId)).Target;
+                            View view = views[viewID];
+                            lua.PushString(view.EvaluateScript(lua.GetString(2)));
+                            return 1;
+                        });
+                        break;
+                    }
+
+                case "GetPixel":
+                    {
+                        lua.PushManagedFunction((lua) =>
+                        {
+                            string viewID = (string)GCHandle.FromIntPtr(lua.GetUserType(1, View_TypeId)).Target;
+                            View view = views[viewID];
+                            uint x = (uint)lua.GetNumber(2);
+                            uint y = (uint)lua.GetNumber(3);
+                            bool a_first = lua.GetBool(4);
+                            Bitmap bitmap = view.GetSurface().GetBitmap();
+                            try
+                            {
+                                unsafe
+                                {
+                                    byte* pixels = (byte*)bitmap.LockPixels();
+                                    long index = y * bitmap.GetRowBytes();
+                                    index += x * 4;
+                                    byte a = pixels[index + 3];
+                                    byte r = pixels[index + 2];
+                                    byte g = pixels[index + 1];
+                                    byte b = pixels[index];
+
+                                    if (a_first) lua.PushNumber(a);
+
+                                    lua.PushNumber(r);
+                                    lua.PushNumber(g);
+                                    lua.PushNumber(b);
+
+                                    if (!a_first) lua.PushNumber(a);
+                                }
+                            }
+                            catch (Exception e)
+                            {
+                                Console.WriteLine(e);
+                            }
+                            finally
+                            {
+                                bitmap.UnlockPixels();
+                            }
+                            return 4;
+                        });
+                        break;
+                    }
+
+                default:
+                    lua.PushNil();
+                    break;
             }
             return 1;
         }
