@@ -6,6 +6,7 @@ using System.Collections.Generic;
 using ImpromptuNinjas.UltralightSharp.Enums;
 using System.Diagnostics;
 using System.Runtime.InteropServices;
+using System.Text;
 
 namespace GmodUltralight
 {
@@ -198,13 +199,34 @@ namespace GmodUltralight
             Console.WriteLine(lua.GetString(1));
             return 0;
         }
+        static class Tier0
+        {
+            [DllImport("tier0", CallingConvention = CallingConvention.Cdecl)]
+            public static extern void Msg([MarshalAs(UnmanagedType.LPStr)] string msg);
+        }
+        // @GlebChili pls merge my pr :c
+        public class GameWriter : TextWriter
+        {
+            public override Encoding Encoding => throw new NotImplementedException();
+            private static GameWriter instance;
+            public override string NewLine { get => "\n"; }
+            public override void Write(string value)
+            {
+                Tier0.Msg(value);
+            }
+            public static void Load()
+            {
+                instance = new GameWriter();
+                Console.SetOut(instance);
+            }
+            public static void Unload()
+            {
+                instance = null;
+            }
+        }
         public void Load(ILua lua, bool is_serverside, ModuleAssemblyLoadContext assembly_context)
         {
-            /*assembly_context.SetCustomNativeLibraryResolver((context, name) =>
-            {
-                return NativeLibrary.Load(Path.GetFullPath("./garrysmod/lua/bin/Modules/GmodUltralight/runtimes/win-x64/native/" + name));
-            });*/
-            //Ultralight.SetLogger(new Logger { LogMessage = (logLevel, msg) => Console.WriteLine($"{logLevel.ToString()}: {msg}") });
+            GameWriter.Load();
             // TODO: really? LogMessage = LoggerCallback
             cb = LoggerCallback;
             logger = new Logger
@@ -261,6 +283,8 @@ namespace GmodUltralight
             renderer.Dispose();
             renderer = null;
             cb = null;
+
+            GameWriter.Unload();
         }
     }
 }
