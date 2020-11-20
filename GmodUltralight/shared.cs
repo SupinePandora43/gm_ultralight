@@ -105,14 +105,13 @@ namespace GmodUltralight
                         {
                             GCHandle gchandle = GCHandle.FromIntPtr(lua.GetUserType(1, View_TypeId));
                             string id = (string)gchandle.Target;
-                    // it will call view's Dispose()
-                    views.Remove(id);
+                            // it will call view's Dispose()
+                            views.Remove(id);
                             gchandle.Free();
                             return 0;
                         });
                         break;
                     }
-
                 case "IsValid":
                     {
                         lua.PushManagedFunction((lua) =>
@@ -123,7 +122,6 @@ namespace GmodUltralight
                         });
                         break;
                     }
-
                 case "LoadURL":
                     {
                         lua.PushManagedFunction((lua) =>
@@ -137,7 +135,6 @@ namespace GmodUltralight
                         });
                         break;
                     }
-
                 case "LoadHTML":
                     {
                         lua.PushManagedFunction((lua) =>
@@ -150,7 +147,6 @@ namespace GmodUltralight
                         });
                         break;
                     }
-
                 case "UpdateUntilLoads":
                     {
                         lua.PushManagedFunction((lua) =>
@@ -165,7 +161,7 @@ namespace GmodUltralight
                             }
                             view.SetFinishLoadingCallback(finishcallback, default);
                             uint timeout = 0;
-                            while (!loaded && timeout < 1000000)
+                            while (!loaded && timeout < 10000)
                             {
                                 renderer.Update();
                                 timeout++;
@@ -176,7 +172,6 @@ namespace GmodUltralight
                         });
                         break;
                     }
-
                 case "EvaluateScript":
                     {
                         lua.PushManagedFunction((lua) =>
@@ -188,7 +183,6 @@ namespace GmodUltralight
                         });
                         break;
                     }
-
                 case "GetPixel":
                     {
                         lua.PushManagedFunction((lua) =>
@@ -232,7 +226,22 @@ namespace GmodUltralight
                         });
                         break;
                     }
-
+                case "Bake":
+                    lua.PushManagedFunction((lua) =>
+                    {
+                        string viewID = (string)GCHandle.FromIntPtr(lua.GetUserType(1, View_TypeId)).Target;
+                        View view = views[viewID];
+                        string nameForSave = lua.GetString(2);
+                        view.GetSurface().GetBitmap().WritePng($"./garrysmod/materials/ultralight/{nameForSave}.png");
+                        lua.PushSpecial(SPECIAL_TABLES.SPECIAL_GLOB);
+                        lua.GetField(-1, "resource");
+                        lua.GetField(-1, "AddSingleFile");
+                        lua.PushString($"materials/ultralight/{nameForSave}.png");
+                        lua.MCall(1, 0);
+                        lua.Pop();
+                        return 0;
+                    });
+                    break;
                 default:
                     lua.PushNil();
                     break;
