@@ -1,0 +1,86 @@
+name: .NET Core
+
+on:
+  push:
+    branches: [ sharp ]
+  pull_request:
+    branches: [ sharp ]
+
+jobs:
+  linux:
+    runs-on: ubuntu-latest
+    #needs: build
+    steps:
+    - uses: actions/checkout@v2
+    - name: Setup .NET Core
+      uses: actions/setup-dotnet@v1
+      with:
+        dotnet-version: 5.0.100
+
+    - name: Install dependencies
+      run: dotnet restore GmodUltralight/GmodUltralight.csproj
+
+    - name: Install Steam and Garry's Mod Dedicated Server
+      run: |
+        wget https://steamcdn-a.akamaihd.net/client/installer/steamcmd_linux.tar.gz
+        tar -xvzf steamcmd_linux.tar.gz
+        rm -rfv steamcmd_linux.tar.gz
+        ./steamcmd.sh +login anonymous +force_install_dir gmod "+app_update 4020 -beta x86-64 validate" +quit
+    
+    - name: Install GmodDotNet
+      run: |
+        wget https://gleb-krasilich.fra1.digitaloceanspaces.com/GmodNETStorage/storage/gmod-dot-net-linux.0.7.0-alpha.2.27925152.new-load-model.tar.gz -O gmoddotnet.tar.gz
+        mkdir ./gmod/garrysmod/lua/bin
+        tar -xvzf gmoddotnet.tar.gz -C ./gmod/garrysmod/lua/bin
+        rm -rfv gmoddotnet.tar.gz
+      
+    - name: Build GmodUltralight.csproj
+      run: dotnet publish GmodUltralight/GmodUltralight.csproj --configuration Debug --framework net5.0 -o ./gmod/garrysmod/lua/bin/Modules/GmodUltralight
+
+    - name: Copy test.lua
+      run: cp GmodUltralight/test.lua ./gmod/garrysmod/lua/autorun/server
+
+    - name: Run Garry's Mod
+      run: ./srcds_run_x64 -game garrysmod -systemtest +sv_hibernate_think 1 || true
+      working-directory: ./gmod/
+      timeout-minutes: 5
+  windows-build:
+
+   runs-on: windows-latest
+
+   steps:
+     - uses: actions/checkout@v2.0.0
+
+     - name: Setup .NET Core SDK
+       uses: actions/setup-dotnet@v1.4.0
+       with:
+         dotnet-version: 5.0.100
+
+     - name: Install dependencies
+       run: dotnet restore GmodUltralight/GmodUltralight.csproj
+
+     - name: Download Steam and Garry's Mod Dedicated Server
+       shell: bash
+       run: |
+            curl https://steamcdn-a.akamaihd.net/client/installer/steamcmd.zip -O -L
+            powershell -Command 'Expand-Archive -LiteralPath ./steamcmd.zip -DestinationPath ./'
+            ./steamcmd.exe +login anonymous +force_install_dir gmod "+app_update 4020 -beta x86-64 validate" +quit || true
+     
+     - name: Install GmodDotNet
+       run: |
+         wget https://gleb-krasilich.fra1.digitaloceanspaces.com/GmodNETStorage/storage/gmod-dot-net-windows.0.7.0-alpha.2.27925152.new-load-model.zip -O gmoddotnet.zip
+         mkdir ./gmod/garrysmod/lua/bin
+         tar -xvzf gmoddotnet.zip -C ./gmod/garrysmod/lua/bin
+         rm -rfv gmoddotnet.zip
+
+     - name: Build GmodUltralight.csproj
+       run: dotnet publish GmodUltralight/GmodUltralight.csproj --configuration Debug --framework net5.0 -o ./gmod/garrysmod/lua/bin/Modules/GmodUltralight
+
+     - name: Copy test.lua
+       run: cp GmodUltralight/test.lua ./gmod/garrysmod/lua/autorun/server
+
+     - name: Run Garry's Mod
+       shell: bash
+       run: |
+            powershell -Command './gmod/srcds_win64.exe -console -systemtest -game "garrysmod" +exec "server.cfg" +gamemode sandbox +map gm_construct +maxplayers 16 +sv_hibernate_think 1'
+            sleep 15
