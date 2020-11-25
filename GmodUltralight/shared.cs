@@ -1,6 +1,7 @@
 ﻿using GmodNET.API;
 using ImpromptuNinjas.UltralightSharp.Safe;
 using System;
+using System.IO;
 using System.Runtime.CompilerServices;
 using System.Runtime.InteropServices;
 using System.Threading;
@@ -232,6 +233,9 @@ namespace GmodUltralight
                         string viewID = (string)GCHandle.FromIntPtr(lua.GetUserType(1, View_TypeId)).Target;
                         View view = views[viewID];
                         string nameForSave = lua.GetString(2);
+
+                        Directory.CreateDirectory("./garrysmod/materials/ultralight");
+
                         view.GetSurface().GetBitmap().WritePng($"./garrysmod/materials/ultralight/{nameForSave}.png");
                         lua.PushSpecial(SPECIAL_TABLES.SPECIAL_GLOB);
                         lua.GetField(-1, "resource");
