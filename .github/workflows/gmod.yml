@@ -71,7 +71,7 @@ jobs:
          curl https://gleb-krasilich.fra1.digitaloceanspaces.com/GmodNETStorage/storage/gmod-dot-net-windows.0.7.0-beta.1.28822248.master.zip -O -L -o gmoddotnet.zip
          mkdir ./gmod/garrysmod/lua/bin
          tar -xvzf gmoddotnet.zip -C ./gmod/garrysmod/lua/bin
-         rm -rfv gmoddotnet.zip
+         rm gmoddotnet.zip
 
      - name: Build GmodUltralight.csproj
        run: dotnet publish GmodUltralight/GmodUltralight.csproj --configuration Debug --framework net5.0 -o ./gmod/garrysmod/lua/bin/Modules/GmodUltralight
