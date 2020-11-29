@@ -67,11 +67,11 @@ jobs:
             ./steamcmd.exe +login anonymous +force_install_dir gmod "+app_update 4020 -beta x86-64 validate" +quit || true
      
      - name: Install GmodDotNet
+       shell: bash
        run: |
          curl https://gleb-krasilich.fra1.digitaloceanspaces.com/GmodNETStorage/storage/gmod-dot-net-windows.0.7.0-beta.1.28822248.master.zip -O -L -o gmoddotnet.zip
          mkdir ./gmod/garrysmod/lua/bin
-         tar -xvzf gmoddotnet.zip -C ./gmod/garrysmod/lua/bin
-         rm gmoddotnet.zip
+         powershell -Command 'Expand-Archive -LiteralPath ./gmoddotnet.zip -DestinationPath ./gmod/garrysmod/lua/bin'
 
      - name: Build GmodUltralight.csproj
        run: dotnet publish GmodUltralight/GmodUltralight.csproj --configuration Debug --framework net5.0 -o ./gmod/garrysmod/lua/bin/Modules/GmodUltralight
