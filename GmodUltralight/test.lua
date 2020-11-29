@@ -30,6 +30,9 @@ csprint(tostring(r))
 csprint(tostring(g))
 csprint(tostring(b))
 
+csprint("Bake")
+view:Bake();
+
 csprint("Dispose")
 --view:Dispose()
 view = null

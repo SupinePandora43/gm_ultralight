@@ -235,8 +235,16 @@ namespace GmodUltralight
                         string nameForSave = lua.GetString(2);
 
                         Directory.CreateDirectory("./garrysmod/materials/ultralight");
-
-                        view.GetSurface().GetBitmap().WritePng($"./garrysmod/materials/ultralight/{nameForSave}.png");
+                        Bitmap bitmap = view.GetSurface().GetBitmap();
+                        bitmap.SwapRedBlueChannels();
+                        try
+                        {
+                            bitmap.WritePng($"./garrysmod/materials/ultralight/{nameForSave}.png");
+                        }
+                        finally
+                        {
+                            bitmap.SwapRedBlueChannels();
+                        }
                         lua.PushSpecial(SPECIAL_TABLES.SPECIAL_GLOB);
                         lua.GetField(-1, "resource");
                         lua.GetField(-1, "AddSingleFile");
