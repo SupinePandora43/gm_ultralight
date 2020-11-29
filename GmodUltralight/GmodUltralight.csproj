@@ -39,7 +39,7 @@
 	  <Content Remove="C:\Users\Дом\.nuget\packages\impromptuninjas.ultralightsharp\1.2.0-beta-r11\contentFiles\any\net5.0\UltralightNotices.txt" />
 	</ItemGroup>
 	<ItemGroup>
-		<PackageReference Include="GmodNET.API" Version="[0.7.0-alpha.2.27925152.new-load-model]" />
+		<PackageReference Include="GmodNET.API" Version="[0.7.0-beta.1.28822248.master]" />
 		<PackageReference Include="ImpromptuNinjas.UltralightSharp" Version="1.2.0-beta-r11" />
 		<PackageReference Include="Newtonsoft.Json" Version="12.0.3" />
 	</ItemGroup>
