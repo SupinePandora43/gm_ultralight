@@ -28,9 +28,9 @@ jobs:
       with:
         dotnet-version: 5.0.100
     - name: Install dependencies
-      run: dotnet restore GmodUltralight/GmodUltralight.sln
+      run: dotnet restore GmodUltralight.sln
     - name: Build
-      run: dotnet publish GmodUltralight/GmodUltralight.sln --configuration ${{matrix.configuration}} --framework net5.0
+      run: dotnet publish GmodUltralight.sln --configuration ${{matrix.configuration}} --framework net5.0
     - name: Upload a Build Artifact
       uses: actions/upload-artifact@v2.2.1
       with:
