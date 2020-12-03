@@ -23,7 +23,7 @@ namespace GmodUltralight
         static int View_TypeId;
         private static void LOG(string msg)
         {
-            StreamWriter writer = new StreamWriter("./fslogcs.txt", true);
+            StreamWriter writer = new("./fslogcs.txt", true);
             writer.WriteLine(msg);
             writer.Close();
             Console.WriteLine(msg);
@@ -194,15 +194,10 @@ namespace GmodUltralight
                 }*/
             return 0;
         }
-        int csprint(ILua lua)
+        int Csprint(ILua lua)
         {
             Console.WriteLine(lua.GetString(1));
             return 0;
-        }
-        static class Tier0
-        {
-            [DllImport("tier0", CallingConvention = CallingConvention.Cdecl)]
-            public static extern void Msg([MarshalAs(UnmanagedType.LPStr)] string msg);
         }
         public void Load(ILua lua, bool is_serverside, ModuleAssemblyLoadContext assembly_context)
         {
@@ -245,7 +240,7 @@ namespace GmodUltralight
 
             lua.SetField(-2, "Ultralight");
 
-            lua.PushManagedFunction(csprint);
+            lua.PushManagedFunction(Csprint);
             lua.SetField(-2, "csprint");
 
             lua.Pop();

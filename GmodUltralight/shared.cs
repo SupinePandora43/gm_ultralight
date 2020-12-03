@@ -30,7 +30,7 @@ namespace GmodUltralight
 
             if (!views.ContainsKey(viewID))
             {
-                View view = new View(renderer, width, height, transparent, renderer.GetDefaultSession());
+                View view = new(renderer, width, height, transparent, renderer.GetDefaultSession());
                 Console.WriteLine("UL: Created View");
                 views.Add(viewID, view);
                 //IntPtr p = Marshal.AllocHGlobal(Marshal.SizeOf(result));
