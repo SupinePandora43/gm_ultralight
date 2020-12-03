@@ -12,7 +12,7 @@ namespace GmodUltralight
 {
     public partial class GmodUltralight : GmodNET.API.IModule
     {
-        public string ModuleName => "GmodUltralight";
+        public string ModuleName => "Ultralight";
         public string ModuleVersion => "0.1.1";
 
         LoggerLogMessageCallback cb;
@@ -204,29 +204,8 @@ namespace GmodUltralight
             [DllImport("tier0", CallingConvention = CallingConvention.Cdecl)]
             public static extern void Msg([MarshalAs(UnmanagedType.LPStr)] string msg);
         }
-        // @GlebChili pls merge my pr :c
-        public class GameWriter : TextWriter
-        {
-            public override Encoding Encoding => throw new NotImplementedException();
-            private static GameWriter instance;
-            public override string NewLine { get => "\n"; }
-            public override void Write(string value)
-            {
-                Tier0.Msg(value);
-            }
-            public static void Load()
-            {
-                instance = new GameWriter();
-                Console.SetOut(instance);
-            }
-            public static void Unload()
-            {
-                instance = null;
-            }
-        }
         public void Load(ILua lua, bool is_serverside, ModuleAssemblyLoadContext assembly_context)
         {
-            GameWriter.Load();
             // TODO: really? LogMessage = LoggerCallback
             cb = LoggerCallback;
             logger = new Logger
@@ -283,8 +262,6 @@ namespace GmodUltralight
             renderer.Dispose();
             renderer = null;
             cb = null;
-
-            GameWriter.Unload();
         }
     }
 }
