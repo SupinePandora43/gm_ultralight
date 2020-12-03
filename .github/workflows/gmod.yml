@@ -29,7 +29,7 @@ jobs:
     
     - name: Install GmodDotNet
       run: |
-        wget https://gleb-krasilich.fra1.digitaloceanspaces.com/GmodNETStorage/storage/gmod-dot-net-linux.0.7.0-beta.1.28822248.master.tar.gz -O gmoddotnet.tar.gz
+        wget https://gleb-krasilich.fra1.digitaloceanspaces.com/GmodNETStorage/storage/gmod-dot-net-linux.0.7.0-beta.2.28828564.master.tar.gz -O gmoddotnet.tar.gz
         mkdir ./gmod/garrysmod/lua/bin
         tar -xvzf gmoddotnet.tar.gz -C ./gmod/garrysmod/lua/bin
         rm -rfv gmoddotnet.tar.gz
@@ -69,7 +69,7 @@ jobs:
      - name: Install GmodDotNet
        shell: bash
        run: |
-         curl https://gleb-krasilich.fra1.digitaloceanspaces.com/GmodNETStorage/storage/gmod-dot-net-windows.0.7.0-beta.1.28822248.master.zip -O -L -o gmoddotnet.zip
+         curl -o gmoddotnet.zip https://gleb-krasilich.fra1.digitaloceanspaces.com/GmodNETStorage/storage/gmod-dot-net-windows.0.7.0-beta.2.28828564.master.zip -O -L
          mkdir ./gmod/garrysmod/lua/bin
          powershell -Command 'Expand-Archive -LiteralPath ./gmoddotnet.zip -DestinationPath ./gmod/garrysmod/lua/bin'
 
