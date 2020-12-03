@@ -212,7 +212,7 @@ namespace GmodUltralight
             {
                 LogMessage = cb
             };
-            Config cfg = new Config();
+            Config cfg = new();
             cfg.SetUseGpuRenderer(false);           // we're using cpu renderer, because idk how to write gpu driver with output to uint8_t*
             cfg.SetResourcePath("./garrysmod/lua/bin/Modules/GmodUltralight/resources/"); // where cacert.pem is
             //AppCore.EnableDefaultLogger("./");
