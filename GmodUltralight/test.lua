@@ -43,10 +43,12 @@ collectgarbage()
 
 csprint("Tests ended")
 
-csprint("unloading Ultralight")
-dotnet_unload("GmodUltralight")
-
-engine.CloseServer()
+--csprint("unloading Ultralight")
+--dotnet_unload("GmodUltralight")
+hook.Add("Think", function()
+	csprint("Closing Server UL")
+	engine.CloseServer()
+end)
 
 --Ultralight.View_SV_DrawDirty(view)
 
