@@ -43,8 +43,9 @@ jobs:
     - name: Run Garry's Mod
       run: ./srcds_run_x64 -game garrysmod -systemtest +sv_hibernate_think 1 || true
       working-directory: ./gmod/
-      timeout-minutes: 6
+      timeout-minutes: 4
       continue-on-error: true
+    - run: tree
     - name: logs
       run: cat gmod/fslogcs.txt
   windows-build:
