@@ -41,6 +41,5 @@
 	<ItemGroup>
 		<PackageReference Include="GmodNET.API" Version="[0.7.0-beta.2.28828564.master]" />
 		<PackageReference Include="ImpromptuNinjas.UltralightSharp" Version="1.2.0-beta-r11" />
-		<PackageReference Include="Newtonsoft.Json" Version="12.0.3" />
 	</ItemGroup>
 </Project>
