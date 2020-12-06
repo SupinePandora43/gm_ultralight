@@ -90,4 +90,4 @@ jobs:
        continue-on-error: true
      - name: Print test log
        shell: bash
-       run: cat gmod/tests-log.txt
+       run: cat gmod/fslogcs.txt
