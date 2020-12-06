@@ -46,6 +46,7 @@ local function test()
 end
 hook.Add("Think", function()
 	test()
+	file.Write("test.txt", "succ")
 	--csprint("Closing Server UL")
 	engine.CloseServer()
 end)
