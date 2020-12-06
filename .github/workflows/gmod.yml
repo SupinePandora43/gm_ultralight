@@ -38,7 +38,7 @@ jobs:
       run: dotnet publish GmodUltralight/GmodUltralight.csproj --configuration Debug --framework net5.0 -o ./gmod/garrysmod/lua/bin/Modules/GmodUltralight
 
     - name: Copy test.lua
-      run: cp GmodUltralight/test.lua ./gmod/garrysmod/lua/autorun/server
+      run: cp GmodUltralight/test.lua ./gmod/garrysmod/lua/autorun
     - name: Run Garry's Mod
       run: ./srcds_run_x64 -game garrysmod -systemtest +sv_hibernate_think 1 || true
       working-directory: ./gmod/
@@ -81,7 +81,7 @@ jobs:
        run: dotnet publish GmodUltralight/GmodUltralight.csproj --configuration Debug --framework net5.0 -o ./gmod/garrysmod/lua/bin/Modules/GmodUltralight
 
      - name: Copy test.lua
-       run: cp GmodUltralight/test.lua ./gmod/garrysmod/lua/autorun/server
+       run: cp GmodUltralight/test.lua ./gmod/garrysmod/lua/autorun
 
      - name: Run Garry's Mod
        shell: bash
