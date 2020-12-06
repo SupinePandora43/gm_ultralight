@@ -1,4 +1,5 @@
 ﻿using System;
+using System.Collections.Generic;
 using System.IO;
 using System.Runtime.CompilerServices;
 using System.Runtime.InteropServices;
@@ -10,6 +11,12 @@ namespace GmodUltralight
 {
     partial class GmodUltralight
     {
+        /// <summary>
+        /// contains GCHandles
+        /// used to free them on module unload
+        /// </summary>
+        List<GCHandle> handles;
+
         int View_new(ILua lua)
         {
             uint width = (uint)lua.GetNumber(1);
@@ -24,13 +31,14 @@ namespace GmodUltralight
                 views.Add(viewID, view);
                 //IntPtr p = Marshal.AllocHGlobal(Marshal.SizeOf(result));
                 //Marshal.StructureToPtr(result, p, false);
-                lua.PushUserType(GCHandle.ToIntPtr(GCHandle.Alloc(viewID, GCHandleType.Weak)), View_TypeId);
+                GCHandle gCHandle = GCHandle.Alloc(viewID, GCHandleType.Weak);
+                handles.Add(gCHandle);
+                lua.PushUserType(GCHandle.ToIntPtr(gCHandle), View_TypeId);
             }
             else
             {
                 lua.PushNil();
             }
-
             return 1;
         }
 
@@ -52,8 +60,19 @@ namespace GmodUltralight
                 string viewID = (string)gchandle.Target;
 
                 views.Remove(viewID);
-                Console.WriteLine($"UL: view {viewID} is garbage collected");
+                Console.WriteLine($"[UL] ({viewID}): view is garbage collected");
+                int indexOfGCHandle = handles.IndexOf(gchandle);
+                if (indexOfGCHandle != -1)
+                {
+                    handles.RemoveAt(indexOfGCHandle);
+                }
+                else
+                {
+                    Console.WriteLine("Can't find gchandle in handles");
+                    Console.Error.WriteLine("Can't find gchandle in handles");
+                }
                 gchandle.Free();
+                Console.WriteLine($"[UL] ({viewID}): handle released");
             }
             catch (Exception e)
             {
@@ -71,13 +90,15 @@ namespace GmodUltralight
             ILua lua = GmodInterop.GetLuaFromState(lua_state);
             try
             {
-                IntPtr handle = lua.GetUserType(1, View_TypeId);
-                GCHandle.FromIntPtr(handle).Free();
+                IntPtr handlePtr = lua.GetUserType(1, View_TypeId);
+                GCHandle handle = GCHandle.FromIntPtr(handlePtr);
+                handle.Free();
+                LOG("you shouldn't see this message, if you see this, List<> handles not working");
                 lua.Pop();
             }
             catch (Exception e)
             {
-                Console.WriteLine(e);
+                LOG(e.ToString());
             }
             return 0;
         }

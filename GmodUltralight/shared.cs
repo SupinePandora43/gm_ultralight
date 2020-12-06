@@ -17,6 +17,8 @@ namespace GmodUltralight
 
         public void Load_View_Shared(ILua lua)
         {
+            handles = new();
+
             View_TypeId = lua.CreateMetaTable("ulView");
 
             lua.PushManagedFunction(View__meta__index);
@@ -30,7 +32,7 @@ namespace GmodUltralight
 
             lua.Pop();
         }
-        public static void Unload_View_Shared(ILua lua)
+        public void Unload_View_Shared(ILua lua)
         {
             lua.PushMetaTable(View_TypeId);
 
@@ -45,6 +47,12 @@ namespace GmodUltralight
                 lua.PushCFunction(&View__static__meta__gc);
             }
             lua.SetField(-2, "__gc");
+
+            handles.ForEach((gCHandle) =>
+            {
+                gCHandle.Free();
+            });
+            handles = null;
 
             lua.Pop();
         }

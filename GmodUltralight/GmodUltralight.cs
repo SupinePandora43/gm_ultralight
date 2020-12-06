@@ -31,7 +31,7 @@ namespace GmodUltralight
         {
             Debug.WriteLine($"{logLevel}: {msg}");
             LOG(msg);
-        }        
+        }
         int Csprint(ILua lua)
         {
             Console.WriteLine(lua.GetString(1));
