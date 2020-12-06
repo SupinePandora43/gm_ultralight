@@ -1,43 +1,44 @@
 ﻿--load gmod.net
-require("dotnet")
--- load module
-dotnet_load("GmodUltralight")
--- create view
 
-print = function(idk) csprint(tostring(idk)) end
-
-csprint("Creating View")
-
-view = view || Ultralight.CreateView(512,512,true)
-
-print(tostring(view))
-csprint(tostring(view))
-
-csprint("set URL")
-view:LoadURL("https://github.com")
-
-csprint("Loading URL")
-local loaded = view:UpdateUntilLoads(view)
-csprint(tostring(loaded))
-
-csprint("Render")
-Ultralight.Render()
-
-csprint("GetPixel")
-local a,r,g,b = view:GetPixel(0,0)
-csprint(tostring(a))
-csprint(tostring(r))
-csprint(tostring(g))
-csprint(tostring(b))
-
-csprint("Bake")
-view:Bake();
-
-csprint("Dispose")
---view:Dispose()
-view = null
-collectgarbage()
-
+local function test()
+	require("dotnet")
+	-- load module
+	dotnet_load("GmodUltralight")
+	-- create view
+	
+	print = function(idk) csprint(tostring(idk)) end
+	
+	csprint("Creating View")
+	
+	view = view || Ultralight.CreateView(512,512,true)
+	
+	print(tostring(view))
+	csprint(tostring(view))
+	
+	csprint("set URL")
+	view:LoadURL("https://github.com")
+	
+	csprint("Loading URL")
+	local loaded = view:UpdateUntilLoads(view)
+	csprint(tostring(loaded))
+	
+	csprint("Render")
+	Ultralight.Render()
+	
+	csprint("GetPixel")
+	local a,r,g,b = view:GetPixel(0,0)
+	csprint(tostring(a))
+	csprint(tostring(r))
+	csprint(tostring(g))
+	csprint(tostring(b))
+	
+	csprint("Bake")
+	view:Bake();
+	
+	csprint("Dispose")
+	--view:Dispose()
+	view = null
+	collectgarbage()
 --csprint("IsValid")
 --csprint(tostring(view:IsValid()))
 
@@ -45,7 +46,9 @@ csprint("Tests ended")
 
 --csprint("unloading Ultralight")
 --dotnet_unload("GmodUltralight")
+end
 hook.Add("Think", function()
+	test()
 	csprint("Closing Server UL")
 	engine.CloseServer()
 end)
