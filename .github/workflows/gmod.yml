@@ -45,7 +45,7 @@ jobs:
       working-directory: ./gmod/
       timeout-minutes: 4
       continue-on-error: true
-    - run: apt-get install tree
+    - run: sudo apt-get install tree
     - run: tree
     - name: logs
       run: cat gmod/fslogcs.txt
