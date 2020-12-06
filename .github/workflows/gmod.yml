@@ -39,7 +39,6 @@ jobs:
 
     - name: Copy test.lua
       run: cp GmodUltralight/test.lua ./gmod/garrysmod/lua/autorun/server
-    - run: cat srcds_run_x64
     - name: Run Garry's Mod
       run: ./srcds_run_x64 -game garrysmod -systemtest +sv_hibernate_think 1 || true
       working-directory: ./gmod/
