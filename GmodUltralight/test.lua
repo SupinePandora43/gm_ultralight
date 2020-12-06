@@ -1,7 +1,7 @@
 ﻿--load gmod.net
 
 local function test()
-	require("dotnet")
+	-[[require("dotnet")
 	-- load module
 	dotnet_load("GmodUltralight")
 	-- create view
@@ -39,14 +39,14 @@ local function test()
 --csprint("IsValid")
 --csprint(tostring(view:IsValid()))
 
-csprint("Tests ended")
+	csprint("Tests ended")]]
 
 --csprint("unloading Ultralight")
 --dotnet_unload("GmodUltralight")
 end
 hook.Add("Think", function()
 	test()
-	csprint("Closing Server UL")
+	--csprint("Closing Server UL")
 	engine.CloseServer()
 end)
 
