@@ -81,28 +81,6 @@ namespace GmodUltralight
             return 0;
         }
 
-        /// <summary>
-        /// after module unloaded it will fix crash after using __gc on view
-        /// </summary>
-        [UnmanagedCallersOnly(CallConvs = new Type[] { typeof(CallConvCdecl) })]
-        static int View__static__meta__gc(IntPtr lua_state)
-        {
-            ILua lua = GmodInterop.GetLuaFromState(lua_state);
-            try
-            {
-                IntPtr handlePtr = lua.GetUserType(1, View_TypeId);
-                GCHandle handle = GCHandle.FromIntPtr(handlePtr);
-                handle.Free();
-                LOG("you shouldn't see this message, if you see this, List<> handles not working");
-                lua.Pop();
-            }
-            catch (Exception e)
-            {
-                LOG(e.ToString());
-            }
-            return 0;
-        }
-
         int View__meta__index(ILua lua)
         {
             // lets see what throws an exception :D

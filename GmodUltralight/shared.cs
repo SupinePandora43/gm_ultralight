@@ -42,10 +42,7 @@ namespace GmodUltralight
             lua.PushNil();
             lua.SetField(-2, "__index");
 
-            unsafe
-            {
-                lua.PushCFunction(&View__static__meta__gc);
-            }
+            lua.PushNil();
             lua.SetField(-2, "__gc");
 
             handles.ForEach((gCHandle) =>
