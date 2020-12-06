@@ -44,6 +44,9 @@ jobs:
       run: ./srcds_run_x64 -game garrysmod -systemtest +sv_hibernate_think 1 || true
       working-directory: ./gmod/
       timeout-minutes: 6
+      continue-on-error: true
+    - name: logs
+      run: cat gmod/fslogcs.txt
   windows-build:
 
    runs-on: windows-latest
@@ -83,4 +86,8 @@ jobs:
        shell: bash
        run: |
             powershell -Command './gmod/srcds_win64.exe -console -systemtest -game "garrysmod" +exec "server.cfg" +gamemode sandbox +map gm_construct +maxplayers 16 +sv_hibernate_think 1'
-            sleep 15
+            sleep 150
+       continue-on-error: true
+     - name: Print test log
+       shell: bash
+       run: cat gmod/tests-log.txt

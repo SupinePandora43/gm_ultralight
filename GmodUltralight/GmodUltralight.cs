@@ -34,7 +34,7 @@ namespace GmodUltralight
         }
         int Csprint(ILua lua)
         {
-            Console.WriteLine(lua.GetString(1));
+            LOG(lua.GetString(1));
             return 0;
         }
         public void Load(ILua lua, bool is_serverside, ModuleAssemblyLoadContext assembly_context)
