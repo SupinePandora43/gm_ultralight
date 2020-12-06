@@ -6,13 +6,10 @@ local function test()
 	dotnet_load("GmodUltralight")
 	-- create view
 	
-	print = function(idk) csprint(tostring(idk)) end
-	
 	csprint("Creating View")
 	
 	view = view || Ultralight.CreateView(512,512,true)
 	
-	print(tostring(view))
 	csprint(tostring(view))
 	
 	csprint("set URL")
