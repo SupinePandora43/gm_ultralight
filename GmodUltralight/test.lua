@@ -1,7 +1,7 @@
 ﻿--load gmod.net
+require("dotnet")
 
 local function test()
-	require("dotnet")
 	-- load module
 	--[[dotnet_load("GmodUltralight")
 	-- create view
