@@ -1,9 +1,9 @@
-﻿//load gmod.net
+﻿--load gmod.net
 
 local function test()
-	--[[require("dotnet")
+	require("dotnet")
 	-- load module
-	dotnet_load("GmodUltralight")
+	--[[dotnet_load("GmodUltralight")
 	-- create view
 	
 	csprint("Creating View")
