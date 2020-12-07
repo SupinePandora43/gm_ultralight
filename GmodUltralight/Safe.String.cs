@@ -7,7 +7,7 @@ namespace GmodUltralight.Safe
     {
         internal readonly ImpromptuNinjas.UltralightSharp.String* _;
         public ImpromptuNinjas.UltralightSharp.String* Unsafe => _;
-        public String(String* _)
+        public String(ImpromptuNinjas.UltralightSharp.String* _)
         {
             this._ = _;
         }
