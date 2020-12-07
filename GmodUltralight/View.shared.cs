@@ -1,13 +1,12 @@
 ﻿using System;
 using System.Collections.Generic;
 using System.IO;
-using System.Reflection;
-using System.Runtime.CompilerServices;
 using System.Runtime.InteropServices;
 using System.Threading;
 using GmodNET.API;
 using ImpromptuNinjas.UltralightSharp.Enums;
 using ImpromptuNinjas.UltralightSharp.Safe;
+using String = GmodUltralight.Safe.String;
 
 namespace GmodUltralight
 {
@@ -249,6 +248,9 @@ namespace GmodUltralight
                 case "FireMouseEvent":
                     lua.PushManagedFunction(View_FireMouseEvent);
                     break;
+                case "FireKeyEvent":
+                    lua.PushManagedFunction(View_FireKeyEvent);
+                    break;
                 case "DrawDirty":
                     lua.PushManagedFunction(View_DrawDirty);
                     break;
@@ -278,6 +280,97 @@ namespace GmodUltralight
             MouseButton mouseButton = (MouseButton)lua.GetNumber(5);
             MouseEvent mouseEvent = new(mouseEventType, x, y, mouseButton);
             view.FireMouseEvent(mouseEvent);
+            return 0;
+        }
+        int View_FireKeyEvent(ILua lua)
+        {
+            string viewID = (string)GCHandle.FromIntPtr(lua.GetUserType(1, View_TypeId)).Target;
+            View view = views[viewID];
+
+            /* KeyEventType type
+             * uint modifiers
+             * int virtualKeyCode
+             * int nativeKeyCode
+             * String* text
+             * String* unmodifiedText
+             * bool isKeypad
+             * bool isAutoRepeat
+             * bool isSystemKey
+            */
+            /*
+             * evt.type = KeyEvent::kType_RawKeyDown;
+             * evt.virtual_key_code = KeyCodes::GK_RIGHT;
+             * evt.native_key_code = 0;
+             * evt.modifiers = 0;
+             */
+            /* KeyEvent evt;
+             * evt.type = KeyEvent::kType_Char;
+             * evt.text = "a";
+             * evt.unmodified_text = "a";
+            */
+
+            bool is_key = lua.IsType(2, TYPES.NUMBER)  // KeyEventType
+                        && lua.IsType(3, TYPES.NUMBER) // virtualKeyCode
+                        && lua.IsType(4, TYPES.NUMBER) // nativeKeyCode
+                        && lua.IsType(5, TYPES.NUMBER);// modifiers
+
+            bool is_char = lua.IsType(2, TYPES.NUMBER) // KeyEventType
+                        && lua.IsType(3, TYPES.STRING) // String text
+                        && lua.IsType(4, TYPES.STRING);// String unmodifiedText
+
+            bool is_full = lua.IsType(2, TYPES.NUMBER) // KeyEventType
+                        && lua.IsType(3, TYPES.NUMBER) // uint modifiers
+                        && lua.IsType(4, TYPES.NUMBER) // int virtualKeyCode
+                        && lua.IsType(5, TYPES.NUMBER) // int nativeKeyCode
+                        && lua.IsType(6, TYPES.STRING) // String* text
+                        && lua.IsType(7, TYPES.STRING) // String* unmodified
+                        && lua.IsType(8, TYPES.BOOL)   // bool isKeypad
+                        && lua.IsType(9, TYPES.BOOL)   // bool isAutoRepeat
+                        && lua.IsType(10, TYPES.BOOL); // bool isSystemKey
+
+            KeyEventType keyEventType;
+            uint modifiers = 0;
+            int virtualKeyCode = 0;
+            int nativeKeyCode = 0;
+            string text = null;
+            string unmodified = null;
+            bool isKeypad = false;
+            bool isAutoRepeat = false;
+            bool isSystemKey = false;
+            if (is_full)
+            {
+                keyEventType = (KeyEventType)lua.GetNumber(2);
+                modifiers = (uint)lua.GetNumber(3);
+                virtualKeyCode = (int)lua.GetNumber(4);
+                nativeKeyCode = (int)lua.GetNumber(5);
+                text = lua.GetString(6);
+                unmodified = lua.GetString(7);
+                isKeypad = lua.GetBool(8);
+                isAutoRepeat = lua.GetBool(9);
+                isSystemKey = lua.GetBool(10);
+            }
+            else if (is_key)
+            {
+                keyEventType = (KeyEventType)lua.GetNumber(2);
+                virtualKeyCode = (int)lua.GetNumber(3);
+                nativeKeyCode = (int)lua.GetNumber(4);
+                modifiers = (uint)lua.GetNumber(5);
+            }
+            else if (is_char)
+            {
+                keyEventType = (KeyEventType)lua.GetNumber(2);
+                text = lua.GetString(3);
+                unmodified = lua.GetString(4);
+            }
+            else
+            {
+                throw new ArgumentException("wrong arguments");
+            }
+            unsafe
+            {
+                KeyEvent keyEvent = new(keyEventType, modifiers, virtualKeyCode, nativeKeyCode, new String(text).Unsafe, new String(unmodified).Unsafe, isKeypad, isAutoRepeat, isSystemKey);
+                view.FireKeyEvent(keyEvent);
+            }
             return 0;
         }
     }

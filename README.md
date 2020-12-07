@@ -38,6 +38,7 @@ bool transparent
 * [x] `view.LoadUrl`
 * [x] `view.LoadHtml`
 * [x] `view.FireMouseEvent`
+* [x] `view.FireKeyEvent`
 
 * @ `surface.GetDirtyBounds`
 * @ `bitmap.LockPixels` in GetPixel

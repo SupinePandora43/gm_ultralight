@@ -1,4 +1,6 @@
 ﻿using GmodNET.API;
+using System;
+using System.Linq;
 
 namespace GmodUltralight
 {
@@ -82,6 +84,39 @@ namespace GmodUltralight
             lua.SetField(-2, "MouseUp");
             lua.SetField(-2, "MouseEventType");
 
+            lua.CreateTable();
+            lua.PushNumber(0);
+            lua.SetField(-2, "KeyDown");
+            lua.PushNumber(1);
+            lua.SetField(-2, "KeyUp");
+            lua.PushNumber(2);
+            lua.SetField(-2, "RawKeyDown");
+            lua.PushNumber(3);
+            lua.SetField(-2, "Char");
+            lua.SetField(-2, "KeyEventType");
+
+            lua.CreateTable();
+            Type keyCodeEnums = typeof(KeyCode);
+            string[] enumNames = keyCodeEnums.GetEnumNames();
+            foreach (string s in enumNames)
+            {
+                lua.PushNumber((byte)Enum.Parse(keyCodeEnums, s));
+                lua.SetField(-2, s);
+            }
+            lua.SetField(-2, "KeyCode");
+
+            lua.CreateTable();
+            lua.PushNumber((byte)Modifiers.kMod_AltKey);
+            lua.SetField(-2, "AltKey");
+            lua.PushNumber((byte)Modifiers.kMod_CtrlKey);
+            lua.SetField(-2, "CtrlKey");
+            lua.PushNumber((byte)Modifiers.kMod_MetaKey);
+            lua.SetField(-2, "MetaKey");
+            lua.PushNumber((byte)Modifiers.kMod_ShiftKey);
+            lua.SetField(-2, "ShiftKey");
+            lua.PushNumber(0);
+            lua.SetField(-2, "None");
+            lua.SetField(-2, "Modifiers");
         }
     }
 }
