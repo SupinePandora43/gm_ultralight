@@ -8,93 +8,93 @@ using System.Diagnostics;
 
 namespace GmodUltralight
 {
-    public partial class GmodUltralight : GmodNET.API.IModule
-    {
-        public string ModuleName => "Ultralight";
-        public string ModuleVersion => "0.1.1";
+	public partial class GmodUltralight : GmodNET.API.IModule
+	{
+		public string ModuleName => "Ultralight";
+		public string ModuleVersion => "0.1.1";
 
-        LoggerLogMessageCallback cb;
-        Logger logger;
-        Renderer renderer;
-        Dictionary<string, View> views;
+		LoggerLogMessageCallback cb;
+		Logger logger;
+		Renderer renderer;
+		Dictionary<string, View> views;
 
-        static int View_TypeId;
-        private static void LOG(string msg)
-        {
-            StreamWriter writer = new("./fslogcs.txt", true);
-            writer.WriteLine(msg);
-            writer.Close();
-            Console.WriteLine(msg);
-        }
+		static int View_TypeId;
+		private static void LOG(string msg)
+		{
+			StreamWriter writer = new("./fslogcs.txt", true);
+			writer.WriteLine(msg);
+			writer.Close();
+			Console.WriteLine(msg);
+		}
 
-        private static void LoggerCallback(LogLevel logLevel, string msg)
-        {
-            Debug.WriteLine($"{logLevel}: {msg}");
-            LOG(msg);
-        }
-        int Csprint(ILua lua)
-        {
-            LOG(lua.GetString(1));
-            return 0;
-        }
-        public void Load(ILua lua, bool is_serverside, ModuleAssemblyLoadContext assembly_context)
-        {
-            // TODO: really? LogMessage = LoggerCallback
-            cb = LoggerCallback;
-            logger = new Logger
-            {
-                LogMessage = cb
-            };
-            Config cfg = new();
-            cfg.SetUseGpuRenderer(false);           // we're using cpu renderer, because idk how to write gpu driver with output to uint8_t*
-            cfg.SetResourcePath("./garrysmod/lua/bin/Modules/GmodUltralight/resources/"); // where cacert.pem is
-            //AppCore.EnableDefaultLogger("./");
-            AppCore.EnablePlatformFileSystem("./"); // AppCore's GetPlatformFileSystem()
-            AppCore.EnablePlatformFontLoader();     // AppCore's GetPlatformFontLoader()
-            Ultralight.SetLogger(logger);           // log ul's messages to file
-            renderer = new Renderer(cfg);
-            views = new Dictionary<string, View>();
-
-
-
-            Load_View_Shared(lua);
+		private static void LoggerCallback(LogLevel logLevel, string msg)
+		{
+			Debug.WriteLine($"{logLevel}: {msg}");
+			LOG(msg);
+		}
+		int Csprint(ILua lua)
+		{
+			LOG(lua.GetString(1));
+			return 0;
+		}
+		public void Load(ILua lua, bool is_serverside, ModuleAssemblyLoadContext assembly_context)
+		{
+			// TODO: really? LogMessage = LoggerCallback
+			cb = LoggerCallback;
+			logger = new Logger
+			{
+				LogMessage = cb
+			};
+			Config cfg = new();
+			cfg.SetUseGpuRenderer(false);           // we're using cpu renderer, because idk how to write gpu driver with output to uint8_t*
+			cfg.SetResourcePath("./garrysmod/lua/bin/Modules/GmodUltralight/resources/"); // where cacert.pem is
+																						  //AppCore.EnableDefaultLogger("./");
+			AppCore.EnablePlatformFileSystem("./"); // AppCore's GetPlatformFileSystem()
+			AppCore.EnablePlatformFontLoader();     // AppCore's GetPlatformFontLoader()
+			Ultralight.SetLogger(logger);           // log ul's messages to file
+			renderer = new Renderer(cfg);
+			views = new Dictionary<string, View>();
 
 
 
-            lua.PushSpecial(SPECIAL_TABLES.SPECIAL_GLOB);
-            lua.GetField(-1, "util");
-            lua.GetField(-1, "AddNetworkString");
-            lua.PushString("Ultralight_DrawSingle");
-            lua.MCall(1, 0);
-            lua.Pop();
+			Load_View_Shared(lua);
 
 
 
-            lua.PushSpecial(SPECIAL_TABLES.SPECIAL_GLOB);
-            lua.CreateTable();
+			lua.PushSpecial(SPECIAL_TABLES.SPECIAL_GLOB);
+			lua.GetField(-1, "util");
+			lua.GetField(-1, "AddNetworkString");
+			lua.PushString("Ultralight_DrawSingle");
+			lua.MCall(1, 0);
+			lua.Pop();
 
-            // shared.cs
-            LoadShared(lua);
 
-            lua.SetField(-2, "Ultralight");
 
-            lua.PushManagedFunction(Csprint);
-            lua.SetField(-2, "csprint");
+			lua.PushSpecial(SPECIAL_TABLES.SPECIAL_GLOB);
+			lua.CreateTable();
 
-            lua.Pop();
-        }
-        public void Unload(ILua lua)
-        {
-            Console.WriteLine("UL: Goodbye world!");
+			// shared.cs
+			LoadShared(lua);
 
-            // release all lua refereces
-            Unload_View_Shared(lua);
+			lua.SetField(-2, "Ultralight");
 
-            // release all native references
-            views = null;
-            renderer.Dispose();
-            renderer = null;
-            cb = null;
-        }
-    }
+			lua.PushManagedFunction(Csprint);
+			lua.SetField(-2, "csprint");
+
+			lua.Pop();
+		}
+		public void Unload(ILua lua)
+		{
+			Console.WriteLine("UL: Goodbye world!");
+
+			// release all lua refereces
+			Unload_View_Shared(lua);
+
+			// release all native references
+			views = null;
+			renderer.Dispose();
+			renderer = null;
+			cb = null;
+		}
+	}
 }
