@@ -1,4 +1,4 @@
-﻿--load gmod.net
+﻿//load gmod.net
 
 local function test()
 	--[[require("dotnet")
