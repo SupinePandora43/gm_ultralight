@@ -117,6 +117,13 @@ namespace GmodUltralight
             lua.PushNumber(0);
             lua.SetField(-2, "None");
             lua.SetField(-2, "Modifiers");
+
+            lua.CreateTable();
+            lua.PushNumber(0);
+            lua.SetField(-2, "ScrollByPixel");
+            lua.PushNumber(1);
+            lua.SetField(-2, "ScrollByPage");
+            lua.SetField(-2, "ScrollEventType");
         }
     }
 }

@@ -251,6 +251,9 @@ namespace GmodUltralight
                 case "FireKeyEvent":
                     lua.PushManagedFunction(View_FireKeyEvent);
                     break;
+                case "FireScrollEvent":
+                    lua.PushManagedFunction(View_FireScrollEvent);
+                    break;
                 case "DrawDirty":
                     lua.PushManagedFunction(View_DrawDirty);
                     break;
@@ -371,6 +374,17 @@ namespace GmodUltralight
                 KeyEvent keyEvent = new(keyEventType, modifiers, virtualKeyCode, nativeKeyCode, new String(text).Unsafe, new String(unmodified).Unsafe, isKeypad, isAutoRepeat, isSystemKey);
                 view.FireKeyEvent(keyEvent);
             }
+            return 0;
+        }
+        int View_FireScrollEvent(ILua lua)
+        {
+            string viewID = (string)GCHandle.FromIntPtr(lua.GetUserType(1, View_TypeId)).Target;
+            View view = views[viewID];
+            ScrollEventType scrollEventType = (ScrollEventType)lua.GetNumber(2);
+            int x = (int)lua.GetNumber(3);
+            int y = (int)lua.GetNumber(4);
+            ScrollEvent scrollEvent = new(scrollEventType, x, y);
+            view.FireScrollEvent(scrollEvent);
             return 0;
         }
     }
