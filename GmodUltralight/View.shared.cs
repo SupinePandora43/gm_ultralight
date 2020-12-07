@@ -1,10 +1,12 @@
 ﻿using System;
 using System.Collections.Generic;
 using System.IO;
+using System.Reflection;
 using System.Runtime.CompilerServices;
 using System.Runtime.InteropServices;
 using System.Threading;
 using GmodNET.API;
+using ImpromptuNinjas.UltralightSharp.Enums;
 using ImpromptuNinjas.UltralightSharp.Safe;
 
 namespace GmodUltralight
@@ -244,6 +246,9 @@ namespace GmodUltralight
                         return 0;
                     });
                     break;
+                case "FireMouseEvent":
+                    lua.PushManagedFunction(View_FireMouseEvent);
+                    break;
                 case "DrawDirty":
                     lua.PushManagedFunction(View_DrawDirty);
                     break;
@@ -251,10 +256,29 @@ namespace GmodUltralight
                     lua.PushManagedFunction(View_DrawSingle);
                     break;
                 default:
+                    /*lua.PushManagedFunction((lua) =>
+                    {
+                        MethodInfo method = GetType().GetMethod(name);
+                        if (method != null)
+                            return (int)method.Invoke(this, new object[] { lua });
+                        return 0;
+                    });*/
                     lua.PushNil();
                     break;
             }
             return 1;
+        }
+        int View_FireMouseEvent(ILua lua)
+        {
+            string viewID = (string)GCHandle.FromIntPtr(lua.GetUserType(1, View_TypeId)).Target;
+            View view = views[viewID];
+            MouseEventType mouseEventType = (MouseEventType)lua.GetNumber(2);
+            int x = (int)lua.GetNumber(3);
+            int y = (int)lua.GetNumber(4);
+            MouseButton mouseButton = (MouseButton)lua.GetNumber(5);
+            MouseEvent mouseEvent = new(mouseEventType, x, y, mouseButton);
+            view.FireMouseEvent(mouseEvent);
+            return 0;
         }
     }
 }

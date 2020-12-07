@@ -57,12 +57,31 @@ namespace GmodUltralight
         {
             lua.PushManagedFunction(Ultralight_Update);
             lua.SetField(-2, "Update");
-
             lua.PushManagedFunction(Ultralight_Render);
             lua.SetField(-2, "Render");
-
             lua.PushManagedFunction(View_new);
             lua.SetField(-2, "CreateView");
+
+            lua.CreateTable();
+            lua.PushNumber(0);
+            lua.SetField(-2, "None");
+            lua.PushNumber(1);
+            lua.SetField(-2, "Left");
+            lua.PushNumber(2);
+            lua.SetField(-2, "Middle");
+            lua.PushNumber(3);
+            lua.SetField(-2, "Right");
+            lua.SetField(-2, "MouseButton");
+
+            lua.CreateTable();
+            lua.PushNumber(0);
+            lua.SetField(-2, "MouseMoved");
+            lua.PushNumber(1);
+            lua.SetField(-2, "MouseDown");
+            lua.PushNumber(2);
+            lua.SetField(-2, "MouseUp");
+            lua.SetField(-2, "MouseEventType");
+
         }
     }
 }
