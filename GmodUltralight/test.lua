@@ -1,7 +1,10 @@
-﻿--load gmod.net
+﻿print("Test loader loaded")
 require("dotnet")
 
+local testdone = false
 local function test()
+	if testdone then return end
+	print("Running test")
 	-- load module
 	--[[dotnet_load("GmodUltralight")
 	-- create view
@@ -41,13 +44,12 @@ local function test()
 
 	csprint("Tests ended")]]
 
---csprint("unloading Ultralight")
 --dotnet_unload("GmodUltralight")
+	testdone = true
+	file.Write("success.txt", "done")
 end
 hook.Add("Tick","GmodUltralight_Test", function()
 	test()
-	--file.Write("test.txt", "succ")
-	--csprint("Closing Server UL")
 	engine.CloseServer()
 end)
 

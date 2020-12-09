@@ -1,11 +1,9 @@
 ﻿name: Garry's Mod
-
 on:
   push:
     branches: [ sharp ]
   pull_request:
     branches: [ sharp ]
-
 jobs:
   linux:
     runs-on: ubuntu-latest
@@ -16,100 +14,74 @@ jobs:
       uses: actions/setup-dotnet@v1
       with:
         dotnet-version: 5.0.100
-
     - name: Install dependencies
       run: dotnet restore GmodUltralight/GmodUltralight.csproj
-
     - name: Install Steam and Garry's Mod Dedicated Server
       run: |
         wget https://steamcdn-a.akamaihd.net/client/installer/steamcmd_linux.tar.gz
         tar -xvzf steamcmd_linux.tar.gz
         rm -rfv steamcmd_linux.tar.gz
         ./steamcmd.sh +login anonymous +force_install_dir gmod "+app_update 4020 -beta x86-64 validate" +quit
-    
     - name: Install GmodDotNet
       run: |
         wget https://gleb-krasilich.fra1.digitaloceanspaces.com/GmodNETStorage/storage/gmod-dot-net-linux.0.7.0-beta.2.28828564.master.tar.gz -O gmoddotnet.tar.gz
         mkdir ./gmod/garrysmod/lua/bin
         tar -xvzf gmoddotnet.tar.gz -C ./gmod/garrysmod/lua/bin
         rm -rfv gmoddotnet.tar.gz
-      
     - name: Build GmodUltralight.csproj
-      run: dotnet publish GmodUltralight/GmodUltralight.csproj --configuration Debug --framework net5.0 -o ./gmod/garrysmod/lua/bin/Modules/GmodUltralight
-
+      run: dotnet publish GmodUltralight/GmodUltralight.csproj --configuration Release --framework net5.0 -o ./gmod/garrysmod/lua/bin/Modules/GmodUltralight
     - name: Copy test.lua
       run: cp GmodUltralight/test.lua ./gmod/garrysmod/lua/autorun
-    - name: test script
-      run: cat gmod/garrysmod/lua/autorun/test.lua
-      continue-on-error: true
-    - name: test script
-      run: cat gmod/garrysmod/lua/autorun/server/test.lua
       continue-on-error: true
     - name: Run Garry's Mod
       run: ./srcds_run_x64 -game garrysmod -systemtest -condebug +sv_hibernate_think 1 || true
       working-directory: ./gmod/
-      timeout-minutes: 6
-      continue-on-error: true
-    - run: sudo apt-get install tree
-    - run: tree
-    - name: logs
-      run: cat gmod/fslogcs.txt
-      continue-on-error: true
-    - name: console logs
+      timeout-minutes: 5
+    - name: Print log
       run: cat gmod/garrysmod/console.log
-      continue-on-error: true
-    - name: test script
-      run: cat gmod/garrysmod/lua/autorun/test.lua
-      continue-on-error: true
-    - name: test script
-      run: cat gmod/garrysmod/lua/autorun/server/test.lua
-      continue-on-error: true
-    - name: success
-      run: cat gmod/garrysmod/data/test.txt
-      continue-on-error: true
+    - name: Tests successfull?
+      uses: andstor/file-existence-action@v1
+      with:
+        files: "gmod/garrysmod/data/success.txt"
+        allow_failure: true
   windows-build:
-
    runs-on: windows-latest
-
    steps:
      - uses: actions/checkout@v2.0.0
-
      - name: Setup .NET Core SDK
        uses: actions/setup-dotnet@v1
        with:
          dotnet-version: 5.0.100
-
      - name: Install dependencies
        run: dotnet restore GmodUltralight/GmodUltralight.csproj
-
-     - name: Download Steam and Garry's Mod Dedicated Server
+     - name: Install Steam and Garry's Mod Dedicated Server
        shell: bash
        run: |
             curl https://steamcdn-a.akamaihd.net/client/installer/steamcmd.zip -O -L
             powershell -Command 'Expand-Archive -LiteralPath ./steamcmd.zip -DestinationPath ./'
             ./steamcmd.exe +login anonymous +force_install_dir gmod "+app_update 4020 -beta x86-64 validate" +quit || true
-     
      - name: Install GmodDotNet
        shell: bash
        run: |
          curl -o gmoddotnet.zip https://gleb-krasilich.fra1.digitaloceanspaces.com/GmodNETStorage/storage/gmod-dot-net-windows.0.7.0-beta.2.28828564.master.zip -O -L
          mkdir ./gmod/garrysmod/lua/bin
          powershell -Command 'Expand-Archive -LiteralPath ./gmoddotnet.zip -DestinationPath ./gmod/garrysmod/lua/bin'
-
      - name: Build GmodUltralight.csproj
-       run: dotnet publish GmodUltralight/GmodUltralight.csproj --configuration Debug --framework net5.0 -o ./gmod/garrysmod/lua/bin/Modules/GmodUltralight
-
+       run: dotnet publish GmodUltralight/GmodUltralight.csproj --configuration Release --framework net5.0 -o ./gmod/garrysmod/lua/bin/Modules/GmodUltralight
      - name: Copy test.lua
        run: cp GmodUltralight/test.lua ./gmod/garrysmod/lua/autorun
-
      - name: Run Garry's Mod
        shell: bash
        run: |
             powershell -Command './gmod/srcds_win64.exe -console -systemtest -condebug -game "garrysmod" +exec "server.cfg" +gamemode sandbox +map gm_construct +maxplayers 16 +sv_hibernate_think 1'
             sleep 15
-       timeout-minutes: 10
-       continue-on-error: true
-     - run: tree /f .
-     - name: Print test log
+       timeout-minutes: 5
+     - name: Print log
        shell: bash
        run: cat gmod/garrysmod/console.log
+     - name: Tests successfull?
+       id: check_files
+       uses: andstor/file-existence-action@v1
+       with:
+         files: "gmod/garrysmod/data/success.txt"
+         allow_failure: true
