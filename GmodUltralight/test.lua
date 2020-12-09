@@ -44,7 +44,7 @@ local function test()
 --csprint("unloading Ultralight")
 --dotnet_unload("GmodUltralight")
 end
-hook.Add("Think", function()
+hook.Add("Tick", function()
 	test()
 	file.Write("test.txt", "succ")
 	--csprint("Closing Server UL")
