@@ -8,8 +8,12 @@ local function test()
 	if testdone then return end
 	print("Running test")
 
-	dotnet.load("GmodUltralight")
-	
+	local loadsucc = dotnet.load("GmodUltralight")
+	if not loadsucc then
+		testfailed = true
+		return
+	end
+
 	print("Creating View")
 	
 	view = view || Ultralight.CreateView(512,512,true)
