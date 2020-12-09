@@ -45,6 +45,7 @@ local function test()
 	csprint("Tests ended")]]
 
 --dotnet_unload("GmodUltralight")
+	print("Tests completed!")
 	testdone = true
 	file.Write("success.txt", "done")
 end
