@@ -105,11 +105,11 @@ jobs:
      - name: Run Garry's Mod
        shell: bash
        run: |
-            powershell -Command './gmod/srcds_win64.exe -console -systemtest -game "garrysmod" +exec "server.cfg" +gamemode sandbox +map gm_construct +maxplayers 16 +sv_hibernate_think 1'
+            powershell -Command './gmod/srcds_win64.exe -console -systemtest -condebug -game "garrysmod" +exec "server.cfg" +gamemode sandbox +map gm_construct +maxplayers 16 +sv_hibernate_think 1'
             sleep 15
        timeout-minutes: 10
        continue-on-error: true
      - run: tree /f .
      - name: Print test log
        shell: bash
-       run: cat gmod/fslogcs.txt
+       run: cat gmod/garrysmod/console.log
