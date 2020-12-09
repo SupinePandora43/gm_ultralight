@@ -58,10 +58,11 @@ namespace GmodUltralightSandbox
 						Bitmap bitmap = surface.GetBitmap();
 						byte* pixels = (byte*)bitmap.LockPixels();
 						System.Drawing.Bitmap sBitmap = new System.Drawing.Bitmap(1024, 2048); //dirtyBounds.Right - dirtyBounds.Left, dirtyBounds.Bottom - dirtyBounds.Top
-						long index = 0;
-						for (int y = 0; y < dirtyBounds.Bottom; y++)
+						long index = dirtyBounds.Top * bitmap.GetRowBytes();
+						for (int y = dirtyBounds.Top; y < dirtyBounds.Bottom; y++)
 						{
-							for (int x = 0; x < dirtyBounds.Right; x++)
+							index += 4 * dirtyBounds.Left;
+							for (int x = dirtyBounds.Left; x < dirtyBounds.Right; x++)
 							{
 								if (y >= dirtyBounds.Top && y < dirtyBounds.Bottom)
 								{
@@ -94,7 +95,7 @@ namespace GmodUltralightSandbox
 						i++;
 					}
 					//else
-					//    Thread.Sleep(100);
+					//	Thread.Sleep(100);
 				}
 			}
 		}
