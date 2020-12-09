@@ -11,6 +11,8 @@ local function test()
 	local loadsucc = dotnet.load("GmodUltralight")
 	if not loadsucc then
 		testfailed = true
+	end
+	if testfailed then
 		return
 	end
 
@@ -48,18 +50,25 @@ local function test()
     local unloaded = dotnet.unload("GmodUltralight")
 	if not unloaded then
 		print("Failed to unload")
+		testfailed = true
 	end
-	print("Tests completed!")
-	testdone = true
-	if not testfailed then
-		file.Write("success.txt", "done")
+	if testfailed then
+		return
 	end
+	-- todo :D
 end
 
 hook.Add("Tick","GmodUltralight_Test", function()
-	local succ, err = pcall(test)
-	if not succ then
-		print(err)
+	if not testdone then
+		testdone = true
+		local succ, err = pcall(test)
+		if not succ then
+			ErrorNoHalt(err)
+		end
+		if not testfailed then
+			file.Write("success.txt", "done")
+		end
+		print("Tests completed!")
 	end
 	engine.CloseServer()
 end)
