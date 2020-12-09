@@ -8,7 +8,7 @@ local function test()
 	if testdone then return end
 	print("Running test")
 
-	dotnet_load("GmodUltralight")
+	dotnet.load("GmodUltralight")
 	
 	print("Creating View")
 	
@@ -41,7 +41,7 @@ local function test()
 	view = null
 	collectgarbage()
 
-    local unloaded = dotnet_unload("GmodUltralight")
+    local unloaded = dotnet.unload("GmodUltralight")
 	if not unloaded then
 		print("Failed to unload")
 	end
