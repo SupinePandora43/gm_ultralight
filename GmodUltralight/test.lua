@@ -2,53 +2,56 @@
 require("dotnet")
 
 local testdone = false
+local testfailed = false
+
 local function test()
 	if testdone then return end
 	print("Running test")
-	-- load module
-	--[[dotnet_load("GmodUltralight")
-	-- create view
+
+	dotnet_load("GmodUltralight")
 	
-	csprint("Creating View")
+	print("Creating View")
 	
 	view = view || Ultralight.CreateView(512,512,true)
 	
-	csprint(tostring(view))
+	print(view)
 	
-	csprint("set URL")
+	print("LoadURL")
 	view:LoadURL("https://github.com")
 	
-	csprint("Loading URL")
+	print("Loading URL")
 	local loaded = view:UpdateUntilLoads(view)
-	csprint(tostring(loaded))
+	print(loaded)
 	
-	csprint("Render")
+	print("Render")
 	Ultralight.Render()
 	
-	csprint("GetPixel")
+	print("GetPixel")
 	local a,r,g,b = view:GetPixel(0,0)
-	csprint(tostring(a))
-	csprint(tostring(r))
-	csprint(tostring(g))
-	csprint(tostring(b))
+	print(a)
+	print(r)
+	print(g)
+	print(b)
 	
-	csprint("Bake")
+	print("Bake")
 	view:Bake();
 	
-	csprint("Dispose")
+	print("Dispose")
 	--view:Dispose()
 	view = null
 	collectgarbage()
---csprint("IsValid")
---csprint(tostring(view:IsValid()))
 
-	csprint("Tests ended")]]
-
---dotnet_unload("GmodUltralight")
+    local unloaded = dotnet_unload("GmodUltralight")
+	if not unloaded then
+		print("Failed to unload")
+	end
 	print("Tests completed!")
 	testdone = true
-	file.Write("success.txt", "done")
+	if not testfailed then
+		file.Write("success.txt", "done")
+	end
 end
+
 hook.Add("Tick","GmodUltralight_Test", function()
 	test()
 	engine.CloseServer()
