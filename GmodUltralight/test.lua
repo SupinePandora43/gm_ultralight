@@ -53,7 +53,10 @@ local function test()
 end
 
 hook.Add("Tick","GmodUltralight_Test", function()
-	test()
+	local succ, err = pcall(test)
+	if not succ then
+		print(err)
+	end
 	engine.CloseServer()
 end)
 
