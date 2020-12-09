@@ -100,7 +100,7 @@ namespace GmodUltralight
 			string[] enumNames = keyCodeEnums.GetEnumNames();
 			foreach (string s in enumNames)
 			{
-				lua.PushNumber((byte)Enum.Parse(keyCodeEnums, s));
+				lua.PushNumber((int)Enum.Parse(keyCodeEnums, s));
 				lua.SetField(-2, s);
 			}
 			lua.SetField(-2, "KeyCode");
