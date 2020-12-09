@@ -5,7 +5,6 @@ local testdone = false
 local testfailed = false
 
 local function test()
-	if testdone then return end
 	print("Running test")
 
 	local loadsucc = dotnet.load("GmodUltralight")
