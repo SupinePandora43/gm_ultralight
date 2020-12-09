@@ -81,6 +81,7 @@ namespace GmodUltralight
 
 			// release all lua refereces
 			Unload_View_Shared(lua);
+			Unload_Shared(lua);
 
 			// release all native references
 			views = null;

@@ -125,5 +125,12 @@ namespace GmodUltralight
 			lua.SetField(-2, "ScrollByPage");
 			lua.SetField(-2, "ScrollEventType");
 		}
+		public static void Unload_Shared(ILua lua)
+		{
+			lua.PushSpecial(SPECIAL_TABLES.SPECIAL_GLOB);
+			lua.PushNil();
+			lua.SetField(-2, "Ultralight");
+			lua.Pop();
+		}
 	}
 }
