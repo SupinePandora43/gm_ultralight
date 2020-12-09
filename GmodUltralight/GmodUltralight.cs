@@ -32,11 +32,6 @@ namespace GmodUltralight
 			Debug.WriteLine($"{logLevel}: {msg}");
 			LOG(msg);
 		}
-		int Csprint(ILua lua)
-		{
-			LOG(lua.GetString(1));
-			return 0;
-		}
 		public void Load(ILua lua, bool is_serverside, ModuleAssemblyLoadContext assembly_context)
 		{
 			// TODO: really? LogMessage = LoggerCallback
@@ -77,9 +72,6 @@ namespace GmodUltralight
 			LoadShared(lua);
 
 			lua.SetField(-2, "Ultralight");
-
-			lua.PushManagedFunction(Csprint);
-			lua.SetField(-2, "csprint");
 
 			lua.Pop();
 		}
