@@ -1,4 +1,4 @@
-name: Garry's Mod
+﻿name: Garry's Mod
 
 on:
   push:
@@ -46,7 +46,7 @@ jobs:
       run: cat gmod/garrysmod/lua/autorun/server/test.lua
       continue-on-error: true
     - name: Run Garry's Mod
-      run: ./srcds_run_x64 -game garrysmod -systemtest +sv_hibernate_think 1 || true
+      run: ./srcds_run_x64 -game garrysmod -systemtest -condebug +sv_hibernate_think 1 || true
       working-directory: ./gmod/
       timeout-minutes: 6
       continue-on-error: true
@@ -54,6 +54,9 @@ jobs:
     - run: tree
     - name: logs
       run: cat gmod/fslogcs.txt
+      continue-on-error: true
+    - name: console logs
+      run: cat gmod/garrysmod/console.log
       continue-on-error: true
     - name: test script
       run: cat gmod/garrysmod/lua/autorun/test.lua
