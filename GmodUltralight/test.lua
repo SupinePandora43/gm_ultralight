@@ -15,7 +15,7 @@ local function test()
 		return
 	end
 
-	PrintTable("Ultralight")
+	PrintTable(Ultralight)
 
 	print("Creating View")
 	
