@@ -1,20 +1,13 @@
-﻿print("Test loader loaded")
+﻿hook.Add("Tick", "CloseServer", engine.CloseServer)
+-- load GmodDotNet
 require("dotnet")
-
-local testdone = false
-local testfailed = false
-
-local function test()
+-- test function
+local function run_test()
 	print("Running test")
 
-	local loadsucc = dotnet.load("GmodUltralight")
-	if not loadsucc then
-		testfailed = true
-	end
-	if testfailed then
-		return
-	end
-
+	local module_loaded = dotnet.load("Template")
+	assert(module_loaded==true)
+	---------------------------------------------------
 	PrintTable(Ultralight)
 
 	print("Creating View")
@@ -51,31 +44,14 @@ local function test()
 	view = null
 	collectgarbage()
 
-    local unloaded = dotnet.unload("GmodUltralight")
-	if not unloaded then
-		print("Failed to unload")
-		testfailed = true
-	end
-	if testfailed then
-		return
-	end
-	-- todo :D
+	---------------------------------------------------
+    local module_unloaded = dotnet.unload("Template")
+	assert(module_unloaded==true)
 end
 
-hook.Add("Tick","GmodUltralight_Test", function()
-	if not testdone then
-		testdone = true
-		local succ, err = pcall(test)
-		if not succ then
-			ErrorNoHalt(err)
-		end
-		if not testfailed then
-			file.Write("success.txt", "done")
-		end
-		print("Tests completed!")
-	end
-	engine.CloseServer()
-end)
+run_test()
+print("tests are successful!")
+file.Write("success.txt", "done")
 
 --Ultralight.View_SV_DrawDirty(view)
 
