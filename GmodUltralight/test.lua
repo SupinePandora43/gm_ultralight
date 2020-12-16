@@ -38,6 +38,9 @@ local function test()
 	print(g)
 	print(b)
 	
+	print("FireScrollEvent")
+	view:FireScrollEvent(1,0,1)
+
 	print("Bake")
 	view:Bake();
 	
