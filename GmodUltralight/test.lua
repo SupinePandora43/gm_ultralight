@@ -15,6 +15,8 @@ local function test()
 		return
 	end
 
+	PrintTable("Ultralight")
+
 	print("Creating View")
 	
 	view = view || Ultralight.CreateView(512,512,true)
