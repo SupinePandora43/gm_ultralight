@@ -12,7 +12,7 @@ local function run_test()
 
 	print("Creating View")
 	
-	view = view || Ultralight.CreateView(512,512,true)
+	view = view || Ultralight.CreateView(128,128,true)
 	
 	print(view)
 	
@@ -39,6 +39,9 @@ local function run_test()
 	print("Bake")
 	view:Bake();
 	
+	print("ToAscii")
+	print(View:ToAscii())
+
 	print("Dispose")
 	--view:Dispose()
 	view = null

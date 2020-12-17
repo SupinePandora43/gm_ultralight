@@ -2,6 +2,7 @@
 using System.Collections.Generic;
 using System.IO;
 using System.Runtime.InteropServices;
+using System.Text;
 using System.Threading;
 using GmodNET.API;
 using ImpromptuNinjas.UltralightSharp.Enums;
@@ -254,6 +255,9 @@ namespace GmodUltralight
 				case "FireScrollEvent":
 					lua.PushManagedFunction(View_FireScrollEvent);
 					break;
+				case "ToAscii":
+					lua.PushManagedFunction(View_ToAscii);
+					break;
 				case "DrawDirty":
 					lua.PushManagedFunction(View_DrawDirty);
 					break;
@@ -386,6 +390,54 @@ namespace GmodUltralight
 			ScrollEvent scrollEvent = new(scrollEventType, x, y);
 			view.FireScrollEvent(scrollEvent);
 			return 0;
+
+		}
+		private readonly static char[] chars = { '#', '#', '@', '%', '=', '+', '*', ':', '-', '.', '\u00A0' };
+		private static int Map(int input, int inputMin, int inputMax, int min, int max)
+		{
+			return min + (input - inputMin) * (max - min) / (inputMax - inputMin);
+		}
+		private static char colorToChar(byte r, byte g, byte b, byte a)
+		{
+			int brightness = Map((r + g + b) * a, 0, 195075, 0, 10);
+			return chars[brightness];
+		}
+		int View_ToAscii(ILua lua)
+		{
+			string viewID = (string)GCHandle.FromIntPtr(lua.GetUserType(1, View_TypeId)).Target;
+			View view = views[viewID];
+			StringBuilder stringBuilder = new();
+			Bitmap bitmap = view.GetSurface().GetBitmap();
+			try
+			{
+				unsafe
+				{
+					byte* pixels = (byte*)bitmap.LockPixels();
+
+					long index = 0;
+					for (int y = 0; y < bitmap.GetHeight(); y++)
+					{
+						for (int x = 0; x < bitmap.GetWidth(); x++)
+						{
+							byte a = pixels[index + 3];
+							byte r = pixels[index + 2];
+							byte g = pixels[index + 1];
+							byte b = pixels[index];
+
+							stringBuilder.Append(colorToChar(r, g, b, a));
+
+							index += 4;
+						}
+						stringBuilder.AppendLine();
+					}
+				}
+			}
+			finally
+			{
+				bitmap.UnlockPixels();
+			}
+			lua.PushString(stringBuilder.ToString());
+			return 1;
 		}
 	}
 }
