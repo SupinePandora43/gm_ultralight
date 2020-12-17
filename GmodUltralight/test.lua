@@ -5,7 +5,7 @@ require("dotnet")
 local function run_test()
 	print("Running test")
 
-	local module_loaded = dotnet.load("Template")
+	local module_loaded = dotnet.load("GmodUltralight")
 	assert(module_loaded==true)
 	---------------------------------------------------
 	PrintTable(Ultralight)
@@ -45,7 +45,7 @@ local function run_test()
 	collectgarbage()
 
 	---------------------------------------------------
-    local module_unloaded = dotnet.unload("Template")
+    local module_unloaded = dotnet.unload("GmodUltralight")
 	assert(module_unloaded==true)
 end
 
