@@ -40,7 +40,7 @@ local function run_test()
 	view:Bake();
 	
 	print("ToAscii")
-	print(View:ToAscii())
+	print(view:ToAscii())
 
 	print("Dispose")
 	--view:Dispose()
