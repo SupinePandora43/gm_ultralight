@@ -44,7 +44,7 @@ local function run_test()
 	local dohavelines = false
 	surface = {}
 	surface.SetDrawColor = function() end
-	surface.DrawRect = function(x,y,w,h) if w~=1 then dohavelines=true end print(x,y,w,h) end
+	surface.DrawRect = function(x,y,w,h) if w~=1 then dohavelines=true end end
 	view:DrawToSurface()
 
 	print("dohavelines = ", dohavelines)
