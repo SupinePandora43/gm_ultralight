@@ -171,6 +171,7 @@ namespace GmodUltralight
 									_g = g;
 									_b = b;
 								}
+								firstRect = true;
 							}
 							else
 							{
