@@ -147,7 +147,7 @@ namespace GmodUltralight
 
 							if (firstRect)
 							{
-								if (x + 1 == width)
+								if (x + 1 >= width)
 								{
 									lua.GetField(-1, "SetDrawColor");
 									lua.PushNumber(r);
@@ -177,7 +177,7 @@ namespace GmodUltralight
 								if (_a == a && _r == r && _g == g && _b == b)
 								{
 									rect_width++;
-									if (x + 1 == width)
+									if (x + 1 >= width)
 									{
 										lua.GetField(-1, "SetDrawColor");
 										lua.PushNumber(_r);
@@ -207,7 +207,7 @@ namespace GmodUltralight
 									lua.PushNumber(rect_width);
 									lua.PushNumber(1);
 									lua.MCall(4, 0);
-									if (x + 1 == width)
+									if (x + 1 >= width)
 									{
 										lua.GetField(-1, "SetDrawColor");
 										lua.PushNumber(a);
