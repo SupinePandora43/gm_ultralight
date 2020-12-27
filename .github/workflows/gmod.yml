@@ -1,9 +1,12 @@
 ﻿name: Garry's Mod
 on:
   push:
-    branches: [ sharp ]
+    branches:
+    - sharp
+    - sharp_*
   pull_request:
-    branches: [ sharp ]
+    branches:
+    - sharp
 jobs:
   linux:
     runs-on: ubuntu-latest
