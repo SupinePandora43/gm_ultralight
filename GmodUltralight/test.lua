@@ -41,13 +41,25 @@ local function run_test()
 	
 	--print("ToAscii")
 	--print(view:ToAscii())
+	
 	local dohavelines = false
 	surface = {}
 	surface.SetDrawColor = function() end
 	surface.DrawRect = function(x,y,w,h) if w~=1 then dohavelines=true end end
-	view:DrawToSurface()
 
-	print("dohavelines = ", dohavelines)
+	print("DrawToSurfaceByLines")
+	local DrawToSurfaceByLinesStart = SysTime()
+	view:DrawToSurfaceByLines()
+	local DrawToSurfaceByLinesEnd = SysTime()
+	print("DrawToSurfaceByLines: "+DrawToSurfaceByLinesEnd-DrawToSurfaceByLinesStart)
+
+	print("DrawToSurface")
+	local DrawToSurfaceStart = SysTime()
+	view:DrawToSurface()
+	local DrawToSurfaceEnd = SysTime()
+	print("DrawToSurface: "+DrawToSurfaceEnd-DrawToSurfaceStart)
+
+	assert(dohavelines)
 
 	print("Dispose")
 	--view:Dispose()

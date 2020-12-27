@@ -1,5 +1,6 @@
 ﻿using GmodNET.API;
 using ImpromptuNinjas.UltralightSharp.Safe;
+using System;
 using System.Collections.Generic;
 using System.Linq;
 using System.Runtime.InteropServices;
@@ -59,12 +60,65 @@ namespace GmodUltralight
 				}
 			return 0;
 		}
+		int View_DrawToSurface(ILua lua)
+		{
+			string viewID = (string)GCHandle.FromIntPtr(lua.GetUserType(1, View_TypeId)).Target;
+			View view = views[viewID];
+			Surface surface = view.GetSurface();
+			Bitmap bitmap = surface.GetBitmap();
+			lua.PushSpecial(SPECIAL_TABLES.SPECIAL_GLOB);
+			lua.GetField(-1, "surface");
+			try
+			{
+				unsafe
+				{
+					byte* pixels = (byte*)bitmap.LockPixels();
+					long index = 0;
+					for (uint y = 0; y < view.GetHeight(); y++)
+					{
+						for (uint x = 0; x < view.GetWidth(); x++)
+						{
+							byte a = pixels[index + 3];
+							byte r = pixels[index + 2];
+							byte g = pixels[index + 1];
+							byte b = pixels[index];
+
+							lua.GetField(-1, "SetDrawColor");
+							lua.PushNumber(r);
+							lua.PushNumber(g);
+							lua.PushNumber(b);
+							lua.PushNumber(a);
+							lua.MCall(4, 0);
+							lua.GetField(-1, "DrawRect");
+							lua.PushNumber(x);
+							lua.PushNumber(y);
+							lua.PushNumber(1);
+							lua.PushNumber(1);
+							lua.MCall(4, 0);
+							index += 4;
+						}
+						index = y * bitmap.GetRowBytes();
+					}
+					pixels = null; // TODO: free memory?
+				}
+			}
+			catch(Exception e)
+			{
+				Console.WriteLine(e);
+			}
+			finally
+			{
+				bitmap.UnlockPixels();
+			}
+			lua.Pop();
+			return 0;
+		}
 		class ColoredRect
 		{
 			public byte a, r, g, b;
 			public uint x, w;
 		}
-		int View_DrawToSurface(ILua lua)
+		int View_DrawToSurfaceByLines(ILua lua)
 		{
 			string viewID = (string)GCHandle.FromIntPtr(lua.GetUserType(1, View_TypeId)).Target;
 			View view = views[viewID];
@@ -126,6 +180,10 @@ namespace GmodUltralight
 					}
 					pixels = null; // TODO: free memory?
 				}
+			}
+			catch (Exception e)
+			{
+				Console.WriteLine(e);
 			}
 			finally
 			{

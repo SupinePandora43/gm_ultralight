@@ -267,6 +267,9 @@ namespace GmodUltralight
 				case "DrawToSurface":
 					lua.PushManagedFunction(View_DrawToSurface);
 					break;
+				case "DrawToSurfaceByLines":
+					lua.PushManagedFunction(View_DrawToSurfaceByLines);
+					break;
 				default:
 					/*lua.PushManagedFunction((lua) =>
                     {
@@ -400,7 +403,7 @@ namespace GmodUltralight
 		{
 			return min + (input - inputMin) * (max - min) / (inputMax - inputMin);
 		}
-		private static char colorToChar(byte r, byte g, byte b, byte a)
+		private static char ColorToChar(byte r, byte g, byte b, byte a)
 		{
 			int brightness = Map((r + g + b) * a, 0, 195075, 0, 10);
 			return chars[brightness];
@@ -427,7 +430,7 @@ namespace GmodUltralight
 							byte g = pixels[index + 1];
 							byte b = pixels[index];
 
-							stringBuilder.Append(colorToChar(r, g, b, a));
+							stringBuilder.Append(ColorToChar(r, g, b, a));
 
 							index += 4;
 						}
