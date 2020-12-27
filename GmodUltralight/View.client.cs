@@ -95,7 +95,7 @@ namespace GmodUltralight
 							else
 							{
 								ColoredRect rect = rects.Last();
-								if (rect.a == a && rect.r == g && rect.g == g && rect.b == b)
+								if (rect.a == a && rect.r == r && rect.g == g && rect.b == b)
 								{
 									rect.w++;
 								}
