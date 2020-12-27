@@ -210,7 +210,7 @@ namespace GmodUltralight
 									if (x + 1 >= width)
 									{
 										lua.GetField(-1, "SetDrawColor");
-										lua.PushNumber(a);
+										lua.PushNumber(r);
 										lua.PushNumber(g);
 										lua.PushNumber(b);
 										lua.PushNumber(a);
