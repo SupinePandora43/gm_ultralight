@@ -12,7 +12,7 @@ local function run_test()
 
 	print("Creating View")
 	
-	view = view || Ultralight.CreateView(128,128,true)
+	view = view || Ultralight.CreateView(16,16,true)
 	
 	print(view)
 	
@@ -44,8 +44,8 @@ local function run_test()
 	
 	local dohavelines = false
 	surface = {}
-	surface.SetDrawColor = function() end
-	surface.DrawRect = function(x,y,w,h) if w~=1 then dohavelines=true end end
+	surface.SetDrawColor = function(r,g,b,a) print(r,g,b,a) end
+	surface.DrawRect = function(x,y,w,h) print(w) if w~=1 then dohavelines=true end end
 
 	print("DrawToSurfaceByLines")
 	local DrawToSurfaceByLinesStart = SysTime()
