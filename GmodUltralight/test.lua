@@ -12,7 +12,7 @@ local function run_test()
 
 	print("Creating View")
 	
-	view = view || Ultralight.CreateView(16,16,true)
+	view = view || Ultralight.CreateView(128,128,true)
 	
 	print(view)
 	
@@ -24,7 +24,7 @@ local function run_test()
 	print(loaded)
 	
 	print("Render")
-	--Ultralight.Render()
+	Ultralight.Render()
 	
 	print("GetPixel")
 	local a,r,g,b = view:GetPixel(0,0)
@@ -37,15 +37,15 @@ local function run_test()
 	view:FireScrollEvent(1,0,1)
 
 	print("Bake")
-	--view:Bake();
+	view:Bake();
 	
 	--print("ToAscii")
 	--print(view:ToAscii())
 	
 	local dohavelines = false
 	surface = {}
-	surface.SetDrawColor = function(r,g,b,a) print(r,g,b,a) end
-	surface.DrawRect = function(x,y,w,h) print(x,y,w,h) if w~=1 then dohavelines=true end end
+	surface.SetDrawColor = function() end
+	surface.DrawRect = function(x,y,w,h) if w~=1 then dohavelines=true end end
 
 	print("DrawToSurfaceByLines")
 	local DrawToSurfaceByLinesStart = SysTime()
