@@ -128,6 +128,7 @@ namespace GmodUltralight
 					byte* pixels = (byte*)bitmap.LockPixels();
 					long index = 0;
 					uint height = view.GetHeight();
+					uint width = view.GetWidth();
 					for (uint y = 0; y < height; y++)
 					{
 						bool firstRect = true;
@@ -137,7 +138,6 @@ namespace GmodUltralight
 						byte _b = 0;
 						uint rect_x = 0;
 						uint rect_width = 0;
-						uint width = view.GetWidth();
 						for (uint x = 0; x < width; x++)
 						{
 							byte a = pixels[index + 3];

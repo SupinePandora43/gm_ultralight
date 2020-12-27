@@ -24,7 +24,7 @@ local function run_test()
 	print(loaded)
 	
 	print("Render")
-	Ultralight.Render()
+	--Ultralight.Render()
 	
 	print("GetPixel")
 	local a,r,g,b = view:GetPixel(0,0)
@@ -37,7 +37,7 @@ local function run_test()
 	view:FireScrollEvent(1,0,1)
 
 	print("Bake")
-	view:Bake();
+	--view:Bake();
 	
 	--print("ToAscii")
 	--print(view:ToAscii())
