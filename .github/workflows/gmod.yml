@@ -57,9 +57,9 @@ jobs:
      - name: Install Steam and Garry's Mod Dedicated Server
        shell: bash
        run: |
-            curl https://steamcdn-a.akamaihd.net/client/installer/steamcmd.zip -O -L
-            powershell -Command 'Expand-Archive -LiteralPath ./steamcmd.zip -DestinationPath ./'
-            ./steamcmd.exe +login anonymous +force_install_dir gmod "+app_update 4020 -beta x86-64 validate" +quit || true
+         curl https://steamcdn-a.akamaihd.net/client/installer/steamcmd.zip -O -L
+         powershell -Command 'Expand-Archive -LiteralPath ./steamcmd.zip -DestinationPath ./'
+         ./steamcmd.exe +login anonymous +force_install_dir gmod "+app_update 4020 -beta x86-64 validate" +quit || true
      - name: Install GmodDotNet
        shell: bash
        run: |
@@ -73,8 +73,8 @@ jobs:
      - name: Run Garry's Mod
        shell: bash
        run: |
-            powershell -Command './gmod/srcds_win64.exe -console -systemtest -condebug -game "garrysmod" +exec "server.cfg" +gamemode sandbox +map gm_construct +maxplayers 16 +sv_hibernate_think 1'
-            sleep 15
+         powershell -Command './gmod/srcds_win64.exe -console -systemtest -condebug -game "garrysmod" +exec "server.cfg" +gamemode sandbox +map gm_construct +maxplayers 16 +sv_hibernate_think 1'
+         sleep 15
        timeout-minutes: 5
      - name: Print log
        shell: bash
