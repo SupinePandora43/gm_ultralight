@@ -51,13 +51,13 @@ local function run_test()
 	local DrawToSurfaceByLinesStart = SysTime()
 	view:DrawToSurfaceByLines()
 	local DrawToSurfaceByLinesEnd = SysTime()
-	print("DrawToSurfaceByLines: "+DrawToSurfaceByLinesEnd-DrawToSurfaceByLinesStart)
+	print("DrawToSurfaceByLines", DrawToSurfaceByLinesEnd-DrawToSurfaceByLinesStart)
 
 	print("DrawToSurface")
 	local DrawToSurfaceStart = SysTime()
 	view:DrawToSurface()
 	local DrawToSurfaceEnd = SysTime()
-	print("DrawToSurface: "+DrawToSurfaceEnd-DrawToSurfaceStart)
+	print("DrawToSurface", DrawToSurfaceEnd-DrawToSurfaceStart)
 
 	assert(dohavelines)
 
