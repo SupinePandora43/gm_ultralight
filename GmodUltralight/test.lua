@@ -39,8 +39,15 @@ local function run_test()
 	print("Bake")
 	view:Bake();
 	
-	print("ToAscii")
-	print(view:ToAscii())
+	--print("ToAscii")
+	--print(view:ToAscii())
+	local dohavelines = false
+	surface = {}
+	surface.SetDrawColor = function() end
+	surface.DrawRect = function(x,y,w,h) if w~=1 then dohavelines=true end print(x,y,w,h) end
+	view:DrawToSurface()
+
+	print("dohavelines = ", dohavelines)
 
 	print("Dispose")
 	--view:Dispose()
