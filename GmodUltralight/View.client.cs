@@ -90,7 +90,7 @@ namespace GmodUltralight
 
 							if (rects.Count < 1)
 							{
-								rects.Add(new ColoredRect { b = b, g = g, r = r, w = 1, x = x });
+								rects.Add(new ColoredRect { a = a, b = b, g = g, r = r, w = 1, x = x });
 							}
 							else
 							{
