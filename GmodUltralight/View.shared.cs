@@ -264,6 +264,9 @@ namespace GmodUltralight
 				case "DrawSingle":
 					lua.PushManagedFunction(View_DrawSingle);
 					break;
+				case "DrawToSurface":
+					lua.PushManagedFunction(View_DrawToSurface);
+					break;
 				default:
 					/*lua.PushManagedFunction((lua) =>
                     {
