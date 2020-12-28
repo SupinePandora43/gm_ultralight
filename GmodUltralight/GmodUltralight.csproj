@@ -34,9 +34,10 @@
 	</Target>
 
 	<ItemGroup>
-	  <Content Remove="C:\Users\Дом\.nuget\packages\impromptuninjas.ultralightsharp\1.2.0-beta-r11\contentFiles\any\net5.0\UltralightEula.txt" />
-	  <Content Remove="C:\Users\Дом\.nuget\packages\impromptuninjas.ultralightsharp\1.2.0-beta-r11\contentFiles\any\net5.0\UltralightLicense.txt" />
-	  <Content Remove="C:\Users\Дом\.nuget\packages\impromptuninjas.ultralightsharp\1.2.0-beta-r11\contentFiles\any\net5.0\UltralightNotices.txt" />
+		<None Remove="resources/cacert.pem" />
+		<Content Include="resources/cacert.pem">
+			<CopyToPublishDirectory>PreserveNewest</CopyToPublishDirectory>
+		</Content>
 	</ItemGroup>
 	<ItemGroup>
 		<PackageReference Include="GmodNET.API" Version="[0.7.0-beta.2.28828564.master]" />
