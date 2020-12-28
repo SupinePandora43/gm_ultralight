@@ -7,6 +7,7 @@ using System.Threading;
 using GmodNET.API;
 using ImpromptuNinjas.UltralightSharp.Enums;
 using ImpromptuNinjas.UltralightSharp.Safe;
+using Newtonsoft.Json.Linq;
 using String = GmodUltralight.Safe.String;
 
 namespace GmodUltralight
@@ -258,17 +259,22 @@ namespace GmodUltralight
 				case "ToAscii":
 					lua.PushManagedFunction(View_ToAscii);
 					break;
+				case "ToJsonRGBXY":
+					lua.PushManagedFunction(View_ToJsonRGBXY);
+					break;
+				// CLIENT
 				case "DrawDirty":
 					lua.PushManagedFunction(View_DrawDirty);
-					break;
-				case "DrawSingle":
-					lua.PushManagedFunction(View_DrawSingle);
 					break;
 				case "DrawToSurface":
 					lua.PushManagedFunction(View_DrawToSurface);
 					break;
 				case "DrawToSurfaceByLines":
 					lua.PushManagedFunction(View_DrawToSurfaceByLines);
+					break;
+				// SERVER
+				case "DrawSingle":
+					lua.PushManagedFunction(View_DrawSingle);
 					break;
 				default:
 					/*lua.PushManagedFunction((lua) =>
@@ -438,11 +444,56 @@ namespace GmodUltralight
 					}
 				}
 			}
+			catch(Exception e)
+			{
+				Console.WriteLine(e);
+			}
 			finally
 			{
 				bitmap.UnlockPixels();
 			}
 			lua.PushString(stringBuilder.ToString());
+			return 1;
+		}
+		int View_ToJsonRGBXY(ILua lua)
+		{
+			string viewID = (string)GCHandle.FromIntPtr(lua.GetUserType(1, View_TypeId)).Target;
+			View view = views[viewID];
+			Surface surface = view.GetSurface();
+			Bitmap bitmap = surface.GetBitmap();
+
+			JArray pixelArray = new();
+
+			try
+			{
+				unsafe
+				{
+					byte* pixels = (byte*)bitmap.LockPixels();
+					long index = 0;
+					uint height = view.GetHeight();
+					uint width = view.GetWidth();
+					for (uint y = 0; y < height; y++)
+					{
+						for (uint x = 0; x < width; x++)
+						{
+							pixelArray.Add(new JArray(new[] { pixels[index + 2], pixels[index + 1], pixels[index], x, y }));
+
+							index += 4;
+						}
+						index = y * bitmap.GetRowBytes();
+					}
+					pixels = null;
+				}
+			}
+			catch (Exception e)
+			{
+				Console.WriteLine(e);
+			}
+			finally
+			{
+				bitmap.UnlockPixels();
+			}
+			lua.PushString(pixelArray.ToString());
 			return 1;
 		}
 	}

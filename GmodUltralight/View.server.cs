@@ -1,5 +1,6 @@
 ﻿using GmodNET.API;
 using ImpromptuNinjas.UltralightSharp.Safe;
+using System;
 using System.Runtime.InteropServices;
 
 namespace GmodUltralight
@@ -70,6 +71,10 @@ namespace GmodUltralight
 					byte b = pixels[index];
 					SendPixel(lua, a, r, g, b, x, y);
 				}
+			}
+			catch (Exception e)
+			{
+				Console.WriteLine(e);
 			}
 			finally
 			{

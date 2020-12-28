@@ -61,6 +61,14 @@ local function run_test()
 
 	assert(dohavelines)
 
+	local ToJsonRGBXY_start = SysTime()
+	local RGBXY = view:ToJsonRGBXY()
+	local ToJsonRGBXY_end = SysTime()
+
+	print("RGBXY", ToJsonRGBXY_end-ToJsonRGBXY_start)
+
+	print(RGBXY)
+
 	print("Dispose")
 	--view:Dispose()
 	view = null
@@ -74,6 +82,64 @@ end
 run_test()
 print("tests are successful!")
 file.Write("success.txt", "done")
+
+if CLIENT then
+
+	Ultralight = Ultralight or {}
+	function Ultralight.DrawFromDataRGBXY(data)
+		local jsonString = util.Decompress(data)
+		local tblToDraw = util.JSONToTable(jsonString)
+
+		local i = 0
+		local length = #tblToDraw
+        while i < length do
+            i = i +1
+            local obj = tblToDraw[i]
+			surface.SetDrawColor(obj[1],obj[2],obj[3])
+			surface.DrawRect(obj[4],obj[5],1,1)
+        end
+	end
+	-- TODO:
+	function Ultralight.DrawFromDataRGBAXY(data)
+		local jsonString = util.Decompress(data)
+		local tblToDraw = util.JSONToTable(jsonString)
+
+		local i = 0
+		local length = #tblToDraw
+        while i < length do
+            i = i +1
+            local obj = tblToDraw[i]
+			surface.SetDrawColor(obj[1],obj[2],obj[3],obj[4])
+			surface.DrawRect(obj[5],obj[6],1,1)
+        end
+	end
+	function Ultralight.DrawFromDataRGBXYWH(data)
+		local jsonString = util.Decompress(data)
+		local tblToDraw = util.JSONToTable(jsonString)
+
+		local i = 0
+		local length = #tblToDraw
+        while i < length do
+            i = i +1
+            local obj = tblToDraw[i]
+			surface.SetDrawColor(obj[1],obj[2],obj[3])
+			surface.DrawRect(obj[4],obj[5],obj[6],obj[7])
+        end
+	end
+	function Ultralight.DrawFromDataRGBAXYWH(data)
+		local jsonString = util.Decompress(data)
+		local tblToDraw = util.JSONToTable(jsonString)
+
+		local i = 0
+		local length = #tblToDraw
+        while i < length do
+            i = i +1
+            local obj = tblToDraw[i]
+			surface.SetDrawColor(obj[1],obj[2],obj[3],obj[4])
+			surface.DrawRect(obj[5],obj[6],obj[7],obj[8])
+        end
+	end
+end
 
 --Ultralight.View_SV_DrawDirty(view)
 
