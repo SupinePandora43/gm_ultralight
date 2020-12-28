@@ -44,7 +44,7 @@ local function run_test()
 	
 	local dohavelines = false
 	surface = {}
-	surface.SetDrawColor = function() end
+	surface.SetDrawColor = function(r,g,b,a) end
 	surface.DrawRect = function(x,y,w,h) if w~=1 then dohavelines=true end end
 
 	print("DrawToSurfaceByLines")
