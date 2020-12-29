@@ -443,7 +443,7 @@ namespace GmodUltralight
 					}
 				}
 			}
-			catch(Exception e)
+			catch (Exception e)
 			{
 				Console.WriteLine(e);
 			}

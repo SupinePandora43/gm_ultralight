@@ -1,93 +1,86 @@
 ﻿hook.Add("Tick", "CloseServer", engine.CloseServer)
 -- load GmodDotNet
 require("dotnet")
+
+local function test(name, fn)
+	local testStart = SysTime()
+	local result = fn()
+	local testEnd = SysTime()
+
+	print(name+" ("+(testEnd-testStart)+")")
+
+	return result
+end
+
 -- test function
 local function run_test()
-	print("Running test")
-
-	local module_loaded = dotnet.load("GmodUltralight")
-	assert(module_loaded==true)
+	assert(test("Load", function()
+		return dotnet.load("GmodUltralight")
+	end))
 	---------------------------------------------------
 	PrintTable(Ultralight)
 
-	print("Creating View")
+	view = view or test("CreateView", function()
+		return Ultralight.CreateView(512,512,false)
+	end)
 	
-	view = view || Ultralight.CreateView(1024,1024,false)
+	test("LoadURL", function()
+		view:LoadURL("https://supinepandora43.github.io/electron-app/")
+	end)
 	
-	print(view)
+	assert(test("UpdateUntilLoads", function()
+		return view:UpdateUntilLoads(view)
+	end))
 	
-	print("LoadURL")
-	view:LoadURL("https://supinepandora43.github.io/electron-app/")
+	test("Render", function()
+		Ultralight.Render()
+	end)
 	
-	print("Loading URL")
-	local loaded = view:UpdateUntilLoads(view)
-	print(loaded)
-	
-	print("Render")
-	Ultralight.Render()
-	
-	print("GetPixel")
-	local a,r,g,b = view:GetPixel(0,0)
-	print(a)
-	print(r)
-	print(g)
-	print(b)
-	
-	--print("FireScrollEvent")
-	--view:FireScrollEvent(1,0,1)
+	test("GetPixel", function()
+		return view:GetPixel(0,0)
+	end)
 
-	print("Bake")
-	view:Bake("bake");
-	
-	--print("ToAscii")
-	--print(view:ToAscii())
+	test("Bake", function()
+		view:Bake("bake");
+	end)
 	
 	local dohavelines = false
+
 	surface = {}
 	surface.SetDrawColor = function(r,g,b,a) end
 	surface.DrawRect = function(x,y,w,h) if w~=1 then dohavelines=true end end
 
-	print("DrawToSurfaceByLines")
-	local DrawToSurfaceByLinesStart = SysTime()
-	view:DrawToSurfaceByLines()
-	local DrawToSurfaceByLinesEnd = SysTime()
-	print("DrawToSurfaceByLines", DrawToSurfaceByLinesEnd-DrawToSurfaceByLinesStart)
+	test("DrawToSurfaceByLines", function()
+		view:DrawToSurfaceByLines()
+	end)
 
-	print("DrawToSurface")
-	local DrawToSurfaceStart = SysTime()
-	view:DrawToSurface()
-	local DrawToSurfaceEnd = SysTime()
-	print("DrawToSurface", DrawToSurfaceEnd-DrawToSurfaceStart)
+	test("DrawToSurface", function()
+		view:DrawToSurface()
+	end)
+	
+	test("ToJsonRGBXY", function()
+		view:ToJsonRGBXY()
+	end)
 
-	Ultralight.Update()
-	Ultralight.Update()
+	test("FireKeyEvent", function()
+		view:FireKeyEvent(Ultralight.KeyEventType.Char, "a", "a")
+	end)
 
-	--view:FireKeyEvent(Ultralight.KeyCode.GK_W)
-	view:FireKeyEvent(Ultralight.KeyEventType.Char, "a", "a")
+	test("FireScrollEvent", function()
+		view:FireScrollEvent(1,0,1)
+	end)
 
-	Ultralight.Update()
-	Ultralight.Update()
 
-	view:Bake("akey");
-
-	local ToJsonRGBXY_start = SysTime()
-	local RGBXY = view:ToJsonRGBXY()
-	local ToJsonRGBXY_end = SysTime()
-
-	print("RGBXY", ToJsonRGBXY_end-ToJsonRGBXY_start)
-
-	print(RGBXY)
+	test("null", function()
+		view = null
+		collectgarbage()
+	end)
 
 	assert(dohavelines)
-
-	print("Dispose")
-	--view:Dispose()
-	view = null
-	collectgarbage()
-
 	---------------------------------------------------
-    local module_unloaded = dotnet.unload("GmodUltralight")
-	assert(module_unloaded==true)
+    assert(test("Unload", function()
+		return dotnet.unload("GmodUltralight")
+	end))
 end
 
 run_test()

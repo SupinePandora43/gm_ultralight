@@ -42,13 +42,12 @@ jobs:
       timeout-minutes: 5
     - name: Print log
       run: cat gmod/garrysmod/console.log
-    - name: Upload a akey artifact 
+    - name: Upload artifact 
       uses: actions/upload-artifact@v2
       with:
-        name: akey
-        path: ./gmod/garrysmod/materials/ultralight/akey.png
+        name: bake
+        path: ./gmod/garrysmod/materials/ultralight/bake.png
         retention-days: 10
-        if-no-files-found: warn
     - name: Tests successfull?
       uses: andstor/file-existence-action@v1
       with:
