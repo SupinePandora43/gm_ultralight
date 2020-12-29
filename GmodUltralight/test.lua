@@ -23,7 +23,7 @@ local function run_test()
 	PrintTable(Ultralight)
 
 	view = view or test("CreateView", function()
-		return Ultralight.CreateView(512,512,false)
+		return Ultralight.CreateView(4096,4096,false)
 	end)
 	
 	test("LoadURL", function()
