@@ -35,11 +35,11 @@ jobs:
       run: dotnet publish GmodUltralight/GmodUltralight.csproj --configuration Release --framework net5.0 -o ./gmod/garrysmod/lua/bin/Modules/GmodUltralight
     - name: Copy test.lua
       run: cp GmodUltralight/test.lua ./gmod/garrysmod/lua/autorun
-      continue-on-error: true
     - name: Run Garry's Mod
       run: ./srcds_run_x64 -game garrysmod -systemtest -condebug +sv_hibernate_think 1 || true
       working-directory: ./gmod/
       timeout-minutes: 5
+      continue-on-error: true
     - name: Print log
       run: cat gmod/garrysmod/console.log
     - name: Upload artifact 
