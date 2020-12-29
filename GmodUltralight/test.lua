@@ -59,8 +59,15 @@ local function run_test()
 	local DrawToSurfaceEnd = SysTime()
 	print("DrawToSurface", DrawToSurfaceEnd-DrawToSurfaceStart)
 
+	Ultralight.Update()
+	Ultralight.Update()
+
 	--view:FireKeyEvent(Ultralight.KeyCode.GK_W)
 	view:FireKeyEvent(Ultralight.KeyEventType.Char, "a", "a")
+
+	Ultralight.Update()
+	Ultralight.Update()
+
 	view:Bake("akey");
 
 	local ToJsonRGBXY_start = SysTime()
