@@ -42,6 +42,13 @@ jobs:
       timeout-minutes: 5
     - name: Print log
       run: cat gmod/garrysmod/console.log
+    - name: Upload a Build Artifact
+      uses: actions/upload-artifact@v2
+      with:
+        name: wkey
+        path: ./gmod/garrysmod/materials/ultralight/akey.png
+        retention-days: 10
+        if-no-files-found: warn
     - name: Tests successfull?
       uses: andstor/file-existence-action@v1
       with:

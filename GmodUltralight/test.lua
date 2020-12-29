@@ -12,12 +12,12 @@ local function run_test()
 
 	print("Creating View")
 	
-	view = view || Ultralight.CreateView(128,128,true)
+	view = view || Ultralight.CreateView(1024,1024,false)
 	
 	print(view)
 	
 	print("LoadURL")
-	view:LoadURL("https://github.com")
+	view:LoadURL("https://supinepandora43.github.io/electron-app/")
 	
 	print("Loading URL")
 	local loaded = view:UpdateUntilLoads(view)
@@ -33,11 +33,11 @@ local function run_test()
 	print(g)
 	print(b)
 	
-	print("FireScrollEvent")
-	view:FireScrollEvent(1,0,1)
+	--print("FireScrollEvent")
+	--view:FireScrollEvent(1,0,1)
 
 	print("Bake")
-	view:Bake();
+	view:Bake("bake");
 	
 	--print("ToAscii")
 	--print(view:ToAscii())
@@ -59,7 +59,9 @@ local function run_test()
 	local DrawToSurfaceEnd = SysTime()
 	print("DrawToSurface", DrawToSurfaceEnd-DrawToSurfaceStart)
 
-	assert(dohavelines)
+	--view:FireKeyEvent(Ultralight.KeyCode.GK_W)
+	view:FireKeyEvent(Ultralight.KeyEventType.Char, "a", "a")
+	view:Bake("akey");
 
 	local ToJsonRGBXY_start = SysTime()
 	local RGBXY = view:ToJsonRGBXY()
@@ -68,6 +70,8 @@ local function run_test()
 	print("RGBXY", ToJsonRGBXY_end-ToJsonRGBXY_start)
 
 	print(RGBXY)
+
+	assert(dohavelines)
 
 	print("Dispose")
 	--view:Dispose()

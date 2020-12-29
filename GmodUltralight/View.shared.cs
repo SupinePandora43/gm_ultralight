@@ -72,7 +72,6 @@ namespace GmodUltralight
 				else
 				{
 					Console.WriteLine("Can't find gchandle in handles");
-					Console.Error.WriteLine("Can't find gchandle in handles");
 				}
 				gchandle.Free();
 				Console.WriteLine($"[UL] ({viewID}): handle released");

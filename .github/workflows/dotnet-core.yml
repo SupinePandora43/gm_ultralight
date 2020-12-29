@@ -1,4 +1,4 @@
-name: .NET Core
+﻿name: .NET Core
 
 on:
   push:
@@ -32,7 +32,7 @@ jobs:
     - name: Build
       run: dotnet publish GmodUltralight.sln --configuration ${{matrix.configuration}} --framework net5.0
     - name: Upload a Build Artifact
-      uses: actions/upload-artifact@v2.2.1
+      uses: actions/upload-artifact@v2
       with:
         name: GmodUltralight ${{matrix.os}} ${{matrix.configuration}}
         path: "GmodUltralight/bin/${{matrix.configuration}}/net5.0/${{matrix.platformIdentifier}}/publish/*"
