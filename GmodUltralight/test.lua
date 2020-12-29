@@ -9,7 +9,7 @@ local function test(name, fn)
 
 	local time = testEnd-testStart
 
-	print(name+" ("+ tostring(time) + ")")
+	print(name.." ("..tostring(time)..")")
 
 	return result
 end
