@@ -7,7 +7,9 @@ local function test(name, fn)
 	local result = fn()
 	local testEnd = SysTime()
 
-	print(name+" ("+(testEnd-testStart)+")")
+	local time = testEnd-testStart
+
+	print(name+" ("+ tostring(time) + ")")
 
 	return result
 end
