@@ -59,22 +59,6 @@ local function run_test()
 	test("DrawToSurface", function()
 		view:DrawToSurface()
 	end)
-	
-	--[[test("ToJsonRGBXY", function()
-		view:ToJsonRGBXY()
-	end)]]
-
-	local ToJsonRGBXYW = test("ToJsonRGBXYW", function()
-		return view:ToJsonRGBXYW()
-	end)
-
-	local ToJsonRGBXYW_net5_ColoredRect = test("ToJsonRGBXYW_net5_ColoredRect", function()
-		return view:ToJsonRGBXYW_net5_ColoredRect()
-	end)
-
-	local ToJsonRGBXYW_net5_Array = test("ToJsonRGBXYW_net5_Array", function()
-		return view:ToJsonRGBXYW_net5_Array()
-	end)
 
 	test("FireKeyEvent", function()
 		view:FireKeyEvent(Ultralight.KeyEventType.Char, "a", "a")
@@ -83,10 +67,6 @@ local function run_test()
 	test("FireScrollEvent", function()
 		view:FireScrollEvent(1,0,1)
 	end)
-
-	print(ToJsonRGBXYW)
-	print(ToJsonRGBXYW_net5_ColoredRect)
-	print(ToJsonRGBXYW_net5_Array)
 
 	test("null", function()
 		view = null
@@ -105,61 +85,7 @@ print("tests are successful!")
 file.Write("success.txt", "done")
 
 if CLIENT then
-
 	Ultralight = Ultralight or {}
-	function Ultralight.DrawFromDataRGBXY(data)
-		local jsonString = util.Decompress(data)
-		local tblToDraw = util.JSONToTable(jsonString)
-
-		local i = 0
-		local length = #tblToDraw
-        while i < length do
-            i = i +1
-            local obj = tblToDraw[i]
-			surface.SetDrawColor(obj[1],obj[2],obj[3])
-			surface.DrawRect(obj[4],obj[5],1,1)
-        end
-	end
-	-- TODO:
-	function Ultralight.DrawFromDataRGBAXY(data)
-		local jsonString = util.Decompress(data)
-		local tblToDraw = util.JSONToTable(jsonString)
-
-		local i = 0
-		local length = #tblToDraw
-        while i < length do
-            i = i +1
-            local obj = tblToDraw[i]
-			surface.SetDrawColor(obj[1],obj[2],obj[3],obj[4])
-			surface.DrawRect(obj[5],obj[6],1,1)
-        end
-	end
-	function Ultralight.DrawFromDataRGBXYW(data)
-		local jsonString = util.Decompress(data)
-		local tblToDraw = util.JSONToTable(jsonString)
-
-		local i = 0
-		local length = #tblToDraw
-        while i < length do
-            i = i +1
-            local obj = tblToDraw[i]
-			surface.SetDrawColor(obj[1],obj[2],obj[3])
-			surface.DrawRect(obj[4],obj[5],obj[6],1)
-        end
-	end
-	function Ultralight.DrawFromDataRGBAXYW(data)
-		local jsonString = util.Decompress(data)
-		local tblToDraw = util.JSONToTable(jsonString)
-
-		local i = 0
-		local length = #tblToDraw
-        while i < length do
-            i = i +1
-            local obj = tblToDraw[i]
-			surface.SetDrawColor(obj[1],obj[2],obj[3],obj[4])
-			surface.DrawRect(obj[5],obj[6],obj[7],1)
-        end
-	end
 end
 
 --Ultralight.View_SV_DrawDirty(view)
