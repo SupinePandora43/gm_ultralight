@@ -94,4 +94,4 @@ jobs:
        uses: andstor/file-existence-action@v1
        with:
          files: "gmod/garrysmod/data/success.txt"
-         allow_failure: false
+         allow_failure: true
