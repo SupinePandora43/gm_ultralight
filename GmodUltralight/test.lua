@@ -22,7 +22,7 @@ local function run_test()
 	---------------------------------------------------
 	PrintTable(Ultralight)
 
-	view = view or test("CreateView", function()
+	local view = test("CreateView", function()
 		return Ultralight.CreateView(4096,4096,false)
 	end)
 	
