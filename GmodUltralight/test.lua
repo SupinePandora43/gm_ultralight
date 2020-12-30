@@ -60,9 +60,9 @@ local function run_test()
 		view:DrawToSurface()
 	end)
 	
-	test("ToJsonRGBXY", function()
+	--[[test("ToJsonRGBXY", function()
 		view:ToJsonRGBXY()
-	end)
+	end)]]
 
 	test("FireKeyEvent", function()
 		view:FireKeyEvent(Ultralight.KeyEventType.Char, "a", "a")
