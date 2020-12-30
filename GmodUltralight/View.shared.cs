@@ -602,7 +602,7 @@ namespace GmodUltralight
 			return 1;
 		}
 
-		class ColoredRect_RGB_XY_W
+		public class ColoredRect_RGB_XY_W
 		{
 			public byte r, g, b;
 			public uint x, y, w;
