@@ -646,7 +646,7 @@ namespace GmodUltralight
 							{
 								if (x + 1 >= width)
 								{
-									pixelArray.Add(new ColoredRect_RGB_XY_W { r = r, g = g, b = b, x = x, y = y, w = 1 });
+									pixelArray.Add(new ColoredRect_RGB_XY_W() { r = r, g = g, b = b, x = x, y = y, w = 1 });
 								}
 								else
 								{
@@ -666,15 +666,15 @@ namespace GmodUltralight
 									rect_width++;
 									if (x + 1 >= width)
 									{
-										pixelArray.Add(new ColoredRect_RGB_XY_W { r = _r, g = _g, b = _b, x = rect_x, y = y, w = rect_width });
+										pixelArray.Add(new ColoredRect_RGB_XY_W() { r = _r, g = _g, b = _b, x = rect_x, y = y, w = rect_width });
 									}
 								}
 								else
 								{
-									pixelArray.Add(new ColoredRect_RGB_XY_W { r = _r, g = _g, b = _b, x = rect_x, y = y, w = rect_width });
+									pixelArray.Add(new ColoredRect_RGB_XY_W() { r = _r, g = _g, b = _b, x = rect_x, y = y, w = rect_width });
 									if (x + 1 >= width)
 									{
-										pixelArray.Add(new ColoredRect_RGB_XY_W { r = r, g = g, b = b, x = x, y = y, w = 1 });
+										pixelArray.Add(new ColoredRect_RGB_XY_W() { r = r, g = g, b = b, x = x, y = y, w = 1 });
 									}
 									else
 									{
