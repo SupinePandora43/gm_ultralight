@@ -703,7 +703,7 @@ namespace GmodUltralight
 				bitmap.UnlockPixels();
 			}
 
-			lua.PushString(System.Text.Json.JsonSerializer.Serialize(pixelArray));
+			lua.PushString(System.Text.Json.JsonSerializer.Serialize(pixelArray.ToArray()));
 			return 1;
 		}
 		int View_ToJsonRGBXYW_net5_Array(ILua lua)
