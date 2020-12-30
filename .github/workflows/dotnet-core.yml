@@ -13,7 +13,6 @@ jobs:
       fail-fast: false
       matrix:
         os: [ubuntu, windows, macos]
-        configuration: [Release, Debug]
         include:
           - os: ubuntu
             platformIdentifier: linux-x64
@@ -30,10 +29,10 @@ jobs:
     - name: Install dependencies
       run: dotnet restore GmodUltralight.sln
     - name: Build
-      run: dotnet publish GmodUltralight.sln --configuration ${{matrix.configuration}} --framework net5.0
+      run: dotnet publish GmodUltralight.sln --configuration Release --framework net5.0
     - name: Upload a Build Artifact
       uses: actions/upload-artifact@v2
       with:
         name: GmodUltralight ${{matrix.os}} ${{matrix.configuration}}
-        path: "GmodUltralight/bin/${{matrix.configuration}}/net5.0/${{matrix.platformIdentifier}}/publish/*"
+        path: "GmodUltralight/bin/Release/net5.0/${{matrix.platformIdentifier}}/publish/*"
         retention-days: 10
