@@ -110,7 +110,6 @@ namespace GmodUltralight
 			{
 				bitmap.UnlockPixels();
 			}
-			lua.Pop();
 			return 0;
 		}
 		int View_DrawToSurfaceByLines(ILua lua)
@@ -250,7 +249,6 @@ namespace GmodUltralight
 			{
 				bitmap.UnlockPixels();
 			}
-			lua.Pop();
 			return 0;
 		}
 	}

@@ -64,6 +64,18 @@ local function run_test()
 		view:ToJsonRGBXY()
 	end)]]
 
+	local ToJsonRGBXYW = test("ToJsonRGBXYW", function()
+		return view:ToJsonRGBXYW()
+	end)
+
+	local ToJsonRGBXYW_net5_ColoredRect = test("ToJsonRGBXYW_net5_ColoredRect", function()
+		return view:ToJsonRGBXYW_net5_ColoredRect()
+	end)
+
+	local ToJsonRGBXYW_net5_Array = test("ToJsonRGBXYW_net5_Array", function()
+		return view:ToJsonRGBXYW_net5_Array()
+	end)
+
 	test("FireKeyEvent", function()
 		view:FireKeyEvent(Ultralight.KeyEventType.Char, "a", "a")
 	end)
@@ -72,6 +84,9 @@ local function run_test()
 		view:FireScrollEvent(1,0,1)
 	end)
 
+	print(ToJsonRGBXYW)
+	print(ToJsonRGBXYW_net5_ColoredRect)
+	print(ToJsonRGBXYW_net5_Array)
 
 	test("null", function()
 		view = null
@@ -119,7 +134,7 @@ if CLIENT then
 			surface.DrawRect(obj[5],obj[6],1,1)
         end
 	end
-	function Ultralight.DrawFromDataRGBXYWH(data)
+	function Ultralight.DrawFromDataRGBXYW(data)
 		local jsonString = util.Decompress(data)
 		local tblToDraw = util.JSONToTable(jsonString)
 
@@ -132,7 +147,7 @@ if CLIENT then
 			surface.DrawRect(obj[4],obj[5],obj[6],1)
         end
 	end
-	function Ultralight.DrawFromDataRGBAXYWH(data)
+	function Ultralight.DrawFromDataRGBAXYW(data)
 		local jsonString = util.Decompress(data)
 		local tblToDraw = util.JSONToTable(jsonString)
 
