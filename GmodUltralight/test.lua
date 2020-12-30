@@ -129,7 +129,7 @@ if CLIENT then
             i = i +1
             local obj = tblToDraw[i]
 			surface.SetDrawColor(obj[1],obj[2],obj[3])
-			surface.DrawRect(obj[4],obj[5],obj[6],obj[7])
+			surface.DrawRect(obj[4],obj[5],obj[6],1)
         end
 	end
 	function Ultralight.DrawFromDataRGBAXYWH(data)
@@ -142,7 +142,7 @@ if CLIENT then
             i = i +1
             local obj = tblToDraw[i]
 			surface.SetDrawColor(obj[1],obj[2],obj[3],obj[4])
-			surface.DrawRect(obj[5],obj[6],obj[7],obj[8])
+			surface.DrawRect(obj[5],obj[6],obj[7],1)
         end
 	end
 end
