@@ -38,7 +38,7 @@ jobs:
     - name: Run Garry's Mod
       run: ./srcds_run_x64 -game garrysmod -systemtest -condebug +sv_hibernate_think 1 || true
       working-directory: ./gmod/
-      timeout-minutes: 5
+      timeout-minutes: 10
       continue-on-error: true
     - name: Print log
       run: cat gmod/garrysmod/console.log
@@ -83,8 +83,9 @@ jobs:
        shell: bash
        run: |
          powershell -Command './gmod/srcds_win64.exe -console -systemtest -condebug -game "garrysmod" +exec "server.cfg" +gamemode sandbox +map gm_construct +maxplayers 16 +sv_hibernate_think 1'
-         sleep 30
-       timeout-minutes: 5
+         powershell -Command 'Wait-Process -Name srcds_win64'
+       timeout-minutes: 10
+       continue-on-error: true
      - name: Print log
        shell: bash
        run: cat gmod/garrysmod/console.log
@@ -93,4 +94,4 @@ jobs:
        uses: andstor/file-existence-action@v1
        with:
          files: "gmod/garrysmod/data/success.txt"
-         allow_failure: true
+         allow_failure: false
