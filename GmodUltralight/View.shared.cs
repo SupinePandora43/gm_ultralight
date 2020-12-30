@@ -540,7 +540,7 @@ namespace GmodUltralight
 							{
 								if (x + 1 >= width)
 								{
-									pixelArray.Add(new uint[] { r, g, b, x, y, 1 });
+									pixelArray.Add(new JArray(new uint[] { r, g, b, x, y, 1 }));
 								}
 								else
 								{
@@ -560,15 +560,15 @@ namespace GmodUltralight
 									rect_width++;
 									if (x + 1 >= width)
 									{
-										pixelArray.Add(new uint[] { _r, _g, _b, rect_x, y, rect_width });
+										pixelArray.Add(new JArray(new uint[] { _r, _g, _b, rect_x, y, rect_width }));
 									}
 								}
 								else
 								{
-									pixelArray.Add(new uint[] { _r, _g, _b, rect_x, y, rect_width });
+									pixelArray.Add(new JArray(new uint[] { _r, _g, _b, rect_x, y, rect_width }));
 									if (x + 1 >= width)
 									{
-										pixelArray.Add(new uint[] { r, g, b, x, y, 1 });
+										pixelArray.Add(new JArray(new uint[] { r, g, b, x, y, 1 }));
 									}
 									else
 									{
