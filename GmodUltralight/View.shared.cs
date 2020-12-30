@@ -237,13 +237,8 @@ namespace GmodUltralight
 						{
 							bitmap.SwapRedBlueChannels();
 						}
-						lua.PushSpecial(SPECIAL_TABLES.SPECIAL_GLOB);
-						lua.GetField(-1, "resource");
-						lua.GetField(-1, "AddSingleFile");
 						lua.PushString($"materials/ultralight/{nameForSave}.png");
-						lua.MCall(1, 0);
-						lua.Pop();
-						return 0;
+						return 1;
 					});
 					break;
 				case "FireMouseEvent":
