@@ -82,7 +82,7 @@ local function run_test()
 	---------------------------------------------------
     assert(test("Unload", function()
 		return dotnet.unload("GmodUltralight")
-	end))
+	end)==true)
 end
 
 run_test()
